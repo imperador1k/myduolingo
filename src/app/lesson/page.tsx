@@ -22,6 +22,8 @@ const LessonPage = async ({ searchParams }: Props) => {
             initialLesson={lessonData}
             initialHearts={userProgress.hearts}
             initialPoints={userProgress.points}
+            xpBoostLessons={userProgress.xpBoostLessons || 0}
+            heartShields={userProgress.heartShields || 0}
         />
     );
 };

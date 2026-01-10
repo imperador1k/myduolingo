@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, X } from "lucide-react";
+import { Heart, X, Zap, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { onChallengeComplete, onChallengeWrong } from "@/actions/user-progress";
+import { onChallengeComplete, onChallengeWrong, onLessonComplete } from "@/actions/user-progress";
 
 // Types
 type ChallengeOption = {
@@ -35,6 +35,8 @@ type Props = {
     initialLesson: Lesson;
     initialHearts: number;
     initialPoints: number;
+    xpBoostLessons: number;
+    heartShields: number;
 };
 
 // Progress Bar Component
@@ -111,7 +113,9 @@ const ChallengeOptionCard = ({
 export const LessonClient = ({
     initialLesson,
     initialHearts,
-    initialPoints
+    initialPoints,
+    xpBoostLessons,
+    heartShields
 }: Props) => {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
@@ -179,12 +183,15 @@ export const LessonClient = ({
         if (selectedOpt?.correct) {
             setStatus("correct");
             playSound("correct");
-            setPoints((prev) => prev + 10);
             setCorrectCount((prev) => prev + 1);
-            setXpGained((prev) => prev + 10);
 
             startTransition(() => {
-                onChallengeComplete(currentChallenge.id);
+                onChallengeComplete(currentChallenge.id).then((result) => {
+                    // Use XP from server (10 normal, 20 with boost)
+                    const xp = result.xpGained || 10;
+                    setPoints((prev) => prev + xp);
+                    setXpGained((prev) => prev + xp);
+                });
             });
         } else {
             setStatus("wrong");
@@ -193,7 +200,10 @@ export const LessonClient = ({
 
             startTransition(() => {
                 onChallengeWrong().then((result) => {
-                    if (result.hearts !== undefined) {
+                    if (result.shieldUsed) {
+                        // Shield protected - don't lose heart, show message
+                        // Hearts stay the same, we don't increment heartsLost
+                    } else if (result.hearts !== undefined) {
                         setHearts(result.hearts);
                         setHeartsLost((prev) => prev + 1);
                     }
@@ -280,7 +290,17 @@ export const LessonClient = ({
                         variant="super"
                         size="lg"
                         className="w-full"
-                        onClick={() => router.push("/learn")}
+                        onClick={() => {
+                            if (isSuccess) {
+                                startTransition(() => {
+                                    onLessonComplete().then(() => {
+                                        router.push("/learn");
+                                    });
+                                });
+                            } else {
+                                router.push("/learn");
+                            }
+                        }}
                     >
                         Continuar
                     </Button>
@@ -396,7 +416,26 @@ export const LessonClient = ({
                     <div className="flex-1">
                         <ProgressBar value={progress} />
                     </div>
-                    <Hearts hearts={hearts} />
+
+                    <div className="flex items-center gap-4">
+                        {/* XP Boost Indicator */}
+                        {xpBoostLessons > 0 && (
+                            <div className="flex items-center gap-2 rounded-xl border-2 border-purple-200 bg-purple-100 px-4 py-2 text-purple-600">
+                                <Zap className="h-5 w-5 fill-current" />
+                                <span className="font-bold">{xpBoostLessons}</span>
+                            </div>
+                        )}
+
+                        {/* Heart Shield Indicator */}
+                        {heartShields > 0 && (
+                            <div className="flex items-center gap-2 rounded-xl border-2 border-sky-200 bg-sky-100 px-4 py-2 text-sky-600">
+                                <Shield className="h-5 w-5 fill-current" />
+                                <span className="font-bold">{heartShields}</span>
+                            </div>
+                        )}
+
+                        <Hearts hearts={hearts} />
+                    </div>
                 </header>
 
                 {/* Main content */}

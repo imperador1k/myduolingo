@@ -1,42 +1,44 @@
+
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
-import { SignOutButton } from "@clerk/nextjs";
-import { getUserProgress, getUnits } from "@/db/queries";
+import { getUserProgressById, getUnitsForUser, isFollowingUser } from "@/db/queries";
 import { ACHIEVEMENTS, Achievement } from "@/constants/achievements";
-import { Button } from "@/components/ui/button";
 import {
-    Settings,
-    LogOut,
     Flame,
     Target,
     Heart,
     Zap,
-    ChevronRight
+    UserPlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { FollowButton } from "@/components/follow-button";
+import { MessageForm } from "@/components/message-form";
 
-export default async function ProfilePage() {
-    const user = await currentUser();
-    const userProgress = await getUserProgress();
-    const units = await getUnits();
+interface Props {
+    params: {
+        userId: string;
+    };
+}
 
-    if (!user || !userProgress) {
-        redirect("/courses");
+export default async function PublicProfilePage({ params }: Props) {
+    const userProgress = await getUserProgressById(params.userId);
+    const units = await getUnitsForUser(params.userId);
+    const isFollowing = await isFollowingUser(params.userId);
+
+    if (!userProgress) {
+        redirect("/leaderboard");
     }
 
     // Calculate total lessons completed
-    let totalLessons = 0;
     let completedLessons = 0;
     units.forEach(unit => {
         unit.lessons.forEach(lesson => {
-            totalLessons++;
             if (lesson.completed) completedLessons++;
         });
     });
 
     const streak = userProgress.streak || 0;
-    const longestStreak = userProgress.longestStreak || 0;
+    // const longestStreak = userProgress.longestStreak || 0; // Not used in stats grid currently
     const totalXpEarned = userProgress.totalXpEarned || userProgress.points || 0;
 
     const stats = [
@@ -46,7 +48,6 @@ export default async function ProfilePage() {
         { icon: <Heart className="h-6 w-6 text-rose-500" />, value: userProgress.hearts, label: "Corações", color: "bg-rose-50" },
     ];
 
-    // Permanent achievements - once unlocked, never lost!
     const achievements = ACHIEVEMENTS.map((achievement: Achievement) => ({
         ...achievement,
         unlocked: achievement.condition(userProgress),
@@ -59,9 +60,9 @@ export default async function ProfilePage() {
             {/* Profile Header */}
             <div className="mb-8 flex flex-col items-center text-center sm:flex-row sm:text-left">
                 <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-green-100 text-5xl shadow-lg sm:mb-0 sm:mr-6">
-                    {user.imageUrl ? (
+                    {userProgress.userImageSrc ? (
                         <img
-                            src={user.imageUrl}
+                            src={userProgress.userImageSrc}
                             alt="Avatar"
                             className="h-full w-full rounded-full object-cover"
                         />
@@ -71,12 +72,14 @@ export default async function ProfilePage() {
                 </div>
                 <div className="flex-1">
                     <h1 className="text-2xl font-bold text-slate-700">
-                        {user.firstName || user.username || "Estudante"}
+                        {userProgress.userName || "Estudante"}
                     </h1>
-                    <p className="text-slate-500">@{user.username || "estudante"}</p>
-                    <p className="text-sm text-slate-400">
-                        Membro desde {new Date(user.createdAt).toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}
-                    </p>
+                    <p className="text-slate-500">@{userProgress.userName?.toLowerCase().replace(" ", "") || "estudante"}</p>
+
+                    <div className="mt-4 flex flex-col gap-2 w-full max-w-[300px]">
+                        <FollowButton userId={params.userId} isFollowing={isFollowing} />
+                        <MessageForm receiverId={params.userId} />
+                    </div>
                 </div>
             </div>
 
@@ -95,17 +98,6 @@ export default async function ProfilePage() {
                         <p className="text-xs text-slate-500">{stat.label}</p>
                     </div>
                 ))}
-            </div>
-
-            {/* XP Balance */}
-            <div className="mb-8 flex items-center justify-between rounded-xl border-2 border-amber-100 bg-amber-50 p-4">
-                <div>
-                    <p className="text-sm text-amber-600">Saldo de XP</p>
-                    <p className="text-2xl font-bold text-amber-700">{userProgress.points} XP</p>
-                </div>
-                <Link href="/shop">
-                    <Button variant="primary" size="sm">Loja</Button>
-                </Link>
             </div>
 
             {/* Achievements */}
@@ -138,28 +130,6 @@ export default async function ProfilePage() {
                     ))}
                 </div>
             </div>
-
-            {/* Settings */}
-            <Link href="/settings">
-                <Button
-                    variant="ghost"
-                    className="w-full mb-2 text-slate-500 hover:bg-slate-50 hover:text-slate-600"
-                >
-                    <Settings className="mr-2 h-5 w-5" />
-                    Definições
-                </Button>
-            </Link>
-
-            {/* Logout */}
-            <SignOutButton redirectUrl="/">
-                <Button
-                    variant="ghost"
-                    className="w-full text-rose-500 hover:bg-rose-50 hover:text-rose-600"
-                >
-                    <LogOut className="mr-2 h-5 w-5" />
-                    Terminar Sessão
-                </Button>
-            </SignOutButton>
         </div>
     );
 }

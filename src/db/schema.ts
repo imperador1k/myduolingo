@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, boolean, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, pgEnum, date, timestamp } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // Enum for challenge types
@@ -117,14 +117,77 @@ export const userProgress = pgTable("user_progress", {
     userImageSrc: text("user_image_src").notNull().default("/mascot.svg"),
     hearts: integer("hearts").notNull().default(5),
     points: integer("points").notNull().default(0),
+    totalXpEarned: integer("total_xp_earned").notNull().default(0),
     activeCourseId: integer("active_course_id").references(() => courses.id, {
         onDelete: "cascade",
     }),
+    // Streak system
+    streak: integer("streak").notNull().default(0),
+    longestStreak: integer("longest_streak").notNull().default(0),
+    lastStreakDate: date("last_streak_date"),
+    // Power-ups
+    xpBoostLessons: integer("xp_boost_lessons").notNull().default(0),
+    heartShields: integer("heart_shields").notNull().default(0),
+    streakFreezes: integer("streak_freezes").notNull().default(0),
 });
 
 export const userProgressRelations = relations(userProgress, ({ one }) => ({
     activeCourse: one(courses, {
         fields: [userProgress.activeCourseId],
         references: [courses.id],
+    }),
+}));
+
+// ===== SOCIAL =====
+
+export const follows = pgTable("follows", {
+    id: serial("id").primaryKey(),
+    followerId: text("follower_id").notNull(),
+    followingId: text("following_id").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const followsRelations = relations(follows, ({ one }) => ({
+    follower: one(userProgress, {
+        fields: [follows.followerId],
+        references: [userProgress.userId],
+        relationName: "follower"
+    }),
+    following: one(userProgress, {
+        fields: [follows.followingId],
+        references: [userProgress.userId],
+        relationName: "following"
+    }),
+}));
+
+export const notifications = pgTable("notifications", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    type: text("type").notNull(),
+    message: text("message").notNull(),
+    link: text("link"),
+    read: boolean("read").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const messages = pgTable("messages", {
+    id: serial("id").primaryKey(),
+    senderId: text("sender_id").notNull(),
+    receiverId: text("receiver_id").notNull(),
+    content: text("content").notNull(),
+    read: boolean("read").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+    sender: one(userProgress, {
+        fields: [messages.senderId],
+        references: [userProgress.userId],
+        relationName: "sender"
+    }),
+    receiver: one(userProgress, {
+        fields: [messages.receiverId],
+        references: [userProgress.userId],
+        relationName: "receiver"
     }),
 }));

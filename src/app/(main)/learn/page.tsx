@@ -103,21 +103,18 @@ const UnitHeader = ({ title, description }: { title: string; description: string
 );
 
 // Sidebar stats
-const SidebarStats = ({ points, hearts }: { points: number; hearts: number }) => (
+const SidebarStats = ({ points, hearts, streak }: { points: number; hearts: number; streak: number }) => (
     <div className="hidden lg:block lg:w-80">
         <div className="sticky top-6 space-y-4">
-            {/* Upgrade Card */}
-            <div className="rounded-xl border-2 bg-gradient-to-r from-purple-500 to-purple-600 p-4 text-white">
+            {/* Streak Card */}
+            <div className="rounded-xl border-2 border-orange-200 bg-gradient-to-r from-orange-400 to-orange-500 p-4 text-white">
                 <div className="mb-2 flex items-center gap-2">
-                    <Crown className="h-5 w-5 fill-amber-300 text-amber-300" />
-                    <span className="font-bold">Upgrade para Pro</span>
+                    <span className="text-2xl">🔥</span>
+                    <span className="text-3xl font-bold">{streak}</span>
                 </div>
-                <p className="mb-3 text-sm opacity-90">
-                    Corações ilimitados e mais!
+                <p className="text-sm opacity-90">
+                    {streak === 0 ? "Começa a tua streak hoje!" : streak === 1 ? "1 dia de streak!" : `${streak} dias de streak!`}
                 </p>
-                <Button variant="super" size="sm" className="w-full">
-                    Upgrade Hoje
-                </Button>
             </div>
 
             {/* Stats */}
@@ -131,6 +128,10 @@ const SidebarStats = ({ points, hearts }: { points: number; hearts: number }) =>
                     <div className="flex items-center justify-between">
                         <span className="text-slate-600">❤️ Corações</span>
                         <span className="font-bold text-rose-500">{hearts}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-slate-600">🔥 Streak</span>
+                        <span className="font-bold text-orange-500">{streak}</span>
                     </div>
                 </div>
             </div>
@@ -249,7 +250,7 @@ export default async function LearnPage() {
             </div>
 
             {/* Right Sidebar */}
-            <SidebarStats points={userProgress.points} hearts={userProgress.hearts} />
+            <SidebarStats points={userProgress.points} hearts={userProgress.hearts} streak={userProgress.streak || 0} />
         </div>
     );
 }

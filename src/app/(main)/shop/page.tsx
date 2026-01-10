@@ -1,15 +1,13 @@
 import { redirect } from "next/navigation";
-import { currentUser } from "@clerk/nextjs/server";
 import { getUserProgress } from "@/db/queries";
-import { Heart, Zap, Shield, Flame, Clock, Star } from "lucide-react";
+import { Heart, Zap, Shield, Snowflake } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ShopItems } from "./shop-items";
 
 export default async function ShopPage() {
-    const user = await currentUser();
     const userProgress = await getUserProgress();
 
-    if (!user || !userProgress) {
+    if (!userProgress) {
         redirect("/courses");
     }
 
@@ -19,77 +17,59 @@ export default async function ShopPage() {
             <div className="mb-6 flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-700">Loja</h1>
-                    <p className="text-slate-500">Gasta as tuas gemas em power-ups!</p>
+                    <p className="text-slate-500">Gasta o teu XP em power-ups!</p>
                 </div>
-                <div className="flex items-center gap-2 rounded-full bg-sky-100 px-4 py-2">
-                    <span className="text-xl">💎</span>
-                    <span className="font-bold text-sky-600">{userProgress.points}</span>
+                <div className="flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2">
+                    <span className="text-xl">⚡</span>
+                    <span className="font-bold text-amber-600">{userProgress.points} XP</span>
                 </div>
             </div>
 
-            {/* Premium Banner */}
-            <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 p-6 text-white">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="mb-2 text-xl font-bold">Duolingo Super</h2>
-                        <p className="mb-4 text-sm opacity-90">
-                            Corações ilimitados, sem anúncios, e muito mais!
-                        </p>
-                        <button className="rounded-xl bg-amber-400 px-4 py-2 font-bold text-white shadow-md transition hover:bg-amber-500">
-                            Experimenta 7 dias grátis
-                        </button>
-                    </div>
-                    <span className="text-6xl">👑</span>
+            {/* Current Power-ups Status */}
+            <div className="mb-6 grid grid-cols-3 gap-3">
+                <div className="rounded-xl border-2 border-purple-100 bg-purple-50 p-3 text-center">
+                    <Zap className="mx-auto h-6 w-6 text-purple-500" />
+                    <p className="mt-1 text-lg font-bold text-purple-600">{userProgress.xpBoostLessons || 0}</p>
+                    <p className="text-xs text-purple-400">XP Boost</p>
+                </div>
+                <div className="rounded-xl border-2 border-sky-100 bg-sky-50 p-3 text-center">
+                    <Shield className="mx-auto h-6 w-6 text-sky-500" />
+                    <p className="mt-1 text-lg font-bold text-sky-600">{userProgress.heartShields || 0}</p>
+                    <p className="text-xs text-sky-400">Escudos</p>
+                </div>
+                <div className="rounded-xl border-2 border-cyan-100 bg-cyan-50 p-3 text-center">
+                    <Snowflake className="mx-auto h-6 w-6 text-cyan-500" />
+                    <p className="mt-1 text-lg font-bold text-cyan-600">{userProgress.streakFreezes || 0}</p>
+                    <p className="text-xs text-cyan-400">Freezes</p>
                 </div>
             </div>
 
             {/* Hearts Section */}
-            <div className="mb-8">
+            <div className="mb-6">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-slate-600">Os Teus Corações</h2>
+                    <h2 className="text-lg font-bold text-slate-600">❤️ Corações</h2>
                     <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map((i) => (
                             <Heart
                                 key={i}
                                 className={cn(
-                                    "h-6 w-6",
-                                    i <= userProgress.hearts ? "fill-rose-500 text-rose-500" : "text-slate-200"
+                                    "h-5 w-5",
+                                    i <= (userProgress.hearts || 0) ? "fill-rose-500 text-rose-500" : "text-slate-200"
                                 )}
                             />
                         ))}
                     </div>
                 </div>
-
-                <ShopItems
-                    hearts={userProgress.hearts}
-                    points={userProgress.points}
-                />
             </div>
 
-            {/* Power-ups Info */}
-            <h2 className="mb-4 text-lg font-bold text-slate-600">Power-Ups</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="flex flex-col items-center rounded-xl border-2 border-rose-200 bg-rose-50 p-6 text-center">
-                    <Heart className="h-10 w-10 fill-rose-500 text-rose-500" />
-                    <h3 className="mb-1 mt-4 font-bold text-slate-700">Recarga de Corações</h3>
-                    <p className="mb-4 text-sm text-slate-500">Recupera todos os teus corações</p>
-                    <p className="text-xs text-slate-400">Pratica para ganhar grátis!</p>
-                </div>
-
-                <div className="flex flex-col items-center rounded-xl border-2 border-amber-200 bg-amber-50 p-6 text-center">
-                    <Zap className="h-10 w-10 fill-amber-400 text-amber-400" />
-                    <h3 className="mb-1 mt-4 font-bold text-slate-700">Dobro de XP</h3>
-                    <p className="mb-4 text-sm text-slate-500">Ganha XP a dobrar durante 15 minutos</p>
-                    <p className="text-xs text-slate-400">Em breve!</p>
-                </div>
-
-                <div className="flex flex-col items-center rounded-xl border-2 border-sky-200 bg-sky-50 p-6 text-center">
-                    <Shield className="h-10 w-10 fill-sky-500 text-sky-500" />
-                    <h3 className="mb-1 mt-4 font-bold text-slate-700">Congelar Streak</h3>
-                    <p className="mb-4 text-sm text-slate-500">Protege o teu streak por um dia</p>
-                    <p className="text-xs text-slate-400">Em breve!</p>
-                </div>
-            </div>
+            {/* Shop Items */}
+            <ShopItems
+                hearts={userProgress.hearts || 0}
+                points={userProgress.points || 0}
+                xpBoostLessons={userProgress.xpBoostLessons || 0}
+                heartShields={userProgress.heartShields || 0}
+                streakFreezes={userProgress.streakFreezes || 0}
+            />
         </div>
     );
 }

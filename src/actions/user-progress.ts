@@ -9,7 +9,11 @@ import {
     addPoints,
     createUserProgress,
     refillHearts,
-    updateUserInfo
+    buyOneHeart,
+    updateUserInfo,
+    updateStreak,
+    consumeXpBoost,
+    useHeartShield
 } from "@/db/queries";
 
 export const onChallengeComplete = async (challengeId: number) => {
@@ -22,14 +26,48 @@ export const onChallengeComplete = async (challengeId: number) => {
     // Mark challenge as complete
     await upsertChallengeProgress(challengeId);
 
-    // Add 10 XP for correct answer
-    await addPoints(10);
+    // Check for XP boost
+    const userProgressData = await getUserProgress();
+    const hasXpBoost = userProgressData && (userProgressData.xpBoostLessons || 0) > 0;
+
+    // Add XP (10 normal, 20 with boost)
+    const xpAmount = hasXpBoost ? 20 : 10;
+    await addPoints(xpAmount);
+
+    // Update streak (once per day)
+    await updateStreak();
 
     revalidatePath("/learn");
     revalidatePath("/lesson");
     revalidatePath("/leaderboard");
+    revalidatePath("/shop");
 
-    return { success: true };
+    return { success: true, xpGained: xpAmount, boosted: hasXpBoost };
+};
+
+export const onLessonComplete = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const start = Date.now();
+
+    // Check for XP boost
+    const userProgressData = await getUserProgress();
+    const hasXpBoost = userProgressData && (userProgressData.xpBoostLessons || 0) > 0;
+
+    if (hasXpBoost) {
+        // Consume 1 boost lesson only at the END of the lesson
+        await consumeXpBoost();
+    }
+
+    revalidatePath("/learn");
+    revalidatePath("/lesson");
+    revalidatePath("/shop");
+
+    return { success: true, boostConsumed: hasXpBoost };
 };
 
 export const onChallengeWrong = async () => {
@@ -39,13 +77,30 @@ export const onChallengeWrong = async () => {
         throw new Error("Unauthorized");
     }
 
-    // Lose 1 heart for wrong answer
+    // Check for heart shield first
+    const shieldResult = await useHeartShield();
+
+    if (shieldResult.shieldUsed) {
+        // Shield protected the heart!
+        revalidatePath("/learn");
+        revalidatePath("/lesson");
+        revalidatePath("/shop");
+
+        const userProgressData = await getUserProgress();
+        return {
+            hearts: userProgressData?.hearts || 0,
+            shieldUsed: true,
+            shieldsRemaining: shieldResult.shieldsRemaining
+        };
+    }
+
+    // No shield - lose 1 heart
     const result = await reduceHearts();
 
     revalidatePath("/learn");
     revalidatePath("/lesson");
 
-    return result;
+    return { ...result, shieldUsed: false };
 };
 
 export const onSelectCourse = async (courseId: number) => {
@@ -73,6 +128,7 @@ export const onSelectCourse = async (courseId: number) => {
     return { success: true };
 };
 
+// Refill all hearts - costs 100 XP
 export const onRefillHearts = async () => {
     const { userId } = await auth();
 
@@ -80,12 +136,30 @@ export const onRefillHearts = async () => {
         throw new Error("Unauthorized");
     }
 
-    await refillHearts();
+    const result = await refillHearts();
 
     revalidatePath("/learn");
     revalidatePath("/shop");
+    revalidatePath("/profile");
 
-    return { success: true };
+    return result;
+};
+
+// Buy one heart - costs 20 XP
+export const onBuyOneHeart = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const result = await buyOneHeart();
+
+    revalidatePath("/learn");
+    revalidatePath("/shop");
+    revalidatePath("/profile");
+
+    return result;
 };
 
 // Sync user info action (can be called on login)
@@ -107,4 +181,57 @@ export const onSyncUserInfo = async () => {
     revalidatePath("/profile");
 
     return { success: true };
+};
+
+// ============ POWER-UPS ============
+
+import { buyXpBoost, buyHeartShield, buyStreakFreeze } from "@/db/queries";
+
+// Buy XP Boost - 50 XP for 5 lessons with double XP
+export const onBuyXpBoost = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const result = await buyXpBoost();
+
+    revalidatePath("/shop");
+    revalidatePath("/learn");
+    revalidatePath("/lesson");
+
+    return result;
+};
+
+// Buy Heart Shield - 30 XP for 1 shield
+export const onBuyHeartShield = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const result = await buyHeartShield();
+
+    revalidatePath("/shop");
+    revalidatePath("/learn");
+
+    return result;
+};
+
+// Buy Streak Freeze - 40 XP for 1 freeze
+export const onBuyStreakFreeze = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const result = await buyStreakFreeze();
+
+    revalidatePath("/shop");
+    revalidatePath("/learn");
+
+    return result;
 };

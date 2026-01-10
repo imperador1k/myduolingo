@@ -10,6 +10,8 @@ import {
     Trophy,
     ShoppingBag,
     User,
+    Users,
+    Bell
 } from "lucide-react";
 
 type SidebarItemProps = {
@@ -68,6 +70,16 @@ export const Sidebar = () => {
                     label="Classificação"
                     href="/leaderboard"
                     iconSrc={<Trophy className="h-6 w-6" />}
+                />
+                <SidebarItem
+                    label="Amigos"
+                    href="/friends"
+                    iconSrc={<Users className="h-6 w-6" />}
+                />
+                <SidebarItem
+                    label="Notificações"
+                    href="/notifications"
+                    iconSrc={<Bell className="h-6 w-6" />}
                 />
                 <SidebarItem
                     label="Loja"
