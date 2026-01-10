@@ -1,91 +1,18 @@
-"use client";
-
+import { redirect } from "next/navigation";
+import { currentUser } from "@clerk/nextjs/server";
+import { getUserProgress } from "@/db/queries";
 import { Heart, Zap, Shield, Flame, Clock, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ShopItems } from "./shop-items";
 
-type ShopItem = {
-    id: number;
-    icon: React.ReactNode;
-    title: string;
-    description: string;
-    price: number;
-    currency: "gems" | "hearts";
-    color: string;
-};
+export default async function ShopPage() {
+    const user = await currentUser();
+    const userProgress = await getUserProgress();
 
-const shopItems: ShopItem[] = [
-    {
-        id: 1,
-        icon: <Heart className="h-10 w-10 fill-rose-500 text-rose-500" />,
-        title: "Recarga de Corações",
-        description: "Recupera todos os teus corações",
-        price: 350,
-        currency: "gems",
-        color: "bg-rose-50 border-rose-200",
-    },
-    {
-        id: 2,
-        icon: <Zap className="h-10 w-10 fill-amber-400 text-amber-400" />,
-        title: "Dobro de XP (15min)",
-        description: "Ganha XP a dobrar durante 15 minutos",
-        price: 200,
-        currency: "gems",
-        color: "bg-amber-50 border-amber-200",
-    },
-    {
-        id: 3,
-        icon: <Shield className="h-10 w-10 fill-sky-500 text-sky-500" />,
-        title: "Congelar Streak",
-        description: "Protege o teu streak por um dia",
-        price: 200,
-        currency: "gems",
-        color: "bg-sky-50 border-sky-200",
-    },
-    {
-        id: 4,
-        icon: <Flame className="h-10 w-10 fill-orange-500 text-orange-500" />,
-        title: "Recuperar Streak",
-        description: "Restaura um streak perdido",
-        price: 400,
-        currency: "gems",
-        color: "bg-orange-50 border-orange-200",
-    },
-    {
-        id: 5,
-        icon: <Clock className="h-10 w-10 fill-purple-500 text-purple-500" />,
-        title: "Tempo Extra",
-        description: "Mais 30 segundos em exercícios cronometrados",
-        price: 100,
-        currency: "gems",
-        color: "bg-purple-50 border-purple-200",
-    },
-    {
-        id: 6,
-        icon: <Star className="h-10 w-10 fill-green-500 text-green-500" />,
-        title: "Lição Bónus",
-        description: "Desbloqueia uma lição especial",
-        price: 500,
-        currency: "gems",
-        color: "bg-green-50 border-green-200",
-    },
-];
+    if (!user || !userProgress) {
+        redirect("/courses");
+    }
 
-const ShopItemCard = ({ item }: { item: ShopItem }) => (
-    <div className={cn(
-        "flex flex-col items-center rounded-xl border-2 p-6 text-center transition-all hover:shadow-md",
-        item.color
-    )}>
-        <div className="mb-4">{item.icon}</div>
-        <h3 className="mb-1 font-bold text-slate-700">{item.title}</h3>
-        <p className="mb-4 text-sm text-slate-500">{item.description}</p>
-        <Button variant="secondary" size="sm" className="w-full">
-            <span className="mr-1">💎</span> {item.price}
-        </Button>
-    </div>
-);
-
-export default function ShopPage() {
     return (
         <div className="pb-12">
             {/* Header */}
@@ -96,7 +23,7 @@ export default function ShopPage() {
                 </div>
                 <div className="flex items-center gap-2 rounded-full bg-sky-100 px-4 py-2">
                     <span className="text-xl">💎</span>
-                    <span className="font-bold text-sky-600">1,250</span>
+                    <span className="font-bold text-sky-600">{userProgress.points}</span>
                 </div>
             </div>
 
@@ -108,9 +35,9 @@ export default function ShopPage() {
                         <p className="mb-4 text-sm opacity-90">
                             Corações ilimitados, sem anúncios, e muito mais!
                         </p>
-                        <Button variant="super" size="sm">
+                        <button className="rounded-xl bg-amber-400 px-4 py-2 font-bold text-white shadow-md transition hover:bg-amber-500">
                             Experimenta 7 dias grátis
-                        </Button>
+                        </button>
                     </div>
                     <span className="text-6xl">👑</span>
                 </div>
@@ -126,31 +53,42 @@ export default function ShopPage() {
                                 key={i}
                                 className={cn(
                                     "h-6 w-6",
-                                    i <= 3 ? "fill-rose-500 text-rose-500" : "text-slate-200"
+                                    i <= userProgress.hearts ? "fill-rose-500 text-rose-500" : "text-slate-200"
                                 )}
                             />
                         ))}
                     </div>
                 </div>
-                <div className="rounded-xl border-2 border-rose-200 bg-rose-50 p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="font-bold text-slate-700">Recarga Grátis</p>
-                            <p className="text-sm text-slate-500">Pratica para ganhar corações!</p>
-                        </div>
-                        <Button variant="primary" size="sm">
-                            Praticar
-                        </Button>
-                    </div>
-                </div>
+
+                <ShopItems
+                    hearts={userProgress.hearts}
+                    points={userProgress.points}
+                />
             </div>
 
-            {/* Shop Items Grid */}
+            {/* Power-ups Info */}
             <h2 className="mb-4 text-lg font-bold text-slate-600">Power-Ups</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {shopItems.map((item) => (
-                    <ShopItemCard key={item.id} item={item} />
-                ))}
+                <div className="flex flex-col items-center rounded-xl border-2 border-rose-200 bg-rose-50 p-6 text-center">
+                    <Heart className="h-10 w-10 fill-rose-500 text-rose-500" />
+                    <h3 className="mb-1 mt-4 font-bold text-slate-700">Recarga de Corações</h3>
+                    <p className="mb-4 text-sm text-slate-500">Recupera todos os teus corações</p>
+                    <p className="text-xs text-slate-400">Pratica para ganhar grátis!</p>
+                </div>
+
+                <div className="flex flex-col items-center rounded-xl border-2 border-amber-200 bg-amber-50 p-6 text-center">
+                    <Zap className="h-10 w-10 fill-amber-400 text-amber-400" />
+                    <h3 className="mb-1 mt-4 font-bold text-slate-700">Dobro de XP</h3>
+                    <p className="mb-4 text-sm text-slate-500">Ganha XP a dobrar durante 15 minutos</p>
+                    <p className="text-xs text-slate-400">Em breve!</p>
+                </div>
+
+                <div className="flex flex-col items-center rounded-xl border-2 border-sky-200 bg-sky-50 p-6 text-center">
+                    <Shield className="h-10 w-10 fill-sky-500 text-sky-500" />
+                    <h3 className="mb-1 mt-4 font-bold text-slate-700">Congelar Streak</h3>
+                    <p className="mb-4 text-sm text-slate-500">Protege o teu streak por um dia</p>
+                    <p className="text-xs text-slate-400">Em breve!</p>
+                </div>
             </div>
         </div>
     );

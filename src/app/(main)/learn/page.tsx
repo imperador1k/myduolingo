@@ -1,73 +1,26 @@
-"use client";
-
-import { useState } from "react";
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import { getUnits, getUserProgress, getCourses } from "@/db/queries";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Crown, Star, Check, Lock, ChevronRight } from "lucide-react";
-
-// Lesson status types
-type LessonStatus = "start" | "completed" | "current" | "locked" | "treasure";
-
-type Lesson = {
-    id: number;
-    status: LessonStatus;
-    position: "left" | "center" | "right";
-};
-
-type Unit = {
-    id: number;
-    title: string;
-    description: string;
-    color: string;
-    colorDark: string;
-    lessons: Lesson[];
-};
-
-// Mock data for units and lessons
-const units: Unit[] = [
-    {
-        id: 1,
-        title: "Unidade 1",
-        description: "Aprende o básico de Português",
-        color: "bg-green-500",
-        colorDark: "border-green-600",
-        lessons: [
-            { id: 1, status: "start", position: "center" },
-            { id: 2, status: "locked", position: "left" },
-            { id: 3, status: "locked", position: "center" },
-            { id: 4, status: "locked", position: "right" },
-            { id: 5, status: "locked", position: "center" },
-        ],
-    },
-    {
-        id: 2,
-        title: "Unidade 2",
-        description: "Saudações e Apresentações",
-        color: "bg-sky-500",
-        colorDark: "border-sky-600",
-        lessons: [
-            { id: 6, status: "locked", position: "center" },
-            { id: 7, status: "locked", position: "right" },
-            { id: 8, status: "locked", position: "center" },
-            { id: 9, status: "locked", position: "left" },
-            { id: 10, status: "locked", position: "center" },
-        ],
-    },
-];
+import { Crown, Star, Check, Lock, ChevronRight, Heart } from "lucide-react";
 
 // Lesson Node Component
-const LessonNode = ({ lesson, unitColor, unitColorDark }: {
-    lesson: Lesson;
-    unitColor: string;
-    unitColorDark: string;
-}) => {
-    const isActive = lesson.status === "start" || lesson.status === "current";
-    const isCompleted = lesson.status === "completed";
-    const isLocked = lesson.status === "locked";
-    const isTreasure = lesson.status === "treasure";
+type LessonNodeProps = {
+    id: number;
+    index: number;
+    totalCount: number;
+    completed: boolean;
+    current: boolean;
+    locked: boolean;
+    noHearts: boolean;
+};
 
-    // Position offset for zigzag pattern
+const LessonNode = ({ id, index, totalCount, completed, current, locked, noHearts }: LessonNodeProps) => {
+    // Zigzag positioning
+    const positions = ["center", "left", "center", "right", "center"];
+    const position = positions[index % 5];
+
     const positionClasses = {
         left: "-translate-x-12",
         center: "",
@@ -75,44 +28,43 @@ const LessonNode = ({ lesson, unitColor, unitColorDark }: {
     };
 
     const getNodeStyles = () => {
-        if (isActive) {
-            return `${unitColor} ${unitColorDark} border-b-4 text-white shadow-lg scale-110`;
+        if (noHearts && (current || completed)) {
+            return "bg-rose-400 border-rose-500 border-b-4 text-white";
         }
-        if (isCompleted) {
+        if (current) {
+            return "bg-green-500 border-green-600 border-b-4 text-white shadow-lg scale-110";
+        }
+        if (completed) {
             return "bg-green-500 border-green-600 border-b-4 text-white";
-        }
-        if (isTreasure) {
-            return "bg-amber-400 border-amber-500 border-b-4 text-white";
         }
         return "bg-slate-200 border-slate-300 border-b-4 text-slate-400";
     };
 
     const getIcon = () => {
-        if (isActive) return <Star className="h-8 w-8 fill-white" />;
-        if (isCompleted) return <Check className="h-8 w-8" />;
-        if (isTreasure) return <Crown className="h-8 w-8 fill-white" />;
+        if (noHearts && (current || completed)) return <Heart className="h-6 w-6" />;
+        if (current) return <Star className="h-8 w-8 fill-white" />;
+        if (completed) return <Check className="h-8 w-8" />;
         return <Lock className="h-6 w-6" />;
     };
 
+    const isAccessible = (current || completed) && !noHearts;
+
     return (
-        <div className={cn("flex justify-center", positionClasses[lesson.position])}>
+        <div className={cn("flex justify-center", positionClasses[position as keyof typeof positionClasses])}>
             <Link
-                href={isActive ? "/lesson" : "#"}
+                href={isAccessible ? `/lesson?id=${id}` : noHearts ? "/shop" : "#"}
                 className={cn(
                     "relative flex items-center justify-center",
-                    isLocked && "cursor-not-allowed"
+                    locked && "cursor-not-allowed"
                 )}
             >
-                {/* Glow effect for active */}
-                {isActive && (
-                    <div className={cn(
-                        "absolute h-20 w-20 animate-ping rounded-full opacity-20",
-                        unitColor
-                    )} />
+                {/* Glow effect for current */}
+                {current && (
+                    <div className="absolute h-20 w-20 animate-ping rounded-full bg-green-500 opacity-20" />
                 )}
 
                 {/* START label */}
-                {lesson.status === "start" && (
+                {current && (
                     <span className="absolute -top-8 rounded-lg bg-white px-3 py-1 text-sm font-bold text-green-500 shadow-lg">
                         COMEÇAR
                     </span>
@@ -123,8 +75,7 @@ const LessonNode = ({ lesson, unitColor, unitColorDark }: {
                     className={cn(
                         "flex h-16 w-16 items-center justify-center rounded-full transition-all duration-200",
                         getNodeStyles(),
-                        isActive && "hover:scale-115",
-                        !isLocked && "active:scale-95 active:border-b-0"
+                        isAccessible && "hover:scale-105 active:scale-95 active:border-b-0"
                     )}
                 >
                     {getIcon()}
@@ -135,28 +86,24 @@ const LessonNode = ({ lesson, unitColor, unitColorDark }: {
 };
 
 // Unit Header Component
-const UnitHeader = ({ unit }: { unit: Unit }) => (
-    <div className={cn(
-        "flex items-center justify-between rounded-xl p-4 text-white",
-        unit.color
-    )}>
+const UnitHeader = ({ title, description }: { title: string; description: string }) => (
+    <div className="flex items-center justify-between rounded-xl bg-green-500 p-4 text-white">
         <div>
-            <h2 className="text-lg font-bold">{unit.title}</h2>
-            <p className="text-sm opacity-90">{unit.description}</p>
+            <h2 className="text-lg font-bold">{title}</h2>
+            <p className="text-sm opacity-90">{description}</p>
         </div>
         <Button
             variant="ghost"
             className="bg-white/20 text-white hover:bg-white/30"
             size="sm"
         >
-            <span className="hidden sm:inline">Continuar</span>
             <ChevronRight className="h-5 w-5" />
         </Button>
     </div>
 );
 
-// Sidebar stats (simplified)
-const SidebarStats = () => (
+// Sidebar stats
+const SidebarStats = ({ points, hearts }: { points: number; hearts: number }) => (
     <div className="hidden lg:block lg:w-80">
         <div className="sticky top-6 space-y-4">
             {/* Upgrade Card */}
@@ -168,97 +115,141 @@ const SidebarStats = () => (
                 <p className="mb-3 text-sm opacity-90">
                     Corações ilimitados e mais!
                 </p>
-                <Button
-                    variant="super"
-                    size="sm"
-                    className="w-full"
-                >
+                <Button variant="super" size="sm" className="w-full">
                     Upgrade Hoje
                 </Button>
             </div>
 
-            {/* Quests */}
+            {/* Stats */}
             <div className="rounded-xl border-2 p-4">
-                <div className="mb-4 flex items-center justify-between">
-                    <h3 className="font-bold text-slate-700">Quests</h3>
-                    <Link href="#" className="text-sm font-bold text-sky-500">
-                        Ver Todas
-                    </Link>
-                </div>
+                <h3 className="mb-4 font-bold text-slate-700">Os Teus Stats</h3>
                 <div className="space-y-3">
-                    {[20, 50, 100, 250, 500].map((xp, i) => (
-                        <div key={i} className="flex items-center gap-3">
-                            <div className="h-2 flex-1 rounded-full bg-slate-100">
-                                <div
-                                    className="h-full rounded-full bg-green-500"
-                                    style={{ width: i === 0 ? "75%" : "0%" }}
-                                />
-                            </div>
-                            <span className="min-w-[60px] text-right text-sm font-bold text-amber-500">
-                                Ganhar {xp} XP
-                            </span>
-                        </div>
-                    ))}
+                    <div className="flex items-center justify-between">
+                        <span className="text-slate-600">⭐ XP Total</span>
+                        <span className="font-bold text-amber-500">{points}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-slate-600">❤️ Corações</span>
+                        <span className="font-bold text-rose-500">{hearts}</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 );
 
-export default function LearnPage() {
+export default async function LearnPage() {
+    const userProgress = await getUserProgress();
+    const units = await getUnits();
+    const courses = await getCourses();
+
+    // If no user progress, redirect to courses to select one
+    if (!userProgress || !userProgress.activeCourseId) {
+        redirect("/courses");
+    }
+
+    const activeCourse = courses.find(c => c.id === userProgress.activeCourseId);
+
     return (
         <div className="flex gap-8">
             {/* Main Content - Lesson Map */}
             <div className="flex-1">
                 {/* Course Header */}
                 <div className="mb-6 flex items-center gap-4">
-                    <button className="text-2xl">🇵🇹</button>
+                    <span className="text-2xl">🇵🇹</span>
                     <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-slate-500">Português</span>
+                        <span className="text-sm font-bold text-slate-500">
+                            {activeCourse?.title || "Português"}
+                        </span>
                     </div>
                     <div className="ml-auto flex items-center gap-4">
                         <div className="flex items-center gap-1 text-amber-500">
                             <span className="text-lg">⚡</span>
-                            <span className="font-bold">170</span>
+                            <span className="font-bold">{userProgress.points}</span>
                         </div>
                         <div className="flex items-center gap-1 text-rose-500">
                             <span className="text-lg">❤️</span>
-                            <span className="font-bold">5</span>
+                            <span className="font-bold">{userProgress.hearts}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Units */}
                 <div className="space-y-8">
-                    {units.map((unit) => (
-                        <div key={unit.id}>
-                            {/* Unit Header */}
-                            <UnitHeader unit={unit} />
+                    {(() => {
+                        // Track first incomplete across ALL units
+                        let firstIncompleteFound = false;
 
-                            {/* Lesson Path */}
-                            <div className="relative py-8">
-                                {/* Connecting line */}
-                                <div className="absolute left-1/2 top-0 h-full w-1 -translate-x-1/2 bg-slate-200" />
+                        return units.map((unit, unitIndex) => {
+                            const lessonsWithStatus = unit.lessons.map((lesson, lessonIndex) => {
+                                const isCompleted = lesson.completed;
+                                let isCurrent = false;
+                                let isLocked = false;
 
-                                {/* Lessons */}
-                                <div className="relative flex flex-col gap-6">
-                                    {unit.lessons.map((lesson) => (
-                                        <LessonNode
-                                            key={lesson.id}
-                                            lesson={lesson}
-                                            unitColor={unit.color}
-                                            unitColorDark={unit.colorDark}
-                                        />
-                                    ))}
+                                if (isCompleted) {
+                                    // Lesson is completed - show checkmark
+                                    isCurrent = false;
+                                    isLocked = false;
+                                } else if (!firstIncompleteFound) {
+                                    // First incomplete lesson - this is current
+                                    isCurrent = true;
+                                    firstIncompleteFound = true;
+                                } else {
+                                    // Not completed and not first incomplete - locked
+                                    isLocked = true;
+                                }
+
+                                return { ...lesson, isCurrent, isLocked };
+                            });
+
+                            return (
+                                <div key={unit.id}>
+                                    {/* Unit Header */}
+                                    <UnitHeader title={unit.title} description={unit.description} />
+
+                                    {/* Lesson Path */}
+                                    <div className="py-8">
+                                        {/* Lessons */}
+                                        <div className="flex flex-col gap-6">
+                                            {lessonsWithStatus.map((lesson, index) => (
+                                                <LessonNode
+                                                    key={lesson.id}
+                                                    id={lesson.id}
+                                                    index={index}
+                                                    totalCount={lessonsWithStatus.length}
+                                                    completed={lesson.completed}
+                                                    current={lesson.isCurrent}
+                                                    locked={lesson.isLocked}
+                                                    noHearts={userProgress.hearts === 0}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    ))}
+                            );
+                        });
+                    })()}
                 </div>
+
+                {/* Empty state if no units */}
+                {units.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <span className="text-6xl">📚</span>
+                        <h2 className="mt-4 text-xl font-bold text-slate-700">
+                            Ainda não há lições disponíveis
+                        </h2>
+                        <p className="text-slate-500">
+                            Seleciona um curso para começar a aprender!
+                        </p>
+                        <Link href="/courses" className="mt-4">
+                            <Button variant="primary">Ver Cursos</Button>
+                        </Link>
+                    </div>
+                )}
             </div>
 
             {/* Right Sidebar */}
-            <SidebarStats />
+            <SidebarStats points={userProgress.points} hearts={userProgress.hearts} />
         </div>
     );
 }

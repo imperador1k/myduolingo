@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 // Language data with flags (emoji for simplicity)
@@ -55,7 +54,7 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-4">
           <Link
-            href="/learn"
+            href="/sign-in"
             className="font-bold uppercase tracking-wide text-slate-500 hover:text-green-500"
           >
             Login
@@ -80,12 +79,12 @@ export default function Home() {
           </p>
 
           <div className="flex w-full flex-col gap-3">
-            <Link href="/learn" className="w-full">
+            <Link href="/sign-up" className="w-full">
               <Button variant="primary" size="lg" className="w-full">
                 Começar Agora
               </Button>
             </Link>
-            <Link href="/learn" className="w-full">
+            <Link href="/sign-in" className="w-full">
               <Button variant="ghost" size="lg" className="w-full text-sky-500 hover:text-sky-600">
                 Já tenho uma conta
               </Button>

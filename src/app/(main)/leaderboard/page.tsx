@@ -1,82 +1,45 @@
-"use client";
-
+import { redirect } from "next/navigation";
+import { currentUser } from "@clerk/nextjs/server";
+import { getTopUsers, getUserProgress } from "@/db/queries";
 import { Crown, Medal, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type User = {
-    rank: number;
-    name: string;
-    avatar: string;
-    xp: number;
-    isCurrentUser?: boolean;
-};
+export default async function LeaderboardPage() {
+    const user = await currentUser();
+    const userProgress = await getUserProgress();
+    const topUsers = await getTopUsers(10);
 
-// Mock leaderboard data
-const leaderboardUsers: User[] = [
-    { rank: 1, name: "Maria Silva", avatar: "👩‍🦰", xp: 15420 },
-    { rank: 2, name: "João Santos", avatar: "👨‍🦱", xp: 14890 },
-    { rank: 3, name: "Ana Costa", avatar: "👩‍🦳", xp: 13750 },
-    { rank: 4, name: "Tu", avatar: "🧑", xp: 12500, isCurrentUser: true },
-    { rank: 5, name: "Pedro Lima", avatar: "👨", xp: 11200 },
-    { rank: 6, name: "Sofia Oliveira", avatar: "👩", xp: 10800 },
-    { rank: 7, name: "Miguel Ferreira", avatar: "👦", xp: 9500 },
-    { rank: 8, name: "Carla Rodrigues", avatar: "👧", xp: 8900 },
-    { rank: 9, name: "Bruno Almeida", avatar: "🧔", xp: 7600 },
-    { rank: 10, name: "Rita Martins", avatar: "👱‍♀️", xp: 6200 },
-];
+    if (!user || !userProgress) {
+        redirect("/courses");
+    }
 
-const getRankIcon = (rank: number) => {
-    if (rank === 1) return <Crown className="h-6 w-6 fill-amber-400 text-amber-400" />;
-    if (rank === 2) return <Medal className="h-6 w-6 fill-slate-400 text-slate-400" />;
-    if (rank === 3) return <Medal className="h-6 w-6 fill-amber-600 text-amber-600" />;
-    return <span className="text-lg font-bold text-slate-400">{rank}</span>;
-};
+    // Find current user's rank
+    const currentUserRank = topUsers.findIndex(u => u.userId === user.id) + 1;
 
-const LeaderboardRow = ({ user }: { user: User }) => (
-    <div
-        className={cn(
-            "flex items-center gap-4 rounded-xl border-2 p-4 transition-all",
-            user.isCurrentUser
-                ? "border-sky-300 bg-sky-50"
-                : "border-slate-100 hover:border-slate-200"
-        )}
-    >
-        {/* Rank */}
-        <div className="flex h-10 w-10 items-center justify-center">
-            {getRankIcon(user.rank)}
-        </div>
+    const getRankIcon = (rank: number) => {
+        if (rank === 1) return <Crown className="h-6 w-6 fill-amber-400 text-amber-400" />;
+        if (rank === 2) return <Medal className="h-6 w-6 fill-slate-400 text-slate-400" />;
+        if (rank === 3) return <Medal className="h-6 w-6 fill-amber-600 text-amber-600" />;
+        return <span className="text-lg font-bold text-slate-400">{rank}</span>;
+    };
 
-        {/* Avatar */}
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-2xl">
-            {user.avatar}
-        </div>
+    // Determine league based on points
+    const getLeague = (points: number) => {
+        if (points >= 1000) return { name: "Diamante", icon: "💎", color: "from-purple-500 to-purple-600" };
+        if (points >= 500) return { name: "Ouro", icon: "🥇", color: "from-amber-400 to-amber-500" };
+        if (points >= 100) return { name: "Prata", icon: "🥈", color: "from-slate-400 to-slate-500" };
+        return { name: "Bronze", icon: "🥉", color: "from-orange-400 to-orange-500" };
+    };
 
-        {/* Name */}
-        <div className="flex-1">
-            <p className={cn(
-                "font-bold",
-                user.isCurrentUser ? "text-sky-600" : "text-slate-700"
-            )}>
-                {user.name}
-                {user.isCurrentUser && <span className="ml-2 text-xs">(Tu)</span>}
-            </p>
-        </div>
+    const league = getLeague(userProgress.points);
 
-        {/* XP */}
-        <div className="text-right">
-            <p className="font-bold text-amber-500">{user.xp.toLocaleString()} XP</p>
-        </div>
-    </div>
-);
-
-export default function LeaderboardPage() {
     return (
         <div className="pb-12">
             {/* Header */}
             <div className="mb-6 flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-700">Classificação</h1>
-                    <p className="text-slate-500">Liga Diamante • Semana 3</p>
+                    <p className="text-slate-500">Liga {league.name} • Esta Semana</p>
                 </div>
                 <div className="flex items-center gap-2 rounded-full bg-purple-100 px-4 py-2">
                     <TrendingUp className="h-5 w-5 text-purple-500" />
@@ -86,40 +49,88 @@ export default function LeaderboardPage() {
 
             {/* League Badge */}
             <div className="mb-8 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-b from-purple-500 to-purple-600 p-6 text-white shadow-lg">
-                    <span className="text-6xl">💎</span>
-                    <h2 className="text-xl font-bold">Liga Diamante</h2>
-                    <p className="text-sm opacity-80">Termina em 3 dias</p>
+                <div className={cn(
+                    "flex flex-col items-center gap-2 rounded-2xl p-6 text-white shadow-lg bg-gradient-to-b",
+                    league.color
+                )}>
+                    <span className="text-6xl">{league.icon}</span>
+                    <h2 className="text-xl font-bold">Liga {league.name}</h2>
+                    <p className="text-sm opacity-80">
+                        {topUsers.length > 0 ? `${topUsers.length} participantes` : "Sê o primeiro!"}
+                    </p>
                 </div>
             </div>
 
-            {/* Promotion Zone */}
-            <div className="mb-4 flex items-center gap-2 rounded-lg bg-green-100 px-4 py-2">
-                <span className="text-green-600">⬆️</span>
-                <p className="text-sm font-bold text-green-600">
-                    Top 5 sobe para Liga Ruby
-                </p>
-            </div>
+            {/* Your Position */}
+            {currentUserRank > 0 && (
+                <div className="mb-4 flex items-center gap-2 rounded-lg bg-sky-100 px-4 py-2">
+                    <span className="text-sky-600">📍</span>
+                    <p className="text-sm font-bold text-sky-600">
+                        Estás em {currentUserRank}º lugar com {userProgress.points} XP
+                    </p>
+                </div>
+            )}
 
             {/* Leaderboard */}
             <div className="space-y-2">
-                {leaderboardUsers.slice(0, 5).map((user) => (
-                    <LeaderboardRow key={user.rank} user={user} />
-                ))}
-            </div>
+                {topUsers.length === 0 ? (
+                    <div className="rounded-xl border-2 border-dashed border-slate-200 p-8 text-center">
+                        <span className="text-4xl">🏆</span>
+                        <p className="mt-2 font-bold text-slate-600">Ainda não há classificação</p>
+                        <p className="text-sm text-slate-400">Completa lições para aparecer aqui!</p>
+                    </div>
+                ) : (
+                    topUsers.map((rankedUser, index) => {
+                        const isCurrentUser = rankedUser.userId === user.id;
+                        const rank = index + 1;
 
-            {/* Demotion Zone */}
-            <div className="mb-4 mt-6 flex items-center gap-2 rounded-lg bg-rose-100 px-4 py-2">
-                <span className="text-rose-600">⬇️</span>
-                <p className="text-sm font-bold text-rose-600">
-                    Últimos 3 descem para Liga Ouro
-                </p>
-            </div>
+                        return (
+                            <div
+                                key={rankedUser.id}
+                                className={cn(
+                                    "flex items-center gap-4 rounded-xl border-2 p-4 transition-all",
+                                    isCurrentUser
+                                        ? "border-sky-300 bg-sky-50"
+                                        : "border-slate-100 hover:border-slate-200"
+                                )}
+                            >
+                                {/* Rank */}
+                                <div className="flex h-10 w-10 items-center justify-center">
+                                    {getRankIcon(rank)}
+                                </div>
 
-            <div className="space-y-2">
-                {leaderboardUsers.slice(5).map((user) => (
-                    <LeaderboardRow key={user.rank} user={user} />
-                ))}
+                                {/* Avatar */}
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-2xl">
+                                    {rankedUser.userImageSrc ? (
+                                        <img
+                                            src={rankedUser.userImageSrc}
+                                            alt=""
+                                            className="h-full w-full rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        "👤"
+                                    )}
+                                </div>
+
+                                {/* Name */}
+                                <div className="flex-1">
+                                    <p className={cn(
+                                        "font-bold",
+                                        isCurrentUser ? "text-sky-600" : "text-slate-700"
+                                    )}>
+                                        {rankedUser.userName || "Estudante"}
+                                        {isCurrentUser && <span className="ml-2 text-xs">(Tu)</span>}
+                                    </p>
+                                </div>
+
+                                {/* XP */}
+                                <div className="text-right">
+                                    <p className="font-bold text-amber-500">{rankedUser.points.toLocaleString()} XP</p>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
             </div>
         </div>
     );

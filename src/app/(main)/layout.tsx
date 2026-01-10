@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/sidebar";
 import { MobileNav } from "@/components/mobile-nav";
+import { UserSync } from "@/components/user-sync";
 
 type Props = {
     children: React.ReactNode;
@@ -8,6 +9,7 @@ type Props = {
 export default function MainLayout({ children }: Props) {
     return (
         <>
+            <UserSync />
             <Sidebar />
             <MobileNav />
             <main className="h-full pb-20 lg:ml-[256px] lg:pb-0">
@@ -16,3 +18,4 @@ export default function MainLayout({ children }: Props) {
         </>
     );
 }
+
