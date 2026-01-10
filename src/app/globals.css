@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Nunito font for Duolingo look */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
+html,
+body,
+:root {
+  @apply h-full;
+  font-family: 'Nunito', sans-serif;
+}
+
+@layer base {
+  :root {
+    /* === Duolingo Core Colors === */
+    --duo-green: 115 83% 40%;      /* #58cc02 - Primary action */
+    --duo-green-dark: 115 83% 32%; /* #46a302 - 3D border */
+    --duo-red: 0 100% 64%;         /* #ff4b4b - Error/danger */
+    --duo-red-dark: 0 70% 50%;     /* #d63e3e - 3D border */
+    --duo-blue: 199 89% 48%;       /* #0ea5e9 - Lessons/info */
+    --duo-blue-dark: 199 89% 38%;  /* #0284c7 - 3D border */
+    --duo-gold: 45 93% 58%;        /* #f5b800 - Premium */
+    --duo-purple: 270 67% 47%;     /* #8b5cf6 - Super/streak */
+
+    /* === Shadcn Theme Variables === */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 115 83% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 199 89% 48%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 100% 64%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 115 83% 40%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 115 83% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 199 89% 48%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 100% 64%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 115 83% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* === Custom Duolingo Animations === */
+@layer utilities {
+  .shake {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  .bounce-success {
+    animation: bounce-success 0.5s ease-in-out;
+  }
+  
+  .pulse-heart {
+    animation: pulse-heart 0.3s ease-in-out;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes bounce-success {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes pulse-heart {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.7); }
+}
