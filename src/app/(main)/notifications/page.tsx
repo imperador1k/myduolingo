@@ -2,12 +2,14 @@
 import { getNotifications } from "@/db/queries";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { NotificationsHandler } from "@/components/notifications-handler";
 
 export default async function NotificationsPage() {
     const notifications = await getNotifications();
 
     return (
         <div className="flex flex-col gap-6 p-6 pb-20">
+            <NotificationsHandler />
             <h1 className="text-2xl font-bold text-slate-700">Notificações</h1>
             <div className="flex flex-col gap-2">
                 {notifications.map((n) => (

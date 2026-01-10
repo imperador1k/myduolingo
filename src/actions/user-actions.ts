@@ -1,7 +1,28 @@
 "use server";
 
-import { followUser, unfollowUser } from "@/db/queries";
+import { followUser, unfollowUser, sendMessage } from "@/db/queries";
 import { revalidatePath } from "next/cache";
+import { db } from "@/db/drizzle";
+import { notifications } from "@/db/schema";
+import { auth } from "@clerk/nextjs/server";
+import { eq, and } from "drizzle-orm";
+
+export const markNotificationsAsRead = async () => {
+    const { userId } = await auth();
+    if (!userId) return;
+
+    await db.update(notifications)
+        .set({ read: true })
+        .where(
+            and(
+                eq(notifications.userId, userId),
+                eq(notifications.read, false)
+            )
+        );
+
+    revalidatePath("/notifications");
+    revalidatePath("/"); // Update sidebar badge everywhere
+};
 
 export const onFollow = async (id: string) => {
     try {
@@ -25,7 +46,6 @@ export const onUnfollow = async (id: string) => {
     }
 };
 
-import { sendMessage } from "@/db/queries";
 
 export const onSendMessage = async (receiverId: string, formData: FormData) => {
     const content = formData.get("content") as string;

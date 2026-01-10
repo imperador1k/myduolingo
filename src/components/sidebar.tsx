@@ -18,9 +18,10 @@ type SidebarItemProps = {
     label: string;
     iconSrc: React.ReactNode;
     href: string;
+    notificationCount?: number;
 };
 
-const SidebarItem = ({ label, iconSrc, href }: SidebarItemProps) => {
+const SidebarItem = ({ label, iconSrc, href, notificationCount }: SidebarItemProps) => {
     const pathname = usePathname();
     const isActive = pathname === href;
 
@@ -36,14 +37,24 @@ const SidebarItem = ({ label, iconSrc, href }: SidebarItemProps) => {
                 <span className="font-bold text-sm uppercase tracking-wide">
                     {label}
                 </span>
+                {notificationCount && notificationCount > 0 ? (
+                    <span className="ml-auto bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
+                        {notificationCount}
+                    </span>
+                ) : null}
             </div>
         </Link>
     );
 };
 
-export const Sidebar = () => {
+type Props = {
+    className?: string;
+    notificationCount?: number;
+};
+
+export const Sidebar = ({ className, notificationCount }: Props) => {
     return (
-        <div className="fixed left-0 top-0 hidden h-full w-[256px] flex-col border-r-2 px-4 lg:flex">
+        <div className={cn("fixed left-0 top-0 hidden h-full w-[256px] flex-col border-r-2 px-4 lg:flex", className)}>
             {/* Logo */}
             <Link href="/learn">
                 <div className="flex items-center gap-x-3 pb-7 pl-4 pt-8">
@@ -80,6 +91,7 @@ export const Sidebar = () => {
                     label="Notificações"
                     href="/notifications"
                     iconSrc={<Bell className="h-6 w-6" />}
+                    notificationCount={notificationCount}
                 />
                 <SidebarItem
                     label="Loja"

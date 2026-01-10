@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, count, ilike, ne } from "drizzle-orm";
 import { db } from "./drizzle";
 import {
     courses,
@@ -839,4 +839,36 @@ export const sendMessage = async (receiverId: string, content: string) => {
     });
 
     revalidatePath("/messages");
+};
+
+export const getUnreadNotificationCount = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return 0;
+
+    const [result] = await db
+        .select({ count: count() })
+        .from(notifications)
+        .where(
+            and(
+                eq(notifications.userId, userId),
+                eq(notifications.read, false)
+            )
+        );
+
+    return result.count;
+});
+
+export const searchUsers = async (query: string) => {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const data = await db.query.userProgress.findMany({
+        where: and(
+            ilike(userProgress.userName, `%${query}%`),
+            ne(userProgress.userId, userId)
+        ),
+        limit: 10,
+    }); // Needs userProgress imported in queries.ts - it is.
+
+    return data;
 };
