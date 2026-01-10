@@ -11,7 +11,10 @@
   "dependencies": {
     "@clerk/localizations": "^3.34.0",
     "@clerk/nextjs": "^6.36.7",
+    "@giphy/js-fetch-api": "^5.7.0",
+    "@giphy/react-components": "^10.1.1",
     "@radix-ui/react-slot": "^1.2.4",
+    "@supabase/supabase-js": "^2.90.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",

@@ -56,3 +56,16 @@ export const onSendMessage = async (receiverId: string, formData: FormData) => {
         console.error("Message error:", error);
     }
 };
+
+export const onSearchUsers = async (query: string) => {
+    // We can reuse the query logic but need to import it or reimplement.
+    // Importing 'searchUsers' from queries.ts is fine as this is a Server Action file.
+    if (!query) return [];
+    try {
+        const { searchUsers } = await import("@/db/queries");
+        return await searchUsers(query);
+    } catch (error) {
+        console.error("Search error:", error);
+        return [];
+    }
+};

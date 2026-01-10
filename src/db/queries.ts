@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
-import { eq, desc, and, count, ilike, ne } from "drizzle-orm";
+import { eq, desc, and, count, ilike, ne, or, asc } from "drizzle-orm";
 import { db } from "./drizzle";
 import {
     courses,
@@ -15,6 +15,7 @@ import {
     notifications,
     messages
 } from "./schema";
+
 
 // ============ USER PROGRESS ============
 
@@ -872,3 +873,73 @@ export const searchUsers = async (query: string) => {
 
     return data;
 };
+
+export const getConversations = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const allMessages = await db.query.messages.findMany({
+        where: or(
+            eq(messages.senderId, userId),
+            eq(messages.receiverId, userId)
+        ),
+        with: {
+            sender: true,
+            receiver: true,
+        },
+        orderBy: [desc(messages.createdAt)],
+    });
+
+    const conversations = new Map();
+
+    // 1. Add existing conversations
+    for (const msg of allMessages) {
+        const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
+        if (!conversations.has(partnerId)) {
+            conversations.set(partnerId, {
+                partner: msg.senderId === userId ? msg.receiver : msg.sender,
+                lastMessage: msg,
+            });
+        }
+    }
+
+    // 2. Add friends (following) who are not in conversations
+    const following = await db.query.follows.findMany({
+        where: eq(follows.followerId, userId),
+        with: {
+            following: true
+        }
+    });
+
+    for (const follow of following) {
+        if (!conversations.has(follow.followingId)) {
+            conversations.set(follow.followingId, {
+                partner: follow.following,
+                lastMessage: {
+                    id: -1,
+                    content: "Começa uma conversa!",
+                    senderId: "system", // distinct from 'me' or valid ID
+                    read: true,
+                    createdAt: new Date(),
+                },
+            });
+        }
+    }
+
+    return Array.from(conversations.values());
+});
+
+export const getMessagesForThread = cache(async (otherUserId: string) => {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const thread = await db.query.messages.findMany({
+        where: or(
+            and(eq(messages.senderId, userId), eq(messages.receiverId, otherUserId)),
+            and(eq(messages.senderId, otherUserId), eq(messages.receiverId, userId))
+        ),
+        orderBy: [asc(messages.createdAt)],
+    });
+
+    return thread;
+});

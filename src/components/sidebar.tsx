@@ -11,7 +11,8 @@ import {
     ShoppingBag,
     User,
     Users,
-    Bell
+    Bell,
+    Mail
 } from "lucide-react";
 
 type SidebarItemProps = {
@@ -92,6 +93,11 @@ export const Sidebar = ({ className, notificationCount }: Props) => {
                     href="/notifications"
                     iconSrc={<Bell className="h-6 w-6" />}
                     notificationCount={notificationCount}
+                />
+                <SidebarItem
+                    label="Mensagens"
+                    href="/messages"
+                    iconSrc={<Mail className="h-6 w-6" />}
                 />
                 <SidebarItem
                     label="Loja"
