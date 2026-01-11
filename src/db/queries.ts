@@ -494,7 +494,8 @@ export const updateStreak = async () => {
         return {
             streak: newStreak,
             longestStreak: newLongestStreak,
-            updated: false
+            updated: false,
+            streakExtended: newStreak > 0
         };
     }
 
@@ -538,7 +539,7 @@ export const updateStreak = async () => {
         streak: newStreak,
         longestStreak: Math.max(newStreak, newLongestStreak),
         updated: true,
-        streakExtended: !streakBroken && newStreak > 1 // True if we extended an existing streak
+        streakExtended: newStreak > 0 // True if user has a streak (even day 1)
     };
 };
 

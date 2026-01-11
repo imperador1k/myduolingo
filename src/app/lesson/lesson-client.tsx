@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, X, Zap, Shield } from "lucide-react";
+import { Heart, X, Zap, Shield, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { onChallengeComplete, onChallengeWrong, onLessonComplete } from "@/actions/user-progress";
@@ -148,28 +148,41 @@ export const LessonClient = ({
     const options = currentChallenge?.challengeOptions || [];
     const progress = ((activeIndex) / challenges.length) * 100;
 
+    // Audio Logic
+    const playAudio = (text: string, speed: number = 0.9) => {
+        if (!text) return;
+
+        // Cancel any current speaking to avoid overlap
+        window.speechSynthesis.cancel();
+
+        const speech = new SpeechSynthesisUtterance(text);
+        speech.lang = 'en-US';
+        speech.rate = speed;
+        window.speechSynthesis.speak(speech);
+    };
+
+    // Auto-play audio when question changes
+    useEffect(() => {
+        if (!currentChallenge?.question) return;
+
+        // Small timeout to ensure DOM is ready and transition is done
+        const timer = setTimeout(() => {
+            playAudio(currentChallenge.question, 0.9);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [currentChallenge?.question]);
+
     // Play sound feedback
-    const playSound = (type: "correct" | "wrong") => {
+    const playSound = (type: "correct" | "wrong" | "completed") => {
         try {
-            const audioContext = new (window.AudioContext ||
-                (window as any).webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+            const audioSrc = type === "correct"
+                ? "/correct.mp3"
+                : type === "wrong"
+                    ? "/duolingo-wrong.mp3"
+                    : "/duolingo-completed-lesson.mp3";
 
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.value = type === "correct" ? 800 : 300;
-            oscillator.type = "sine";
-
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(
-                0.01,
-                audioContext.currentTime + 0.3
-            );
-
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
+            const audio = new Audio(audioSrc);
+            audio.play().catch(e => console.error("Error playing audio:", e));
         } catch (e) {
             // Audio not supported
         }
@@ -177,7 +190,14 @@ export const LessonClient = ({
 
     const handleSelect = (optionId: number) => {
         if (status !== "none") return;
+
         setSelectedOption(optionId);
+
+        // Find the selected option text and speak it
+        const selectedOpt = options.find((opt) => opt.id === optionId);
+        if (selectedOpt?.text) {
+            playAudio(selectedOpt.text, 0.9);
+        }
     };
 
     const handleCheck = () => {
@@ -286,6 +306,7 @@ export const LessonClient = ({
     const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
     const handleLessonComplete = () => {
+        playSound("completed");
         setEndTime(Date.now());
         setLessonComplete(true);
     };
@@ -456,6 +477,8 @@ export const LessonClient = ({
         return null;
     }
 
+
+
     return (
         <>
             {/* Exit Confirmation Modal */}
@@ -525,9 +548,28 @@ export const LessonClient = ({
                 {/* Main content */}
                 <main className="mx-auto flex w-full max-w-[1140px] flex-1 flex-col items-center justify-center gap-y-8 px-6 py-12">
                     {/* Question */}
-                    <h1 className="text-center text-2xl font-bold lg:text-3xl">
-                        {currentChallenge.question}
-                    </h1>
+                    <div className="flex flex-col gap-4 mb-4 items-center justify-center">
+                        <div className="flex items-center gap-4">
+                            <Button
+                                variant="ghost"
+                                className="bg-white border-2 border-slate-200 w-24 h-24 rounded-full shadow-sm hover:bg-slate-50 transition-transform active:scale-95"
+                                onClick={() => playAudio(currentChallenge.question, 0.9)}
+                            >
+                                <Volume2 className="h-12 w-12 text-sky-500 fill-sky-500/20" />
+                            </Button>
+
+                            <Button
+                                variant="ghost"
+                                className="bg-white border-2 border-slate-200 w-12 h-12 rounded-xl shadow-sm hover:bg-slate-50 transition-transform active:scale-95"
+                                onClick={() => playAudio(currentChallenge.question, 0.5)}
+                            >
+                                <span className="text-2xl">🐢</span>
+                            </Button>
+                        </div>
+                        <h1 className="text-center text-2xl font-bold lg:text-3xl">
+                            {currentChallenge.question}
+                        </h1>
+                    </div>
 
                     {/* Options */}
                     <div className="grid w-full max-w-[600px] grid-cols-1 gap-3 sm:grid-cols-2">

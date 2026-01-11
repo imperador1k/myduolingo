@@ -20,6 +20,13 @@ export const StreakModal = ({ open, onOpenChange, streak, variant }: Props) => {
 
     useEffect(() => setIsClient(true), []);
 
+    useEffect(() => {
+        if (open && variant === "gained") {
+            const audio = new Audio("/streak sound.mp3");
+            audio.play().catch(e => console.error("Error playing streak sound:", e));
+        }
+    }, [open, variant]);
+
     if (!isClient) return null;
 
     const title = variant === "gained" ? "Streak estendida!" : "Streak perdida...";
