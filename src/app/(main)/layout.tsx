@@ -1,24 +1,25 @@
-import { Sidebar } from "@/components/sidebar";
 import { getUnreadNotificationCount } from "@/db/queries";
+import { Sidebar } from "@/components/sidebar";
+import { MobileHeader } from "@/components/mobile-header";
 import { MobileNav } from "@/components/mobile-nav";
-import { UserSync } from "@/components/user-sync";
+import { StreakCheck } from "@/components/streak-check";
 
 type Props = {
     children: React.ReactNode;
 };
 
-export default async function MainLayout({ children }: Props) {
-    const notificationCount = await getUnreadNotificationCount();
-
+export default function MainLayout({ children }: Props) {
     return (
         <>
-            <UserSync />
-            <Sidebar notificationCount={notificationCount} />
-            <MobileNav />
-            <main className="h-full pb-20 lg:ml-[256px] lg:pb-0">
-                <div className="mx-auto h-full max-w-[1056px] px-3 pt-6">{children}</div>
+            <MobileHeader />
+            <Sidebar className="hidden lg:flex" />
+            <main className="lg:pl-[256px] min-h-screen pt-[50px] lg:pt-0 overflow-x-hidden">
+                <div className="max-w-[1056px] mx-auto pt-6 flex flex-col gap-6 pb-28 px-4 lg:px-0 lg:pb-0">
+                    {children}
+                </div>
             </main>
+            <MobileNav />
+            <StreakCheck />
         </>
     );
 }
-

@@ -13,7 +13,8 @@ import {
     updateUserInfo,
     updateStreak,
     consumeXpBoost,
-    useHeartShield
+    useHeartShield,
+    checkStreakReset
 } from "@/db/queries";
 
 export const onChallengeComplete = async (challengeId: number) => {
@@ -63,11 +64,23 @@ export const onLessonComplete = async () => {
         await consumeXpBoost();
     }
 
+    // Update streak (ensure it counts only if not already updated today)
+    // Actually, onChallengeComplete calls it too? check line 39.
+    // Yes, onChallengeComplete calls updateStreak. 
+    // But we want to return the status to show the modal here.
+    // Calling it again is safe (checks date).
+    const streakResult = await updateStreak();
+
     revalidatePath("/learn");
     revalidatePath("/lesson");
     revalidatePath("/shop");
 
-    return { success: true, boostConsumed: hasXpBoost };
+    return {
+        success: true,
+        boostConsumed: hasXpBoost,
+        streak: streakResult.streak,
+        streakExtended: streakResult.streakExtended
+    };
 };
 
 export const onChallengeWrong = async () => {
@@ -233,5 +246,14 @@ export const onBuyStreakFreeze = async () => {
     revalidatePath("/shop");
     revalidatePath("/learn");
 
+    return result;
+};
+
+export const checkStreakStatus = async () => {
+    const { userId } = await auth();
+    if (!userId) return { streakLost: false };
+
+    // This query will check dates and reset if needed
+    const result = await checkStreakReset();
     return result;
 };

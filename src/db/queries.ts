@@ -518,36 +518,70 @@ export const updateStreak = async () => {
                     .set({ streakFreezes: freezes - 1 })
                     .where(eq(userProgress.userId, userId));
             } else {
-                // Streak broken
-                newStreak = 1;
                 streakBroken = true;
+                newStreak = 1;
             }
         }
     } else {
-        // First lesson ever
+        // First time or fresh streak
+        streakBroken = true;
         newStreak = 1;
     }
 
-    // Update longest streak if needed
-    if (newStreak > newLongestStreak) {
-        newLongestStreak = newStreak;
-    }
-
-    await db
-        .update(userProgress)
-        .set({
-            streak: newStreak,
-            longestStreak: newLongestStreak,
-            lastStreakDate: today
-        })
-        .where(eq(userProgress.userId, userId));
+    await db.update(userProgress).set({
+        streak: newStreak,
+        longestStreak: Math.max(newStreak, newLongestStreak),
+        lastStreakDate: today,
+    }).where(eq(userProgress.userId, userId));
 
     return {
         streak: newStreak,
-        longestStreak: newLongestStreak,
+        longestStreak: Math.max(newStreak, newLongestStreak),
         updated: true,
-        streakBroken
+        streakExtended: !streakBroken && newStreak > 1 // True if we extended an existing streak
     };
+};
+
+export const checkStreakReset = async () => {
+    const { userId } = await auth();
+    if (!userId) return { streakLost: false };
+
+    const currentProgress = await getUserProgress();
+    if (!currentProgress) return { streakLost: false };
+
+    // If streak is already 0, nothing to lose
+    if (currentProgress.streak === 0) return { streakLost: false };
+
+    const lastStreakDate = currentProgress.lastStreakDate;
+    if (!lastStreakDate) return { streakLost: false };
+
+    const today = new Date().toISOString().split('T')[0];
+    const lastDate = new Date(lastStreakDate);
+    const todayDate = new Date(today);
+    const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    // If diffDays > 1, user missed yesterday (and potentially more)
+    // AND we haven't reset it yet (streak > 0)
+    if (diffDays > 1) {
+        // Check freezing logic? 
+        // Usually freeze applies when you miss a day, automatically. 
+        // But if we are just "viewing", we might want to consume freeze?
+        // Simplicity: If they missed yesterday and opened app today, they lost it unless freeze logic ran.
+        // But freeze logic is typically "on update". 
+        // User asked "if I miss 1 day... it's lost". 
+        // Let's assume strict loss for now to match request.
+
+        const lostStreak = currentProgress.streak;
+
+        // Reset to 0
+        await db.update(userProgress).set({
+            streak: 0,
+        }).where(eq(userProgress.userId, userId));
+
+        return { streakLost: true, days: lostStreak };
+    }
+
+    return { streakLost: false };
 };
 
 // ============ POWER-UPS ============

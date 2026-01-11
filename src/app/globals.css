@@ -15,14 +15,22 @@ body,
 @layer base {
   :root {
     /* === Duolingo Core Colors === */
-    --duo-green: 115 83% 40%;      /* #58cc02 - Primary action */
-    --duo-green-dark: 115 83% 32%; /* #46a302 - 3D border */
-    --duo-red: 0 100% 64%;         /* #ff4b4b - Error/danger */
-    --duo-red-dark: 0 70% 50%;     /* #d63e3e - 3D border */
-    --duo-blue: 199 89% 48%;       /* #0ea5e9 - Lessons/info */
-    --duo-blue-dark: 199 89% 38%;  /* #0284c7 - 3D border */
-    --duo-gold: 45 93% 58%;        /* #f5b800 - Premium */
-    --duo-purple: 270 67% 47%;     /* #8b5cf6 - Super/streak */
+    --duo-green: 115 83% 40%;
+    /* #58cc02 - Primary action */
+    --duo-green-dark: 115 83% 32%;
+    /* #46a302 - 3D border */
+    --duo-red: 0 100% 64%;
+    /* #ff4b4b - Error/danger */
+    --duo-red-dark: 0 70% 50%;
+    /* #d63e3e - 3D border */
+    --duo-blue: 199 89% 48%;
+    /* #0ea5e9 - Lessons/info */
+    --duo-blue-dark: 199 89% 38%;
+    /* #0284c7 - 3D border */
+    --duo-gold: 45 93% 58%;
+    /* #f5b800 - Premium */
+    --duo-purple: 270 67% 47%;
+    /* #8b5cf6 - Super/streak */
 
     /* === Shadcn Theme Variables === */
     --background: 0 0% 100%;
@@ -91,6 +99,7 @@ body,
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -101,28 +110,96 @@ body,
   .shake {
     animation: shake 0.5s ease-in-out;
   }
-  
+
   .bounce-success {
     animation: bounce-success 0.5s ease-in-out;
   }
-  
+
   .pulse-heart {
     animation: pulse-heart 0.3s ease-in-out;
   }
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
 }
 
 @keyframes bounce-success {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 @keyframes pulse-heart {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(0.7); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.7);
+  }
+}
+
+/* === Custom Scrollbar === */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: #374151;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+.dark * {
+  scrollbar-color: #374151 transparent;
 }

@@ -126,4 +126,4 @@ This project is for educational purposes.
 
 ---
 
-Made with 💚 by **Your Name**
+Made with 💚 by **Miguel Santos**

@@ -4,8 +4,9 @@ import { useRealtimeMessages } from "./use-realtime-messages";
 import { onSendMessage } from "@/actions/user-actions";
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Send, Image as ImageIcon, X, FileText, Download } from "lucide-react";
+import { Send, Image as ImageIcon, X, FileText, Download, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { UploadButton } from "./upload-button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -78,6 +79,13 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
 
             {/* Header */}
             <div className="p-4 border-b flex items-center gap-3 shadow-sm bg-white z-10 w-full mb-px">
+                {/* Back Button (Mobile Only) */}
+                <Link href="/messages" className="md:hidden">
+                    <Button variant="ghost" size="icon" className="h-10 w-10 -ml-2">
+                        <ChevronLeft className="h-6 w-6 text-slate-500" />
+                    </Button>
+                </Link>
+
                 <div className="h-10 w-10 rounded-full border-2 border-slate-200 overflow-hidden shrink-0">
                     {partner.userImageSrc ? (
                         <img src={partner.userImageSrc} alt={partner.userName} className="h-full w-full object-cover" />

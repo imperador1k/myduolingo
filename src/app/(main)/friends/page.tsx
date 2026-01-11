@@ -57,7 +57,7 @@ export default async function FriendsPage({ searchParams }: Props) {
                                             )}
                                         </div>
                                     </Link>
-                                    <div className="w-[120px]">
+                                    <div className="w-[160px]">
                                         <FollowButton userId={user.userId} isFollowing={amIFollowing(user.userId)} />
                                     </div>
                                 </div>
@@ -96,7 +96,7 @@ export default async function FriendsPage({ searchParams }: Props) {
                                             )}
                                         </div>
                                     </Link>
-                                    <div className="w-[120px]">
+                                    <div className="w-[160px]">
                                         <FollowButton userId={f.following.userId} isFollowing={true} />
                                     </div>
                                 </div>
@@ -133,7 +133,7 @@ export default async function FriendsPage({ searchParams }: Props) {
                                             )}
                                         </div>
                                     </Link>
-                                    <div className="w-[120px]">
+                                    <div className="w-[160px]">
                                         <FollowButton userId={f.follower.userId} isFollowing={amIFollowing(f.follower.userId)} />
                                     </div>
                                 </div>

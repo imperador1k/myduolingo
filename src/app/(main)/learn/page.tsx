@@ -87,7 +87,7 @@ const LessonNode = ({ id, index, totalCount, completed, current, locked, noHeart
 
 // Unit Header Component
 const UnitHeader = ({ title, description }: { title: string; description: string }) => (
-    <div className="flex items-center justify-between rounded-xl bg-green-500 p-4 text-white">
+    <div className="flex items-center justify-between rounded-xl bg-green-500 p-3 lg:p-5 text-white">
         <div>
             <h2 className="text-lg font-bold">{title}</h2>
             <p className="text-sm opacity-90">{description}</p>
@@ -156,7 +156,7 @@ export default async function LearnPage() {
             {/* Main Content - Lesson Map */}
             <div className="flex-1">
                 {/* Course Header */}
-                <div className="mb-6 flex items-center gap-4">
+                <div className="mb-6 items-center gap-4 hidden lg:flex">
                     <span className="text-2xl">🇵🇹</span>
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-slate-500">

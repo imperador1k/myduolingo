@@ -37,7 +37,10 @@ export default async function MessagesPage({ searchParams }: Props) {
             </div>
 
             {/* Window: hidden on mobile if NO activeUserId */}
-            <div className={cn("flex-1 flex flex-col bg-slate-50", !activeUserId ? "hidden md:flex" : "flex")}>
+            <div className={cn(
+                "flex-1 flex flex-col bg-slate-50",
+                !activeUserId ? "hidden md:flex" : "fixed inset-0 z-[100] bg-white h-[100dvh] md:static md:h-auto md:z-auto"
+            )}>
                 {activeUserId && activePartner ? (
                     <ChatWindow
                         userId={userId}
