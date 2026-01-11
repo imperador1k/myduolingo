@@ -175,6 +175,8 @@ export const messages = pgTable("messages", {
     senderId: text("sender_id").notNull(),
     receiverId: text("receiver_id").notNull(),
     content: text("content").notNull(),
+    type: text("type", { enum: ["text", "image", "file"] }).default("text").notNull(),
+    fileName: text("file_name"),
     read: boolean("read").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow(),
 });

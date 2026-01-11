@@ -49,9 +49,12 @@ export const onUnfollow = async (id: string) => {
 
 export const onSendMessage = async (receiverId: string, formData: FormData) => {
     const content = formData.get("content") as string;
+    const type = (formData.get("type") as "text" | "image" | "file") || "text";
+    const fileName = formData.get("fileName") as string | undefined;
+
     if (!content) return;
     try {
-        await sendMessage(receiverId, content);
+        await sendMessage(receiverId, content, type, fileName);
     } catch (error) {
         console.error("Message error:", error);
     }

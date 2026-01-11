@@ -1,122 +1,77 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { auth } from "@clerk/nextjs/server";
+import Image from "next/image";
 
-// Language data with flags (emoji for simplicity)
-const languages = [
-  { code: "pt", name: "Português", flag: "🇵🇹" },
-  { code: "es", name: "Espanhol", flag: "🇪🇸" },
-  { code: "fr", name: "Francês", flag: "🇫🇷" },
-  { code: "it", name: "Italiano", flag: "🇮🇹" },
-  { code: "de", name: "Alemão", flag: "🇩🇪" },
-  { code: "jp", name: "Japonês", flag: "🇯🇵" },
-];
+export default async function Home() {
+  const { userId } = await auth();
 
-// Mascot characters placeholders
-const MascotGroup = () => (
-  <div className="relative flex flex-wrap items-center justify-center gap-4 p-8">
-    {/* Row 1 */}
-    <div className="flex gap-4">
-      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-100 text-5xl shadow-lg">
-        🦉
-      </div>
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-100 text-4xl shadow-lg">
-        🐻
-      </div>
-      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-yellow-100 text-5xl shadow-lg">
-        🦊
-      </div>
-    </div>
-    {/* Row 2 */}
-    <div className="flex gap-4">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl shadow-lg">
-        🐸
-      </div>
-      <div className="flex h-28 w-28 items-center justify-center rounded-full bg-purple-100 text-6xl shadow-lg">
-        🦜
-      </div>
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-pink-100 text-4xl shadow-lg">
-        🐰
-      </div>
-    </div>
-  </div>
-);
-
-export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       {/* Header */}
-      <header className="flex items-center justify-between border-b px-6 py-4">
+      <header className="mx-auto flex w-full max-w-[988px] items-center justify-between px-4 py-4 lg:px-0">
         <div className="flex items-center gap-2">
-          <span className="text-3xl">🦉</span>
-          <h1 className="text-2xl font-extrabold tracking-wide text-green-500">
-            MyDuolingo
+          {/* Using the mascot SVG if available, otherwise just text/emoji for now unless they have logo.svg */}
+          <Image src="/mascot.svg" alt="Mascot" width={40} height={40} />
+          <h1 className="text-2xl font-extrabold tracking-wide text-green-600">
+            duolingo
           </h1>
         </div>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/sign-in"
-            className="font-bold uppercase tracking-wide text-slate-500 hover:text-green-500"
-          >
-            Login
-          </Link>
-        </div>
+        {/* User didn't want the language selector or site language dropdown. 
+            Login button is typically absent on this specific landing view in the screenshot 
+            (it has "Já tenho uma conta" below), but good to keep if user wants to access it top right.
+            Screenshot shows "IDIOMA DO SITE: PORTUGUÊS". User said "não quero o footer... nem o idioma do site".
+            So header is just Logo.
+        */}
       </header>
 
-      {/* Main Hero Section */}
-      <main className="flex flex-1 flex-col items-center justify-center px-6 py-12 lg:flex-row lg:gap-16">
-        {/* Left side - Mascots */}
-        <div className="mb-8 lg:mb-0">
-          <MascotGroup />
+      {/* Main Content */}
+      <main className="flex flex-1 flex-col items-center justify-center gap-10 px-4 py-10 lg:flex-row lg:gap-24 lg:px-0">
+
+        {/* Left side - Hero Video */}
+        <div className="relative h-[300px] w-[300px] lg:h-[420px] lg:w-[420px]">
+          <video
+            src="/duolingo_home.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="object-contain h-full w-full"
+          />
         </div>
 
         {/* Right side - CTA */}
-        <div className="flex max-w-md flex-col items-center text-center lg:items-start lg:text-left">
-          <h2 className="mb-4 text-3xl font-extrabold text-slate-700 lg:text-4xl">
-            Aprende, pratica e domina novas línguas com o MyDuolingo.
-          </h2>
-          <p className="mb-8 text-lg text-slate-500">
-            A forma gratuita, divertida e eficaz de aprender uma língua!
-          </p>
+        <div className="flex w-full flex-col items-center gap-6 lg:items-center text-center max-w-[400px]">
+          <h1 className="text-3xl font-bold text-slate-700 lg:text-[32px] leading-tight">
+            O jeito grátis, divertido e eficaz de aprender um idioma!
+          </h1>
 
           <div className="flex w-full flex-col gap-3">
-            <Link href="/sign-up" className="w-full">
-              <Button variant="primary" size="lg" className="w-full">
-                Começar Agora
-              </Button>
-            </Link>
-            <Link href="/sign-in" className="w-full">
-              <Button variant="ghost" size="lg" className="w-full text-sky-500 hover:text-sky-600">
-                Já tenho uma conta
-              </Button>
-            </Link>
+            {userId ? (
+              <Link href="/learn" className="w-full">
+                <Button size="lg" className="w-full bg-green-500 hover:bg-green-600 text-white font-bold uppercase tracking-wide border-b-4 border-green-700 h-12 rounded-xl">
+                  Continuar curso
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/sign-up" className="w-full">
+                  <Button size="lg" className="w-full bg-green-500 hover:bg-green-600 text-white font-bold uppercase tracking-wide border-b-4 border-green-700 h-12 rounded-xl">
+                    Comece agora
+                  </Button>
+                </Link>
+                <Link href="/sign-in" className="w-full">
+                  <Button variant="ghost" size="lg" className="w-full bg-white text-blue-500 hover:bg-slate-50 font-bold uppercase tracking-wide border-2 border-slate-200 border-b-4 h-12 rounded-xl active:border-b-2 hover:text-blue-600">
+                    Já tenho uma conta
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </main>
 
-      {/* Language Selector */}
-      <section className="border-t bg-slate-50 py-8">
-        <div className="mx-auto max-w-4xl px-6">
-          <h3 className="mb-6 text-center text-lg font-bold text-slate-600">
-            Escolhe o teu idioma
-          </h3>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            {languages.map((lang) => (
-              <button
-                key={lang.code}
-                className="flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-4 py-3 transition-all hover:border-green-300 hover:bg-green-50"
-              >
-                <span className="text-2xl">{lang.flag}</span>
-                <span className="font-bold text-slate-600">{lang.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t py-6 text-center text-sm text-slate-400">
-        <p>© 2026 MyDuolingo Clone - Projeto Educacional</p>
-      </footer>
+      {/* Footer - minimal or empty as requested (user said "nao quero o footer") */}
     </div>
   );
 }

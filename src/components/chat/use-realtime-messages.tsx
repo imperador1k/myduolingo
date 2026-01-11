@@ -36,9 +36,9 @@ export const useRealtimeMessages = (initialMessages: any[], userId: string, othe
                             senderId: newMsg.sender_id, // Map snake_case to camelCase
                             receiverId: newMsg.receiver_id,
                             createdAt: new Date(newMsg.created_at),
-                            content: newMsg.content
-                            // sender: ... we can't get sender object easily here without fetch.
-                            // But for rendering bubbling, we just need ID.
+                            content: newMsg.content,
+                            type: newMsg.type,
+                            fileName: newMsg.file_name,
                         }]);
                     }
                 }

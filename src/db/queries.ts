@@ -829,7 +829,7 @@ export const getMessages = cache(async () => {
     return data;
 });
 
-export const sendMessage = async (receiverId: string, content: string) => {
+export const sendMessage = async (receiverId: string, content: string, type: "text" | "image" | "file" = "text", fileName?: string) => {
     const { userId: senderId } = await auth();
     if (!senderId) throw new Error("Unauthorized");
 
@@ -837,6 +837,8 @@ export const sendMessage = async (receiverId: string, content: string) => {
         senderId,
         receiverId,
         content,
+        type,
+        fileName,
     });
 
     revalidatePath("/messages");
