@@ -11,7 +11,7 @@ export const StreakCheck = () => {
     useEffect(() => {
         checkStreakStatus().then((res) => {
             if (res.streakLost && 'days' in res) {
-                setLostDays(res.days);
+                setLostDays(res.days || 0);
                 setStreakLost(true);
             }
         }).catch(console.error);
