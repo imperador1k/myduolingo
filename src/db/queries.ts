@@ -687,7 +687,7 @@ export const buyStreakFreeze = async () => {
 };
 
 // Use heart shield (called when wrong answer)
-export const useHeartShield = async () => {
+export const consumeHeartShield = async () => {
     // ... existing implementation ... (wait, I should not delete content if I can't match exact block easily, but here I am appending at end mostly)
     // Actually I'll append the new queries at the very end of file.
 

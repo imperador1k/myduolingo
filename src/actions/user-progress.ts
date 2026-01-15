@@ -13,7 +13,7 @@ import {
     updateUserInfo,
     updateStreak,
     consumeXpBoost,
-    useHeartShield,
+    consumeHeartShield,
     checkStreakReset
 } from "@/db/queries";
 
@@ -91,7 +91,7 @@ export const onChallengeWrong = async () => {
     }
 
     // Check for heart shield first
-    const shieldResult = await useHeartShield();
+    const shieldResult = await consumeHeartShield();
 
     if (shieldResult.shieldUsed) {
         // Shield protected the heart!
