@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getTopUsers, getUserProgress } from "@/db/queries";
 import { cn } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function LeaderboardPage() {
     const userProgress = await getUserProgress();
     const topUsers = await getTopUsers(20);

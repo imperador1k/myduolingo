@@ -139,6 +139,8 @@ const SidebarStats = ({ points, hearts, streak }: { points: number; hearts: numb
     </div>
 );
 
+export const dynamic = "force-dynamic";
+
 export default async function LearnPage() {
     const userProgress = await getUserProgress();
     const units = await getUnits();

@@ -4,6 +4,8 @@ import { Heart, Zap, Shield, Snowflake } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ShopItems } from "./shop-items";
 
+export const dynamic = "force-dynamic";
+
 export default async function ShopPage() {
     const userProgress = await getUserProgress();
 
