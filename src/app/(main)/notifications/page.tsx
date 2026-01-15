@@ -4,6 +4,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { NotificationsHandler } from "@/components/notifications-handler";
 
+export const dynamic = "force-dynamic";
+
 export default async function NotificationsPage() {
     const notifications = await getNotifications();
 

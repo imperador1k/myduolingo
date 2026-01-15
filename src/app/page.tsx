@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const { userId } = await auth();
 
