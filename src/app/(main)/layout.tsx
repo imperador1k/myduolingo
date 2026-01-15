@@ -1,4 +1,3 @@
-import { getUnreadNotificationCount } from "@/db/queries";
 import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileNav } from "@/components/mobile-nav";

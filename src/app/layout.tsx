@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   description: "Melhor jeito de tornar poliglota",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({
   children,
 }: Readonly<{
