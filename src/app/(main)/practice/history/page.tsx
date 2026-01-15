@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HistoryList } from "./history-list";
 
+export const dynamic = "force-dynamic";
+
 export default async function HistoryPage() {
     const { userId } = await auth();
 
