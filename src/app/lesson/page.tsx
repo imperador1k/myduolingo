@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getLesson, getUserProgress } from "@/db/queries";
 import { LessonClient } from "./lesson-client";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
     searchParams: Promise<{ id?: string }>;
 };
