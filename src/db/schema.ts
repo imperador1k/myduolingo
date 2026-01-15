@@ -193,3 +193,25 @@ export const messagesRelations = relations(messages, ({ one }) => ({
         relationName: "receiver"
     }),
 }));
+
+// ===== PRACTICE SESSIONS =====
+export const practiceSessions = pgTable("practice_sessions", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    type: text("type", { enum: ["writing", "speaking"] }).notNull(),
+    prompt: text("prompt").notNull(),
+    // Store JSON data as text for simplicity in this setup
+    promptData: text("prompt_data"),
+    userInput: text("user_input"),
+    audioUrl: text("audio_url"),
+    feedback: text("feedback"), // JSON string
+    score: integer("score"),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const practiceSessionsRelations = relations(practiceSessions, ({ one }) => ({
+    user: one(userProgress, {
+        fields: [practiceSessions.userId],
+        references: [userProgress.userId],
+    }),
+}));

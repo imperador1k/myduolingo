@@ -12,7 +12,8 @@ import {
     User,
     Users,
     Bell,
-    Mail
+    Mail,
+    Dumbbell
 } from "lucide-react";
 
 type SidebarItemProps = {
@@ -77,6 +78,11 @@ export const Sidebar = ({ className, notificationCount }: Props) => {
                     label="Cursos"
                     href="/courses"
                     iconSrc={<BookOpen className="h-6 w-6" />}
+                />
+                <SidebarItem
+                    label="Praticar AI"
+                    href="/practice"
+                    iconSrc={<Dumbbell className="h-6 w-6" />}
                 />
                 <SidebarItem
                     label="Classificação"

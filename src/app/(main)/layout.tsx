@@ -13,8 +13,8 @@ export default function MainLayout({ children }: Props) {
         <>
             <MobileHeader />
             <Sidebar className="hidden lg:flex" />
-            <main className="lg:pl-[256px] h-full pt-[50px] lg:pt-0">
-                <div className="max-w-[1056px] mx-auto pt-6 h-full">
+            <main className="lg:pl-[256px] h-full pt-[50px] lg:pt-0 overflow-y-auto overflow-x-hidden">
+                <div className="max-w-[1056px] mx-auto pt-6 h-full pb-32">
                     {children}
                 </div>
             </main>

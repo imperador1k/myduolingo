@@ -7,8 +7,8 @@ import "./globals.css";
 const nunito = Nunito({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MyDuolingo - Aprende línguas de graça",
-  description: "Clone do Duolingo para aprendizagem de línguas",
+  title: "MyDuolingo - Aprende como um Guerreiro",
+  description: "Melhor jeito de tornar poliglota",
 };
 
 export default function RootLayout({

@@ -16,6 +16,7 @@ import {
     Bell,
     BookOpen,
     MessageSquare,
+    Dumbbell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -89,6 +90,12 @@ export const MobileNav = () => {
                             icon={<Bell className="h-6 w-6" />}
                             label="Notif."
                             isActive={pathname === "/notifications"}
+                        />
+                        <MobileItem
+                            href="/practice"
+                            icon={<Dumbbell className="h-6 w-6" />}
+                            label="Praticar AI"
+                            isActive={pathname.startsWith("/practice")}
                         />
                         <MobileItem
                             href="/settings"

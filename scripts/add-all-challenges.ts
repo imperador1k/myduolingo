@@ -1,6 +1,7 @@
 import { config } from "dotenv";
 config({ path: ".env.local" });
 
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "../src/db/schema";
@@ -96,8 +97,13 @@ const main = async () => {
         for (const lesson of allLessons) {
             // Check if lesson already has challenges
             const existingChallenges = await db.query.challenges.findMany({
-                where: schema.challenges.lessonId === lesson.id ? undefined : undefined,
+                where: eq(schema.challenges.lessonId, lesson.id),
             });
+
+            if (existingChallenges.length > 0) {
+                console.log(`⚠️ Lesson "${lesson.title}" already has challenges. Skipping.`);
+                continue;
+            }
 
             // Use PT or ES challenges based on course
             const courseTitle = lesson.unit?.course?.title || "";
