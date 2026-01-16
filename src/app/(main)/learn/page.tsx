@@ -2,88 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getUnits, getUserProgress, getCourses } from "@/db/queries";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { Crown, Star, Check, Lock, ChevronRight, Heart } from "lucide-react";
-
-// Lesson Node Component
-type LessonNodeProps = {
-    id: number;
-    index: number;
-    totalCount: number;
-    completed: boolean;
-    current: boolean;
-    locked: boolean;
-    noHearts: boolean;
-};
-
-const LessonNode = ({ id, index, totalCount, completed, current, locked, noHearts }: LessonNodeProps) => {
-    // Zigzag positioning
-    const positions = ["center", "left", "center", "right", "center"];
-    const position = positions[index % 5];
-
-    const positionClasses = {
-        left: "-translate-x-12",
-        center: "",
-        right: "translate-x-12",
-    };
-
-    const getNodeStyles = () => {
-        if (noHearts && (current || completed)) {
-            return "bg-rose-400 border-rose-500 border-b-4 text-white";
-        }
-        if (current) {
-            return "bg-green-500 border-green-600 border-b-4 text-white shadow-lg scale-110";
-        }
-        if (completed) {
-            return "bg-green-500 border-green-600 border-b-4 text-white";
-        }
-        return "bg-slate-200 border-slate-300 border-b-4 text-slate-400";
-    };
-
-    const getIcon = () => {
-        if (noHearts && (current || completed)) return <Heart className="h-6 w-6" />;
-        if (current) return <Star className="h-8 w-8 fill-white" />;
-        if (completed) return <Check className="h-8 w-8" />;
-        return <Lock className="h-6 w-6" />;
-    };
-
-    const isAccessible = (current || completed) && !noHearts;
-
-    return (
-        <div className={cn("flex justify-center", positionClasses[position as keyof typeof positionClasses])}>
-            <Link
-                href={isAccessible ? `/lesson?id=${id}` : noHearts ? "/shop" : "#"}
-                className={cn(
-                    "relative flex items-center justify-center",
-                    locked && "cursor-not-allowed"
-                )}
-            >
-                {/* Glow effect for current */}
-                {current && (
-                    <div className="absolute h-20 w-20 animate-ping rounded-full bg-green-500 opacity-20" />
-                )}
-
-                {/* START label */}
-                {current && (
-                    <span className="absolute -top-8 rounded-lg bg-white px-3 py-1 text-sm font-bold text-green-500 shadow-lg">
-                        COMEÇAR
-                    </span>
-                )}
-
-                {/* Node */}
-                <div
-                    className={cn(
-                        "flex h-16 w-16 items-center justify-center rounded-full transition-all duration-200",
-                        getNodeStyles(),
-                        isAccessible && "hover:scale-105 active:scale-95 active:border-b-0"
-                    )}
-                >
-                    {getIcon()}
-                </div>
-            </Link>
-        </div>
-    );
-};
+import { ChevronRight } from "lucide-react";
+import { LessonMap } from "@/components/lesson-map";
 
 // Unit Header Component
 const UnitHeader = ({ title, description }: { title: string; description: string }) => (
@@ -153,6 +73,22 @@ export default async function LearnPage() {
 
     const activeCourse = courses.find(c => c.id === userProgress.activeCourseId);
 
+    // Prepare units data with challenges for the client component
+    const unitsWithChallenges = units.map(unit => ({
+        id: unit.id,
+        title: unit.title,
+        description: unit.description,
+        lessons: unit.lessons.map(lesson => ({
+            id: lesson.id,
+            title: lesson.title,
+            completed: lesson.completed,
+            challenges: lesson.challenges?.map(c => ({
+                id: c.id,
+                challengeProgress: c.challengeProgress,
+            })) || [],
+        })),
+    }));
+
     return (
         <div className="flex gap-8">
             {/* Main Content - Lesson Map */}
@@ -177,62 +113,34 @@ export default async function LearnPage() {
                     </div>
                 </div>
 
-                {/* Units */}
+                {/* Units with Lesson Map */}
                 <div className="space-y-8">
-                    {(() => {
-                        // Track first incomplete across ALL units
-                        let firstIncompleteFound = false;
-
-                        return units.map((unit, unitIndex) => {
-                            const lessonsWithStatus = unit.lessons.map((lesson, lessonIndex) => {
-                                const isCompleted = lesson.completed;
-                                let isCurrent = false;
-                                let isLocked = false;
-
-                                if (isCompleted) {
-                                    // Lesson is completed - show checkmark
-                                    isCurrent = false;
-                                    isLocked = false;
-                                } else if (!firstIncompleteFound) {
-                                    // First incomplete lesson - this is current
-                                    isCurrent = true;
-                                    firstIncompleteFound = true;
-                                } else {
-                                    // Not completed and not first incomplete - locked
-                                    isLocked = true;
-                                }
-
-                                return { ...lesson, isCurrent, isLocked };
-                            });
-
-                            return (
-                                <div key={unit.id}>
-                                    {/* Unit Header */}
-                                    <UnitHeader title={unit.title} description={unit.description} />
-
-                                    {/* Lesson Path */}
-                                    <div className="py-8">
-                                        {/* Lessons */}
-                                        <div className="flex flex-col gap-6">
-                                            {lessonsWithStatus.map((lesson, index) => (
-                                                <LessonNode
-                                                    key={lesson.id}
-                                                    id={lesson.id}
-                                                    index={index}
-                                                    totalCount={lessonsWithStatus.length}
-                                                    completed={lesson.completed}
-                                                    current={lesson.isCurrent}
-                                                    locked={lesson.isLocked}
-                                                    noHearts={userProgress.hearts === 0}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        });
-                    })()}
+                    {units.map((unit, unitIndex) => (
+                        <div key={unit.id}>
+                            <UnitHeader title={unit.title} description={unit.description} />
+                            <LessonMap
+                                units={[{
+                                    ...unitsWithChallenges[unitIndex],
+                                }]}
+                                noHearts={userProgress.hearts === 0}
+                            />
+                        </div>
+                    ))}
                 </div>
+
+                {/* End of journey marker */}
+                {units.length > 0 && (
+                    <div className="flex items-center justify-center gap-4 py-12 mt-8">
+                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+                        <div className="flex flex-col items-center gap-2">
+                            <span className="text-3xl">🏆</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                                Continua a aprender
+                            </span>
+                        </div>
+                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+                    </div>
+                )}
 
                 {/* Empty state if no units */}
                 {units.length === 0 && (
