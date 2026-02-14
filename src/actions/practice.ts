@@ -27,7 +27,7 @@ export const getPracticeHistory = async () => {
 };
 
 export const savePracticeSession = async (data: {
-    type: "writing" | "speaking";
+    type: "writing" | "speaking" | "reading" | "listening";
     prompt: string;
     promptData: any; // will be stringified
     userInput: string;

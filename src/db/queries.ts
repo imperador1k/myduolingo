@@ -227,6 +227,22 @@ export const getUnitsForUser = cache(async (userId: string) => {
     return normalizedData;
 });
 
+export const getCurrentUnit = cache(async () => {
+    const units = await getUnits();
+
+    // Find the first unit that has at least one incomplete lesson
+    const activeUnit = units.find((unit) => {
+        return unit.lessons.some((lesson) => !lesson.completed);
+    });
+
+    // If all units are completed, return the last one (maintenance mode)
+    if (!activeUnit && units.length > 0) {
+        return units[units.length - 1];
+    }
+
+    return activeUnit;
+});
+
 export const getLesson = cache(async (id?: number) => {
     const { userId } = await auth();
 

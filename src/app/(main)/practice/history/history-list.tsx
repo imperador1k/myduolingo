@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Mic, CheckCircle2, Calendar } from "lucide-react";
+import { MessageSquare, Mic, CheckCircle2, Calendar, BookOpen, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Session = {
     id: number;
-    type: "writing" | "speaking";
+    type: "writing" | "speaking" | "reading" | "listening";
     prompt: string;
     userInput: string | null;
     feedback: any; // JSON string or object
@@ -16,7 +16,7 @@ type Session = {
 };
 
 export const HistoryList = ({ history }: { history: any[] }) => {
-    const [filter, setFilter] = useState<"all" | "writing" | "speaking">("all");
+    const [filter, setFilter] = useState<"all" | "writing" | "speaking" | "reading" | "listening">("all");
 
     // Filter
     const filteredHistory = history.filter(session => {
@@ -69,6 +69,24 @@ export const HistoryList = ({ history }: { history: any[] }) => {
                     <Mic className="mr-2 h-4 w-4" />
                     Fala
                 </Button>
+                <Button
+                    variant={filter === "reading" ? "primary" : "ghost"}
+                    size="sm"
+                    onClick={() => setFilter("reading")}
+                    className={cn(filter === "reading" && "bg-emerald-500 text-white hover:bg-emerald-600")}
+                >
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Leitura
+                </Button>
+                <Button
+                    variant={filter === "listening" ? "primary" : "ghost"}
+                    size="sm"
+                    onClick={() => setFilter("listening")}
+                    className={cn(filter === "listening" && "bg-indigo-500 text-white hover:bg-indigo-600")}
+                >
+                    <Headphones className="mr-2 h-4 w-4" />
+                    Escuta
+                </Button>
             </div>
 
             {/* List */}
@@ -110,14 +128,23 @@ const HistoryCard = ({ session }: { session: any }) => {
                 <div className="flex items-center gap-3">
                     <div className={cn(
                         "p-3 rounded-xl",
-                        session.type === 'writing' ? "bg-sky-100 text-sky-600" : "bg-rose-100 text-rose-600"
+                        session.type === 'writing' ? "bg-sky-100 text-sky-600" :
+                            session.type === 'speaking' ? "bg-rose-100 text-rose-600" :
+                                session.type === 'reading' ? "bg-emerald-100 text-emerald-600" :
+                                    "bg-indigo-100 text-indigo-600"
                     )}>
-                        {session.type === 'writing' ? <MessageSquare className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+                        {session.type === 'writing' && <MessageSquare className="h-6 w-6" />}
+                        {session.type === 'speaking' && <Mic className="h-6 w-6" />}
+                        {session.type === 'reading' && <BookOpen className="h-6 w-6" />}
+                        {session.type === 'listening' && <Headphones className="h-6 w-6" />}
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
                             <h3 className="font-bold text-lg text-slate-700 capitalize">
-                                {session.type === 'writing' ? 'Prática de Escrita' : 'Prática de Fala'}
+                                {session.type === 'writing' ? 'Prática de Escrita' :
+                                    session.type === 'speaking' ? 'Prática de Fala' :
+                                        session.type === 'reading' ? 'Prática de Leitura' :
+                                            'Prática de Escuta'}
                             </h3>
                         </div>
                         <p className="text-slate-500 font-medium text-sm mt-1">Tema: "{session.prompt}"</p>

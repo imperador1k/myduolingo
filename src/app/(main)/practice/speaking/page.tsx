@@ -4,8 +4,10 @@ import { useEffect, useState, useTransition, useRef } from "react";
 import { generatePracticePrompt, analyzeSpeaking } from "@/actions/gemini";
 import { savePracticeSession } from "@/actions/practice";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, Mic, Square, Sparkles, Volume2, Info, Pause, Download } from "lucide-react";
+import { Loader2, RefreshCw, Mic, Square, Sparkles, Volume2, Info, Pause, Download, Shuffle, Target, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+import { PracticeSetup } from "@/components/practice-setup";
 
 // Add support for Web Speech API types
 interface IWindow extends Window {
@@ -20,6 +22,10 @@ export default function SpeakingPracticePage() {
     const [transcript, setTranscript] = useState("");
     const [status, setStatus] = useState<SpeakingStatus>('idle');
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
+
+    // Setup State
+    const [isSetupComplete, setIsSetupComplete] = useState(false);
+    const [config, setConfig] = useState<{ language: string; level: string; mode: "random" | "focus" } | null>(null);
 
     const [feedback, setFeedback] = useState<{
         feedback: string;
@@ -37,22 +43,39 @@ export default function SpeakingPracticePage() {
 
     const isPausedRef = useRef(false);
 
-    const handleGeneratePrompt = () => {
+    const handleStartSession = (newConfig: { language: string; level: string; mode: "random" | "focus" }) => {
+        setConfig(newConfig);
+        setIsSetupComplete(true);
+        handleGeneratePrompt(newConfig);
+    };
+
+    const handleGeneratePrompt = (cfg = config) => {
+        if (!cfg) return;
         startPromptTransition(async () => {
             setFeedback(null);
             setTranscript("");
             setAudioUrl(null);
             handleStop();
-            const data = await generatePracticePrompt("speaking");
+            const data = await generatePracticePrompt("speaking", cfg.level, cfg.language, cfg.mode === "focus");
             setPromptData(data);
         });
     };
+
+    // ... (keep handleStart, handleResume, handlePause, handleStop, startRecognition as is)
+    // BUT I need to include them in the replacement if I want to keep the file valid or stick to the range.
+    // The range 1-209 includes almost everything. I should be careful to keeping internal functions.
+    // Actually, I can just replace the top part and the cleanup useEffect.
+
+    // To make this cleaner, I will just replace the top part and then use a separate call for the bottom/render if needed.
+    // However, I need to update handleSubmit to use config too.
+
+    // Let's do a larger replacement to be safe.
+    // ... handleStart TO startRecognition ... (omitted in thought, but must be in code)
 
     const handleStart = async () => {
         setTranscript("");
         setAudioUrl(null);
 
-        // Start Media Recording
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const mediaRecorder = new MediaRecorder(stream);
@@ -68,16 +91,13 @@ export default function SpeakingPracticePage() {
                 const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
                 const url = URL.createObjectURL(audioBlob);
                 setAudioUrl(url);
-
-                // Stop all tracks to release mic
                 stream.getTracks().forEach(track => track.stop());
             };
 
             mediaRecorderRef.current = mediaRecorder;
             mediaRecorder.start();
         } catch (err) {
-            console.error("Error accessing microphone for recording:", err);
-            // We continue anyway so SpeechRecognition might still work if it's separate permissions
+            console.error("Error accessing microphone:", err);
         }
 
         startRecognition();
@@ -95,11 +115,9 @@ export default function SpeakingPracticePage() {
             isPausedRef.current = true;
             recognitionRef.current.stop();
         }
-
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
             mediaRecorderRef.current.pause();
         }
-
         setStatus('paused');
     };
 
@@ -108,11 +126,9 @@ export default function SpeakingPracticePage() {
             isPausedRef.current = false;
             recognitionRef.current.stop();
         }
-
         if (mediaRecorderRef.current && (mediaRecorderRef.current.state === 'recording' || mediaRecorderRef.current.state === 'paused')) {
             mediaRecorderRef.current.stop();
         }
-
         setStatus('idle');
     };
 
@@ -121,12 +137,12 @@ export default function SpeakingPracticePage() {
         const SpeechRecognitionConstructor = SpeechRecognition || webkitSpeechRecognition;
 
         if (!SpeechRecognitionConstructor) {
-            alert("O seu navegador não suporta reconhecimento de voz. Tente usar o Chrome.");
+            alert("Navegador não suportado. Tente Chrome.");
             return;
         }
 
         const recognition = new SpeechRecognitionConstructor();
-        recognition.lang = "en-US";
+        recognition.lang = (promptData as any)?.languageCode || "en-US";
         recognition.continuous = true;
         recognition.interimResults = true;
 
@@ -143,22 +159,12 @@ export default function SpeakingPracticePage() {
         };
 
         recognition.onerror = (event: any) => {
-            console.error("Speech recognition error", event.error);
-            if (event.error !== 'no-speech') {
-                // Don't change status to idle immediately on error to avoid UI flickering, unless fatal
-            }
+            // ignore
         };
 
         recognition.onend = () => {
             if (!isPausedRef.current && status === 'recording') {
-                // If we didn't pause manually, it might have timed out. 
-                // In a real app we might auto-restart or set to idle.
-                // For now, if we are 'recording' but it ended, it's likely a silence timeout.
-                // If the MediaRecorder is still going, we can restart SpeechRecognition?
-                // Or just let it be. simpler to set to idle.
                 setStatus('idle');
-
-                // Also stop media recorder if it's still going
                 if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
                     mediaRecorderRef.current.stop();
                 }
@@ -172,14 +178,13 @@ export default function SpeakingPracticePage() {
     };
 
     const handleSubmit = () => {
-        if (!transcript.trim() || !promptData) return;
+        if (!transcript.trim() || !promptData || !config) return;
 
         startAnalysisTransition(async () => {
-            handleStop(); // Ensure recording stops
-            const result = await analyzeSpeaking(transcript, promptData.text);
+            handleStop();
+            const result = await analyzeSpeaking(transcript, promptData.text, config.level, config.language);
             setFeedback(result);
 
-            // Save history
             try {
                 await savePracticeSession({
                     type: "speaking",
@@ -195,14 +200,12 @@ export default function SpeakingPracticePage() {
         });
     };
 
-    // ... useEffect cleanup same as before
+    // Cleanup
     useEffect(() => {
-        handleGeneratePrompt();
         return () => {
             if (recognitionRef.current) recognitionRef.current.stop();
-            if (mediaRecorderRef.current) {
-                // stop stream tracks
-                // ...
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+                mediaRecorderRef.current.stop();
             }
         };
     }, []);
@@ -220,21 +223,59 @@ export default function SpeakingPracticePage() {
         return "Transcrição";
     };
 
+    if (!isSetupComplete) {
+        return <PracticeSetup type="speaking" onStart={handleStartSession} />;
+    }
+
+
     return (
         <div className="mx-auto max-w-[900px] px-6 py-8 pb-20">
             <div className="mb-8 flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-slate-700">Prática de Fala</h1>
-                <Button variant="sidebar" size="sm" onClick={handleGeneratePrompt} disabled={isGeneratingPrompt}>
+                <h1 className="text-2xl font-bold text-slate-700">Speaking Practice</h1>
+                <Button variant="sidebar" size="sm" onClick={() => handleGeneratePrompt()} disabled={isGeneratingPrompt}>
                     {isGeneratingPrompt ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                    Novo Tópico
+                    New Topic
                 </Button>
             </div>
 
+            {config && (
+                <div className="mb-6 flex justify-center">
+                    <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                        <span className="font-bold text-slate-700">{config.language}</span>
+                        <span>•</span>
+                        <span className="font-bold text-slate-700">{config.level}</span>
+                        <span>•</span>
+                        <span className="font-bold text-slate-700 uppercase">{config.mode}</span>
+                    </div>
+                </div>
+            )}
+
             {/* Prompt Card */}
             <div className="mb-8 rounded-xl border-2 border-slate-200 bg-white p-6 shadow-sm">
-                <div className="mb-2 flex items-center gap-2 text-rose-500">
-                    <Volume2 className="h-5 w-5" />
-                    <h2 className="font-bold uppercase tracking-wide">Tópico de Conversa</h2>
+                <div className="mb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-rose-500">
+                        <Volume2 className="h-5 w-5" />
+                        <h2 className="font-bold uppercase tracking-wide">Tópico de Conversa</h2>
+                    </div>
+                    {/* TTS Button */}
+                    {promptData && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-slate-400 hover:text-rose-500"
+                            onClick={() => {
+                                if (!promptData.text) return;
+                                window.speechSynthesis.cancel();
+                                const speech = new SpeechSynthesisUtterance(promptData.text);
+                                speech.lang = (promptData as any).languageCode || "en-US"; // Use the code from backend
+                                speech.rate = 0.9;
+                                window.speechSynthesis.speak(speech);
+                            }}
+                            title="Ouvir frase"
+                        >
+                            <Volume2 className="h-5 w-5" />
+                        </Button>
+                    )}
                 </div>
                 {isGeneratingPrompt ? (
                     <div className="flex h-20 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-slate-300" /></div>

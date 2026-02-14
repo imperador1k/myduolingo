@@ -9,6 +9,7 @@ export const courses = pgTable("courses", {
     id: serial("id").primaryKey(),
     title: text("title").notNull(),
     imageSrc: text("image_src").notNull(),
+    languageCode: text("language_code").notNull().default("en"),
 });
 
 export const coursesRelations = relations(courses, ({ many }) => ({
@@ -62,6 +63,8 @@ export const challenges = pgTable("challenges", {
     lessonId: integer("lesson_id")
         .references(() => lessons.id, { onDelete: "cascade" })
         .notNull(),
+    context: text("context"), // Scenario or dialogue snippet
+    explanation: text("explanation"), // Reasoning for the answer
 });
 
 export const challengesRelations = relations(challenges, ({ one, many }) => ({
@@ -198,7 +201,7 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 export const practiceSessions = pgTable("practice_sessions", {
     id: serial("id").primaryKey(),
     userId: text("user_id").notNull(),
-    type: text("type", { enum: ["writing", "speaking"] }).notNull(),
+    type: text("type", { enum: ["writing", "speaking", "reading", "listening"] }).notNull(),
     prompt: text("prompt").notNull(),
     // Store JSON data as text for simplicity in this setup
     promptData: text("prompt_data"),

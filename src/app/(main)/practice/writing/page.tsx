@@ -5,12 +5,14 @@ import { generatePracticePrompt, analyzeWriting } from "@/actions/gemini";
 import { savePracticeSession } from "@/actions/practice";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "../../../../components/ui/textarea"; // Correct relative path
-import { Loader2, RefreshCw, Send, Sparkles, CheckCircle2 } from "lucide-react";
+import { Loader2, RefreshCw, Send, Sparkles, Shuffle, Target, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
+import ReactMarkdown from 'react-markdown';
+import { PracticeSetup } from "@/components/practice-setup";
 export default function WritingPracticePage() {
     const [promptData, setPromptData] = useState<{ text: string; translation: string; hints?: string[] } | null>(null);
     const [userResponse, setUserResponse] = useState("");
+    const [isFocusMode, setIsFocusMode] = useState(false);
     const [feedback, setFeedback] = useState<{
         feedback: string;
         corrections: { original: string; correction: string; explication: string }[];
@@ -20,20 +22,34 @@ export default function WritingPracticePage() {
     const [isGeneratingPrompt, startPromptTransition] = useTransition();
     const [isAnalyzing, startAnalysisTransition] = useTransition();
 
-    const handleGeneratePrompt = () => {
+    // ... state variables ...
+    // const [language, setLanguage] = useState("Active Course");
+    // const [level, setLevel] = useState("B1");
+    const [isSetupComplete, setIsSetupComplete] = useState(false);
+    const [config, setConfig] = useState<{ language: string; level: string; mode: "random" | "focus" } | null>(null);
+
+    const handleStartSession = (newConfig: { language: string; level: string; mode: "random" | "focus" }) => {
+        setConfig(newConfig);
+        setIsSetupComplete(true);
+        // Trigger generation immediately
+        handleGeneratePrompt(newConfig);
+    };
+
+    const handleGeneratePrompt = (cfg = config) => {
+        if (!cfg) return;
         startPromptTransition(async () => {
             setFeedback(null);
             setUserResponse("");
-            const data = await generatePracticePrompt("writing");
+            const data = await generatePracticePrompt("writing", cfg.level, cfg.language, cfg.mode === "focus");
             setPromptData(data);
         });
     };
 
     const handleSubmit = () => {
-        if (!userResponse.trim() || !promptData) return;
+        if (!userResponse.trim() || !promptData || !config) return;
 
         startAnalysisTransition(async () => {
-            const result = await analyzeWriting(userResponse, promptData.text);
+            const result = await analyzeWriting(userResponse, promptData.text, config.level, config.language);
             setFeedback(result);
 
             try {
@@ -51,28 +67,121 @@ export default function WritingPracticePage() {
         });
     };
 
-    useEffect(() => {
-        handleGeneratePrompt();
-    }, []);
+    // useEffect(() => {
+    //     handleGeneratePrompt();
+    // }, [isFocusMode, level, language]); // Re-generate when settings change
+
+    if (!isSetupComplete) {
+        return <PracticeSetup type="writing" onStart={handleStartSession} />;
+    }
 
     return (
         <div className="mx-auto max-w-[900px] px-6 py-8 pb-20">
-            <div className="mb-8 flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-slate-700">Prática de Escrita</h1>
-                <Button
-                    variant="sidebar"
-                    size="sm"
-                    onClick={handleGeneratePrompt}
-                    disabled={isGeneratingPrompt}
-                >
-                    {isGeneratingPrompt ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                    )}
-                    Novo Tópico
-                </Button>
+            <div className="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <h1 className="text-2xl font-bold text-slate-700">Writing Practice</h1>
+                <div className="flex gap-2">
+                    {/* <select
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value)}
+                        className="rounded-md border-slate-200 p-2 text-sm font-medium text-slate-700 shadow-sm focus:border-sky-500 focus:ring-sky-500 bg-white"
+                    >
+                        <option value="Active Course">Active Course</option>
+                        <option value="French">French</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="Italian">Italian</option>
+                        <option value="German">German</option>
+                        <option value="English">English</option>
+                        <option value="Portuguese">Portuguese</option>
+                    </select>
+
+                    <select
+                        value={level}
+                        onChange={(e) => setLevel(e.target.value)}
+                        className="rounded-md border-slate-200 p-2 text-sm font-medium text-slate-700 shadow-sm focus:border-sky-500 focus:ring-sky-500 bg-white"
+                    >
+                        <option value="A1">A1 (Iniciante)</option>
+                        <option value="A2">A2 (Básico)</option>
+                        <option value="B1">B1 (Intermédio)</option>
+                        <option value="B2">B2 (Intermédio Alto)</option>
+                        <option value="C1">C1 (Avançado)</option>
+                        <option value="C2">C2 (Mestre)</option>
+                    </select> */}
+
+                    <Button
+                        variant="sidebar"
+                        size="sm"
+                        onClick={() => handleGeneratePrompt()}
+                        disabled={isGeneratingPrompt}
+                    >
+                        {isGeneratingPrompt ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                        )}
+                        New Topic
+                    </Button>
+                </div>
+
+                {config && (
+                    <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                        <span className="font-bold text-slate-700">{config.language}</span>
+                        <span>•</span>
+                        <span className="font-bold text-slate-700">{config.level}</span>
+                        <span>•</span>
+                        <span className="font-bold text-slate-700 uppercase">{config.mode}</span>
+                    </div>
+                )}
             </div>
+
+            {/* Mode Selection Cards */}
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div
+                    onClick={() => {
+                        if (isFocusMode) setIsFocusMode(false);
+                    }}
+                    className={cn(
+                        "cursor-pointer rounded-xl border-2 p-4 transition-all hover:scale-[1.02] flex items-center gap-4",
+                        !isFocusMode
+                            ? "bg-sky-50 border-sky-400 shadow-md"
+                            : "bg-white border-slate-200 hover:border-sky-200"
+                    )}
+                >
+                    <div className={cn("p-3 rounded-full", !isFocusMode ? "bg-sky-100 text-sky-600" : "bg-slate-100 text-slate-400")}>
+                        <Shuffle className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h3 className={cn("font-bold text-lg", !isFocusMode ? "text-sky-700" : "text-slate-600")}>Random Mode</h3>
+                        <p className="text-sm text-slate-500">Varied creative topics.</p>
+                    </div>
+                    {!isFocusMode && <CheckCircle2 className="h-6 w-6 text-sky-500 ml-auto" />}
+                </div>
+
+                <div
+                    onClick={() => {
+                        if (!isFocusMode) setIsFocusMode(true);
+                    }}
+                    className={cn(
+                        "cursor-pointer rounded-xl border-2 p-4 transition-all hover:scale-[1.02] flex items-center gap-4",
+                        isFocusMode
+                            ? "bg-indigo-50 border-indigo-400 shadow-md"
+                            : "bg-white border-slate-200 hover:border-indigo-200"
+                    )}
+                >
+                    <div className={cn("p-3 rounded-full", isFocusMode ? "bg-indigo-100 text-indigo-600" : "bg-slate-100 text-slate-400")}>
+                        <Target className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h3 className={cn("font-bold text-lg", isFocusMode ? "text-indigo-700" : "text-slate-600")}>
+                            Course Focus
+                        </h3>
+                        <div className="flex items-center gap-1">
+                            <p className="text-sm text-slate-500">Based on your current unit.</p>
+                            {isFocusMode && <span className="text-xs bg-indigo-200 text-indigo-800 px-1.5 py-0.5 rounded font-bold">ACTIVE</span>}
+                        </div>
+                    </div>
+                    {isFocusMode && <CheckCircle2 className="h-6 w-6 text-indigo-500 ml-auto" />}
+                </div>
+            </div> */}
 
             {/* Prompt Card */}
             <div className="mb-8 rounded-xl border-2 border-slate-200 bg-white p-6 shadow-sm">

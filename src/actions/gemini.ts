@@ -9,30 +9,106 @@ const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
 });
 
-export const generatePracticePrompt = async (
-    type: "writing" | "speaking"
-): Promise<{ text: string; translation: string; hints: string[] }> => {
-    try {
-        const difficulty = ["iniciante", "intermediário", "avançado"][Math.floor(Math.random() * 3)];
 
+
+import { getCurrentUnit, getUserProgress } from "@/db/queries";
+import { getAIProfile, type LanguageCode } from "@/lib/ai-config";
+
+// Helper to map course title to BCP 47 language code
+const getLanguageCode = (courseTitle: string): LanguageCode => {
+    const normalized = courseTitle.toLowerCase();
+    if (normalized.includes("spanish") || normalized.includes("espanhol")) return "es";
+    if (normalized.includes("french") || normalized.includes("francês") || normalized.includes("frances")) return "fr";
+    if (normalized.includes("german") || normalized.includes("alemão") || normalized.includes("alemao")) return "en"; // Fallback to en for now as 'de' is not in AI_CONFIG yet or add it
+    if (normalized.includes("italian") || normalized.includes("italiano")) return "en"; // Fallback
+    if (normalized.includes("portuguese") || normalized.includes("português")) return "pt";
+    return "en"; // Default
+};
+
+export const generatePracticePrompt = async (
+    type: "writing" | "speaking",
+    level: string = "B1",
+    language: string = "Active Course",
+    focusMode: boolean = false
+): Promise<{ text: string; translation: string; hints: string[]; languageCode?: string }> => {
+    try {
         const randomSeed = Date.now();
+        let courseTitle = language;
+
+        // If default or simplified "Active Course", fetch from DB
+        if (language === "Active Course" || !language) {
+            const userProgress = await getUserProgress();
+            if (userProgress?.activeCourse?.title) {
+                courseTitle = userProgress.activeCourse.title;
+            } else {
+                courseTitle = "English"; // Fallback
+            }
+        }
+
+        const langCode = getLanguageCode(courseTitle);
+        const profile = getAIProfile(langCode);
+        const personaInstruction = `PERSONA: You are ${profile.persona.name}, role: ${profile.persona.role}. ${profile.persona.description}`;
+
+        let contextInstruction = "";
+
+        // LEVEL-SPECIFIC INSTRUCTIONS (The 5 Pillars)
+        let levelInstruction = "";
+        switch (level) {
+            case "A1":
+                levelInstruction = "LEVEL A1 (Beginner). Focus: Concrete nouns, Present tense, Simple SVO sentences. Avoid complex grammar.";
+                break;
+            case "A2":
+                levelInstruction = "LEVEL A2 (Elementary). Focus: Daily routines, Past tense (simple), Prepositions of place.";
+                break;
+            case "B1":
+                levelInstruction = "LEVEL B1 (Intermediate). Focus: Opinions, Future tense, Conditionals, Connectors (because, but).";
+                break;
+            case "B2":
+                levelInstruction = "LEVEL B2 (Upper Intermediate). Focus: Abstract topics, Subjunctive mood, Passive voice, Complex argumentation.";
+                break;
+            case "C1":
+                levelInstruction = "LEVEL C1 (Advanced). Focus: Nuance, Idioms, Academic vocabulary, Structural variety.";
+                break;
+            case "C2":
+                levelInstruction = "LEVEL C2 (Mastery). Focus: Stylistic precision, Irony, Archaic/Literary forms, Complete fluency.";
+                break;
+            default:
+                levelInstruction = "LEVEL B1 (Intermediate).";
+        }
+
+        if (focusMode) {
+            const currentUnit = await getCurrentUnit();
+            if (currentUnit) {
+                contextInstruction = `MODO FOCADO. O aluno está a estudar a unidade: "${currentUnit.title}". Descrição: "${currentUnit.description}". 
+                 Gera um tópico que se relacione ESTRITAMENTE com este tema.`;
+            } else {
+                contextInstruction = `MODO FOCADO (Fallback). Gera um tópico muito BÁSICO e introdutório.`;
+            }
+        }
+
         const prompt =
             type === "writing"
-                ? `Gera um tópico de escrita criativo e ${difficulty} para um estudante de INGLÊS falante de português. (Seed: ${randomSeed})
+                ? `${personaInstruction}
+                   Gera um tópico de escrita criativo para um estudante de ${courseTitle.toUpperCase()} nível ${level}. (Seed: ${randomSeed})
+                   ${levelInstruction}
+                   ${contextInstruction}
                    Inclui 3 ideias de sub-tópicos ou perguntas para ajudar a desenvolver o texto.
                    Retorna APENAS um JSON no formato:
                    {
-                     "text": "O tópico principal em INGLÊS",
+                     "text": "O tópico principal em ${courseTitle.toUpperCase()}",
                      "translation": "A tradução do tópico em PORTUGUÊS",
-                     "hints": ["Ideia 1 em Inglês", "Ideia 2 em Inglês", "Ideia 3 em Inglês"]
+                     "hints": ["Ideia 1 em ${courseTitle}", "Ideia 2 em ${courseTitle}", "Ideia 3 em ${courseTitle}"]
                    }`
-                : `Gera um tópico de conversação interessante e ${difficulty} para um estudante de INGLÊS falante de português praticar a fala. (Seed: ${randomSeed})
+                : `${personaInstruction}
+                   Gera um tópico de conversação interessante para um estudante de ${courseTitle.toUpperCase()} nível ${level}. (Seed: ${randomSeed})
+                   ${levelInstruction}
+                   ${contextInstruction}
                    Inclui 3 perguntas de suporte para manter a conversa.
                    Retorna APENAS um JSON no formato:
                    {
-                     "text": "A pergunta ou tópico principal em INGLÊS",
+                     "text": "A pergunta ou tópico principal em ${courseTitle.toUpperCase()}",
                      "translation": "A tradução em PORTUGUÊS",
-                     "hints": ["Ideia 1 em Inglês", "Ideia 2 em Inglês", "Ideia 3 em Inglês"]
+                     "hints": ["Ideia 1 em ${courseTitle}", "Ideia 2 em ${courseTitle}", "Ideia 3 em ${courseTitle}"]
                    }`;
 
         const result = await model.generateContent(prompt);
@@ -42,60 +118,63 @@ export const generatePracticePrompt = async (
         // Clean up markdown code blocks if present
         const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
 
-        return JSON.parse(cleanText);
+        const data = JSON.parse(cleanText);
+        return { ...data, languageCode: profile.voice };
     } catch (error) {
         console.error("Error generating prompt:", error);
 
         // Fallback topics if API fails
         const fallbacks = [
             {
-                text: "Talk about your favorite travel destination.",
-                translation: "Fala sobre o teu destino de viagem favorito.",
-                hints: ["Where is it?", "Why do you like it?", "What can you do there?"],
-            },
-            {
                 text: "Describe your daily routine.",
                 translation: "Descreve a tua rotina diária.",
-                hints: ["What time do you wake up?", "What do you do for work/school?", "What do you do in the evening?"],
-            },
-            {
-                text: "What are your goals for this year?",
-                translation: "Quais são os teus objetivos para este ano?",
-                hints: ["Professional goals", "Personal goals", "Steps to achieve them"],
-            },
-            {
-                text: "Talk about a movie you watched recently.",
-                translation: "Fala sobre um filme que viste recentemente.",
-                hints: ["What was the plot?", "Did you like the characters?", "Would you recommend it?"],
-            },
-            {
-                text: "If you could have any superpower, what would it be?",
-                translation: "Se pudesses ter um superpoder, qual seria?",
-                hints: ["Flying?", "Invisibility?", "How would you use it?"]
+                hints: ["What time do you wake up?", "What do you do?", "Evening routine"],
             }
         ];
 
-        return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+        return {
+            ...fallbacks[0],
+            languageCode: "en-US"
+        };
     }
 };
 
 export const analyzeWriting = async (
     text: string,
-    prompt: string
+    prompt: string,
+    level: string = "B1",
+    language: string = "Active Course"
 ): Promise<{
     feedback: string;
     corrections: { original: string; correction: string; explication: string }[];
     score: number;
 }> => {
     try {
+        let courseTitle = language;
+
+        if (language === "Active Course" || !language) {
+            const userProgress = await getUserProgress();
+            if (userProgress?.activeCourse?.title) {
+                courseTitle = userProgress.activeCourse.title;
+            } else {
+                courseTitle = "English";
+            }
+        }
+
+        const langCode = getLanguageCode(courseTitle);
+        const profile = getAIProfile(langCode);
+        const personaInstruction = `PERSONA: You are ${profile.persona.name}, role: ${profile.persona.role}. ${profile.persona.description}`;
+
         const inputPrompt = `
-      Aja como um professor de INGLÊS nativo.
-      O aluno escreveu o seguinte texto em INGLÊS sobre o tema "${prompt}":
+      ${personaInstruction}
+      Aja como um professor nativo de ${courseTitle.toUpperCase()}.
+      O aluno está no nível: ${level}. (Seja rigoroso de acordo com este nível).
+      O aluno escreveu o seguinte texto em ${courseTitle.toUpperCase()} sobre o tema "${prompt}":
       "${text}"
 
       Analise o texto e retorne um JSON no seguinte formato:
       {
-        "feedback": "Um comentário geral encorajador sobre o texto, EM PORTUGUÊS.",
+        "feedback": "Um comentário geral encorajador sobre o texto, EM PORTUGUÊS. Mencione se está adequado ao nível ${level}.",
         "corrections": [
           {
             "original": "Trecho com erro",
@@ -103,7 +182,7 @@ export const analyzeWriting = async (
             "explication": "Explicação breve do erro (em Português)"
           }
         ],
-        "score": 0 a 100 baseado na gramática e vocabulário
+        "score": 0 a 100 baseado na gramática e vocabulário para o nível ${level}
       }
       Se não houver erros, o array "corrections" deve estar vazio.
       Retorna APENAS o JSON. Deve ser em Português de Portugal!
@@ -127,7 +206,9 @@ export const analyzeWriting = async (
 
 export const analyzeSpeaking = async (
     transcript: string,
-    prompt: string
+    prompt: string,
+    level: string = "B1",
+    language: string = "Active Course"
 ): Promise<{
     feedback: string;
     betterWayToSay: string;
@@ -135,17 +216,34 @@ export const analyzeSpeaking = async (
     score: number;
 }> => {
     try {
+        let courseTitle = language;
+
+        if (language === "Active Course" || !language) {
+            const userProgress = await getUserProgress();
+            if (userProgress?.activeCourse?.title) {
+                courseTitle = userProgress.activeCourse.title;
+            } else {
+                courseTitle = "English";
+            }
+        }
+
+        const langCode = getLanguageCode(courseTitle);
+        const profile = getAIProfile(langCode);
+        const personaInstruction = `PERSONA: You are ${profile.persona.name}, role: ${profile.persona.role}. ${profile.persona.description}`;
+
         const inputPrompt = `
-      Aja como um professor de INGLÊS nativo focado em conversação.
-      O aluno disse (transcrição do inglês): "${transcript}"
+      ${personaInstruction}
+      Aja como um professor de ${courseTitle.toUpperCase()} nativo focado em conversação.
+      O aluno está no nível: ${level}.
+      O aluno disse (transcrição do ${courseTitle}): "${transcript}"
       Sobre o tema: "${prompt}"
 
       Retorne um JSON no seguinte formato:
       {
-        "feedback": "Comentário sobre a clareza e relevância da resposta (em Português).",
-        "betterWayToSay": "Uma maneira mais natural ou nativa de expressar a mesma ideia em Inglês.",
+        "feedback": "Comentário sobre a clareza e relevância da resposta (em Português), considerando o nível ${level}.",
+        "betterWayToSay": "Uma maneira mais natural ou nativa de expressar a mesma ideia em ${courseTitle}.",
         "pronunciationTips": "Dicas gerais de sons que costumam ser difíceis nessas palavras para falantes de português (em Português).",
-        "score": 0 a 100 baseado na clareza e naturalidade
+        "score": 0 a 100 baseado na clareza e naturalidade para o nível ${level}
       }
       Retorna APENAS o JSON. A resposta deve ser em Português de Portugal!
     `;
@@ -163,6 +261,306 @@ export const analyzeSpeaking = async (
             betterWayToSay: "",
             pronunciationTips: "",
             score: 0,
+        };
+    }
+};
+
+export const generateReadingText = async (
+    level: string = "B1",
+    language: string = "Active Course",
+    focusMode: boolean = false
+): Promise<{
+    article_title: string;
+    article_body: string;
+    questions: {
+        question: string;
+        options: { text: string; correct: boolean }[];
+        explanation: string;
+    }[];
+    essay_prompt: string;
+    languageCode?: string;
+}> => {
+    try {
+        let courseTitle = language;
+
+        if (language === "Active Course" || !language) {
+            const userProgress = await getUserProgress();
+            if (userProgress?.activeCourse?.title) {
+                courseTitle = userProgress.activeCourse.title;
+            } else {
+                courseTitle = "English";
+            }
+        }
+
+        const randomSeed = Date.now();
+        let topicInstruction = "TOPIC: General Interest";
+
+        // LEVEL SYLLABUS INJECTION (Reuse logic or keep simple for reading)
+        let levelConstraint = "";
+        switch (level) {
+            case "A1": levelConstraint = "Level A1. Very short sentences. Basic vocabulary (colors, family, home). Max 150 words."; break;
+            case "A2": levelConstraint = "Level A2. Short paragraphs. Routine topics. Max 250 words."; break;
+            case "B1": levelConstraint = "Level B1. Clear standard input. Familiar matters. Max 350 words."; break;
+            case "B2": levelConstraint = "Level B2. Concrete and abstract topics. Complex text. Max 450 words."; break;
+            case "C1": levelConstraint = "Level C1. Long, demanding texts. Implicit meaning. Max 550 words."; break;
+            case "C2": levelConstraint = "Level C2. Sophisticated, academic or literary text. Maximum complexity. Max 600 words."; break;
+            default: levelConstraint = "Level B1.";
+        }
+
+        if (focusMode) {
+            const currentUnit = await getCurrentUnit();
+            if (currentUnit) {
+                topicInstruction = `TOPIC: "${currentUnit.title}" - ${currentUnit.description}`;
+            } else {
+                topicInstruction = `TOPIC: Culture and Daily Life`;
+            }
+        }
+
+        const prompt = `
+    You must act as a ${level} ${courseTitle} Examination Creator.
+    
+    Topic: ${topicInstruction} (Seed: ${randomSeed})
+    Constraint: ${levelConstraint}
+
+    Tasks:
+    1. Write an article in ${courseTitle} suitable for ${level}.
+    2. Create 5 multiple-choice questions (appropriate difficulty for ${level}).
+    3. Create 1 essay prompt (for the user to write about).
+
+    RETURN ONLY RAW JSON. NO MARKDOWN. NO BACKTICKS.
+    Structure:
+    {
+      "article_title": "String",
+      "article_body": "String",
+      "questions": [
+        { "question": "", "options": [{ "text": "", "correct": boolean }], "explanation": "" }
+      ],
+      "essay_prompt": "String"
+    }
+    `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
+
+        // Robust JSON Extraction
+        const firstOpen = text.indexOf('{');
+        const lastClose = text.lastIndexOf('}');
+
+        if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+            text = text.substring(firstOpen, lastClose + 1);
+        } else {
+            throw new Error("No JSON object found in response");
+        }
+
+        const data = JSON.parse(text);
+        const langCode = getLanguageCode(courseTitle);
+        const profile = getAIProfile(langCode);
+        return { ...data, languageCode: profile.voice };
+    } catch (error) {
+        console.error("Error generating reading text:", error);
+        // Robust Fallback
+        return {
+            article_title: "Error: " + (error instanceof Error ? error.message : "Unknown"),
+            article_body: "We encountered an error generating the exam. Please try again. If this persists, the AI model might be overloaded.",
+            questions: [
+                {
+                    question: "What happened?",
+                    options: [
+                        { text: "An error occurred.", "correct": true },
+                        { text: "Everything is fine.", "correct": false }
+                    ],
+                    explanation: "Self-explanatory."
+                }
+            ],
+            essay_prompt: "Describe how you handle technical errors.",
+            languageCode: "en-US"
+        };
+    }
+};
+
+export const analyzeReading = async (
+    userEssay: string,
+    essayPrompt: string,
+    level: string = "B1",
+    language: string = "Active Course"
+): Promise<{
+    feedback: string;
+    score: number;
+    strengths: string[];
+    improvements: string[];
+}> => {
+    try {
+        let courseTitle = language;
+        if (language === "Active Course" || !language) {
+            const userProgress = await getUserProgress();
+            if (userProgress?.activeCourse?.title) {
+                courseTitle = userProgress.activeCourse.title;
+            } else {
+                courseTitle = "English";
+            }
+        }
+
+        const inputPrompt = `
+      You are a ${level} ${courseTitle} Examiner.
+      
+      Essay Prompt: "${essayPrompt}"
+      Student's Essay: "${userEssay}"
+
+      Task: Grade the essay based on ${level} standards (Structure, Argument, Vocabulary, Grammar).
+      If the level is low (A1/A2), be lenient. If C2, be extremely strict.
+
+      Return a JSON in Portuguese:
+      {
+        "feedback": "Detailed feedback in Portuguese.",
+        "score": 0-100,
+        "strengths": ["Strength 1", "Strength 2"],
+        "improvements": ["Improvement 1", "Improvement 2"]
+      }
+    `;
+
+        const result = await model.generateContent(inputPrompt);
+        const response = await result.response;
+        const text = response.text();
+        const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+        return JSON.parse(cleanText);
+    } catch (error) {
+        console.error("Error analyzing reading essay:", error);
+        return {
+            feedback: "Error analyzing essay.",
+            score: 0,
+            strengths: [],
+            improvements: []
+        };
+    }
+};
+
+export const generateListeningScript = async (
+    level: string = "B1",
+    language: string = "Active Course",
+    focusMode: boolean = false
+): Promise<{
+    script: string;
+    topic: string;
+    questions?: string[];
+    languageCode?: string;
+}> => {
+    try {
+        let courseTitle = language;
+        if (language === "Active Course" || !language) {
+            const userProgress = await getUserProgress();
+            if (userProgress?.activeCourse?.title) {
+                courseTitle = userProgress.activeCourse.title;
+            } else {
+                courseTitle = "English";
+            }
+        }
+
+        const randomSeed = Date.now();
+
+        let levelConstraint = "";
+        switch (level) {
+            case "A1": levelConstraint = "Level A1. Simple greetings, numbers, family. Very slow. Max 50 words."; break;
+            case "A2": levelConstraint = "Level A2. Shopping, directions, simple past. Max 100 words."; break;
+            case "B1": levelConstraint = "Level B1. Travel, school, leisure. Connected text. Max 150 words."; break;
+            case "B2": levelConstraint = "Level B2. News, interviews, technical discussions. Max 200 words."; break;
+            case "C1": levelConstraint = "Level C1. Fast, colloquial, complex accents. Max 250 words."; break;
+            case "C2": levelConstraint = "Level C2. Extremely fast, abstract, native speed. Max 300 words."; break;
+            default: levelConstraint = "Level B1.";
+        }
+
+        let contextInstruction = `sobre um tema interessante e cotidiano ou profissional (Viagens, Trabalho, Tecnologia, Cultura). ${levelConstraint}. (Seed: ${randomSeed})`;
+
+        if (focusMode) {
+            const currentUnit = await getCurrentUnit();
+            if (currentUnit) {
+                contextInstruction = `MODO FOCADO. O aluno está a estudar a unidade: "${currentUnit.title}". Podes usar o contexto: "${currentUnit.description}". 
+                 Gera um script que se relacione ESTRITAMENTE com este tema. ${levelConstraint}`;
+            } else {
+                contextInstruction = `MODO FOCADO (Fallback). Gera um diálogo SIMPLES. ${levelConstraint}`;
+            }
+        }
+
+        const prompt = `Gera um script de áudio (monólogo ou diálogo curto) em ${courseTitle.toUpperCase()}, otimizado para ser falado, ${contextInstruction}
+                   Retorna APENAS um JSON no formato:
+                   {
+                     "script": "O texto em ${courseTitle.toUpperCase()} que será lido pelo TTS.",
+                     "topic": "O tema principal em ${courseTitle.toUpperCase()}",
+                     "questions": ["Pergunta 1 em ${courseTitle}", "Pergunta 2 em ${courseTitle}"]
+                   }`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+        const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        const data = JSON.parse(cleanText);
+        const langCode = getLanguageCode(courseTitle);
+        const profile = getAIProfile(langCode);
+        return { ...data, languageCode: profile.voice };
+    } catch (error) {
+        console.error("Error generating listening script:", error);
+        return {
+            script: "Hello! Today is a beautiful day.",
+            topic: "Error Fallback",
+            questions: ["What day is it?"],
+            languageCode: "en-US"
+        };
+    }
+};
+
+export const analyzeListening = async (
+    userNotes: string,
+    originalTopic: string,
+    originalScript: string,
+    level: string = "B1",
+    language: string = "Active Course"
+): Promise<{
+    feedback: string;
+    score: number;
+    missedPoints?: string[];
+}> => {
+    try {
+        let courseTitle = language;
+        if (language === "Active Course" || !language) {
+            const userProgress = await getUserProgress();
+            if (userProgress?.activeCourse?.title) {
+                courseTitle = userProgress.activeCourse.title;
+            } else {
+                courseTitle = "English";
+            }
+        }
+
+        const inputPrompt = `
+      Aja como um avaliador de compreensão auditiva.
+      O aluno ouviu um áudio sobre "${originalTopic}" (Script: "${originalScript}") de nível ${level}.
+      E escreveu as seguintes notas/comentário:
+      "${userNotes}"
+      
+      IMPORTANTE: Avalie se o aluno escreveu em ${courseTitle} ou Português, e se compreendeu o áudio (que está em ${courseTitle}).
+      Se o nível for baixo (A1), aceite notas simples. Se for C2, exija notas detalhadas.
+
+      Retorne um JSON no formato:
+      {
+        "feedback": "Análise da compreensão e da escrita em PORTUGUÊS DE PORTUGAL. Seja específico sobre o que ele entendeu bem ou mal.",
+        "score": 0 a 100 (Compreensão + Escrita - ajustado ao nível ${level}),
+        "missedPoints": ["Ponto importante do áudio que o aluno não mencionou", "Outro ponto"] (Se score < 90)
+      }
+      Retorna APENAS o JSON.
+    `;
+
+        const result = await model.generateContent(inputPrompt);
+        const response = await result.response;
+        const text = response.text();
+        const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+        return JSON.parse(cleanText);
+    } catch (error) {
+        console.error("Error analyzing listening:", error);
+        return {
+            feedback: "Não foi possível analisar a tua resposta neste momento.",
+            score: 0,
+            missedPoints: []
         };
     }
 };

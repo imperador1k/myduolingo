@@ -15,6 +15,13 @@
       "when": 1768130433783,
       "tag": "0001_cynical_sally_floyd",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771053438017,
+      "tag": "0002_clammy_infant_terrible",
+      "breakpoints": true
     }
   ]
 }

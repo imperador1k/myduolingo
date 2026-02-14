@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { onChallengeComplete, onChallengeWrong, onLessonComplete } from "@/actions/user-progress";
 import { StreakModal } from "@/components/modals/streak-modal";
+import { detectLanguage } from "@/lib/tts-helper";
 
 // Types
 type ChallengeOption = {
@@ -24,6 +25,8 @@ type Challenge = {
     order: number;
     completed: boolean;
     challengeOptions: ChallengeOption[];
+    context?: string | null;
+    explanation?: string | null;
 };
 
 type Lesson = {
@@ -155,8 +158,16 @@ export const LessonClient = ({
         // Cancel any current speaking to avoid overlap
         window.speechSynthesis.cancel();
 
+        // Detect language or fallback to 'en-US' (or we could pass active course lang if available)
+        // Ideally we should prefer the active course language as fallback, but for now 'en-US' is safe default if detection fails.
+        // Actually, let's try to infer if it's the target language or base language. 
+        // But the whole point of this feature request is dynamic detection.
+        // Importing the helper directly here.
+
+        const detectedLang = detectLanguage(text, 'en-US');
+
         const speech = new SpeechSynthesisUtterance(text);
-        speech.lang = 'en-US';
+        speech.lang = detectedLang;
         speech.rate = speed;
         window.speechSynthesis.speak(speech);
     };
@@ -256,21 +267,6 @@ export const LessonClient = ({
        Line 217 starts: if (lessonComplete) {
        My replacement started with: 
        // Timing const [startTime]...
-       
-       This means I inserted hooks and functions INSIDE the component body, replacing the 'if (lessonComplete)' block?
-       NO.
-       I need to check where I inserted.
-       I targeted line 217.
-       Previous content:
-       217:     if (lessonComplete) {
-       
-       My replacement content:
-       // Timing
-       const [startTime] = useState...
-       ...
-       const handleContinue = ...
-       
-       if (lessonComplete) { ... }
        
        This means I replaced the 'if (lessonComplete)' block with HOOKS and FUNCTIONS followed by the new 'if (lessonComplete)' block.
        This is VALID, IF line 217 is inside the main component body (it is).
@@ -547,6 +543,17 @@ export const LessonClient = ({
 
                 {/* Main content */}
                 <main className="mx-auto flex w-full max-w-[1140px] flex-1 flex-col items-center justify-center gap-y-8 px-6 py-12">
+
+                    {/* CONTEXT (Scenario) - Shows up if present */}
+                    {currentChallenge.context && (
+                        <div className="w-full max-w-[600px] bg-slate-100 p-4 rounded-xl border-2 border-slate-200 text-center mb-[-20px]">
+                            <span className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1 block">Contexto</span>
+                            <p className="text-lg font-medium text-slate-700 italic">
+                                "{currentChallenge.context}"
+                            </p>
+                        </div>
+                    )}
+
                     {/* Question */}
                     <div className="flex flex-col gap-4 mb-4 items-center justify-center">
                         <div className="flex items-center gap-4">
@@ -620,19 +627,27 @@ export const LessonClient = ({
 
                             {status === "wrong" && (
                                 <div className="flex flex-col lg:flex-row justify-between w-full items-center gap-4">
-                                    <div className="flex items-center gap-x-2">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-500">
-                                            <span className="text-white">✗</span>
+                                    <div className="flex flex-col gap-y-2 w-full">
+                                        <div className="flex items-center gap-x-2">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-500 shrink-0">
+                                                <span className="text-white">✗</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-lg font-bold text-rose-600">Incorreto!</p>
+                                                <p className="text-sm text-rose-500">
+                                                    Resposta correta:{" "}
+                                                    {currentChallenge.challengeOptions.find((o) => o.correct)?.text}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-lg font-bold text-rose-600">Incorreto!</p>
-                                            <p className="text-sm text-rose-500">
-                                                Resposta correta:{" "}
-                                                {currentChallenge.challengeOptions.find((o) => o.correct)?.text}
-                                            </p>
-                                        </div>
+                                        {/* Explanation Box */}
+                                        {currentChallenge.explanation && (
+                                            <div className="mt-2 text-rose-800 bg-rose-200/50 p-3 rounded-lg text-sm border-l-4 border-rose-500">
+                                                <strong>Explicação:</strong> {currentChallenge.explanation}
+                                            </div>
+                                        )}
                                     </div>
-                                    <Button variant="danger" onClick={handleContinue} disabled={isPending} className="w-full lg:w-auto">
+                                    <Button variant="danger" onClick={handleContinue} disabled={isPending} className="w-full lg:w-auto mt-2 lg:mt-0">
                                         {hearts === 0 ? "Terminar" : "Continuar"}
                                     </Button>
                                 </div>
@@ -640,13 +655,21 @@ export const LessonClient = ({
 
                             {status === "correct" && (
                                 <div className="flex justify-between w-full items-center">
-                                    <div className="flex items-center gap-x-2">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500">
-                                            <span className="text-white">✓</span>
+                                    <div className="flex flex-col gap-y-2 w-full">
+                                        <div className="flex items-center gap-x-2">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500">
+                                                <span className="text-white">✓</span>
+                                            </div>
+                                            <span className="text-lg font-bold text-green-600">
+                                                Correto! +10 XP
+                                            </span>
                                         </div>
-                                        <span className="text-lg font-bold text-green-600">
-                                            Correto! +10 XP
-                                        </span>
+                                        {/* Explanation Box (Even for correct answers) */}
+                                        {currentChallenge.explanation && (
+                                            <div className="mt-2 text-green-800 bg-green-200/50 p-3 rounded-lg text-sm border-l-4 border-green-500 max-w-[600px]">
+                                                <strong>Sabias que?</strong> {currentChallenge.explanation}
+                                            </div>
+                                        )}
                                     </div>
                                     <Button variant="primary" onClick={handleContinue} disabled={isPending}>
                                         Continuar
