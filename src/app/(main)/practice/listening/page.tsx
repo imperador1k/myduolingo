@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, RefreshCw, Send, Headphones, Play, Pause, Square, Eye, EyeOff, CheckCircle2, AlertCircle, Mic, Keyboard, Shuffle, Target, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTTS } from "@/hooks/use-tts";
+import { getLocaleForLanguage } from "@/lib/constants";
 
 import { PracticeSetup } from "@/components/practice-setup";
 
@@ -44,10 +46,10 @@ export default function ListeningPracticePage() {
         handleGenerateScript(newConfig);
     };
 
-    // ... (stopAudio, pauseAudio, playAudio same as before)
-    // Need to include them in replacement or assume they are preserved if I don't overwrite them.
-    // I can't assume preservation if I'm replacing the block containing them.
-    // I will include condensed versions or just the full block.
+    // Correctly initialize useTTS with the selected target language (BCP-47 locale)
+    // getLocaleForLanguage converts 'Spanish' → 'es-ES', etc.
+    const targetLocale = config ? getLocaleForLanguage(config.language) : "en-US";
+    const { playAudio: playTTS } = useTTS(targetLocale);
 
     const stopAudio = () => {
         window.speechSynthesis.cancel();
@@ -69,27 +71,18 @@ export default function ListeningPracticePage() {
             setIsPaused(false);
             return;
         }
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(scriptData.script);
-        utterance.lang = (scriptData as any).languageCode || "en-US";
-        utterance.rate = 0.9;
-        const voices = window.speechSynthesis.getVoices();
-        const googleVoice = voices.find(v => v.name.includes("Google US English"));
-        if (googleVoice) utterance.voice = googleVoice;
-
-        utterance.onend = () => {
+        setIsPlaying(true);
+        setIsPaused(false);
+        setHasAudioFinished(false);
+        // Play script text in the target language locale
+        playTTS(scriptData.script, 0.85, targetLocale);
+        // Simulate end detection (Web Speech API onend not accessible via hook directly)
+        const estimatedDuration = Math.max(3000, scriptData.script.length * 60);
+        setTimeout(() => {
             setIsPlaying(false);
             setIsPaused(false);
             setHasAudioFinished(true);
-        };
-        utterance.onerror = () => {
-            setIsPlaying(false);
-            setIsPaused(false);
-        };
-        utteranceRef.current = utterance;
-        setIsPlaying(true);
-        setIsPaused(false);
-        window.speechSynthesis.speak(utterance);
+        }, estimatedDuration);
     };
 
     const handleGenerateScript = (cfg = config) => {

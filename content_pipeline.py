@@ -88,12 +88,14 @@ def get_base_prompt(topic_name, focus_area, target_lang, level, style, seed):
           "challenges": [
             {
               "context": "String (A short sentence, dialogue, or scenario setting the scene. MANDATORY above A1.)",
+              "context_audio_lang": "String (BCP-47 language code for context audio, e.g. 'pt-PT', 'es-ES')",
               "question": "String (The query based on the context)",
+              "question_audio_lang": "String (BCP-47 language code for question audio, e.g. 'pt-PT', 'es-ES')",
               "type": "SELECT",
               "options": [
-                { "text": "Distractor 1", "correct": false },
-                { "text": "Correct Answer", "correct": true },
-                { "text": "Distractor 2", "correct": false }
+                { "text": "Distractor 1", "correct": false, "audio_lang": "String (BCP-47 code)" },
+                { "text": "Correct Answer", "correct": true, "audio_lang": "String (BCP-47 code)" },
+                { "text": "Distractor 2", "correct": false, "audio_lang": "String (BCP-47 code)" }
               ],
               "explanation": "String (Pedagogical explanation in PORTUGUESE. For B1+, explain WHY the context clue leads to the answer.)"
             }
@@ -126,7 +128,8 @@ Seed: {seed}
 === GENERATION RULES ===
 1. Generate exactly 1 Unit, 3 Lessons per Unit, and 4 to 5 Challenges per lesson.
 2. The `type` must always be "SELECT".
-3. NO Markdown markdown blocks. Output MUST be ONLY valid, pure JSON format matching exactly this structure:
+3. **AUDIO LANGUAGE TAGS**: You MUST determine the correct BCP 47 language code for reading the text aloud. If the text is an instruction or explanation in Portuguese, use 'pt-PT'. If the text is the target language, use the target language's code (e.g., 'es-ES', 'en-US', 'fr-FR').
+4. NO Markdown markdown blocks. Output MUST be ONLY valid, pure JSON format matching exactly this structure:
 {json_structure}
 """
     return base
@@ -263,15 +266,17 @@ def insert_into_db(data, course_id):
                 challenges = lesson.get('challenges', [])
                 for idx_c, chall in enumerate(challenges):
                     q_text = clean_text(chall.get('question', ''))
+                    q_audio_lang = clean_text(chall.get('question_audio_lang', ''))
                     c_type = clean_text(chall.get('type', 'SELECT'))
                     c_ctx = clean_text(chall.get('context', ''))
+                    c_ctx_audio_lang = clean_text(chall.get('context_audio_lang', ''))
                     c_exp = clean_text(chall.get('explanation', ''))
                     
                     cur.execute("""
-                        INSERT INTO public.challenges (question, type, "order", lesson_id, context, explanation)
-                        VALUES (%s, 'SELECT', %s, %s, %s, %s)
+                        INSERT INTO public.challenges (question, type, "order", lesson_id, context, explanation, question_audio_lang, context_audio_lang)
+                        VALUES (%s, 'SELECT', %s, %s, %s, %s, %s, %s)
                         RETURNING id;
-                    """, (q_text, idx_c+1, vid_lesson, c_ctx, c_exp))
+                    """, (q_text, idx_c+1, vid_lesson, c_ctx, c_exp, q_audio_lang, c_ctx_audio_lang))
                     
                     vid_chal = cur.fetchone()[0]
                     
@@ -279,11 +284,12 @@ def insert_into_db(data, course_id):
                     for opt in options:
                         opt_text = clean_text(opt.get('text'))
                         is_correct = bool(opt.get('correct'))
+                        opt_audio_lang = clean_text(opt.get('audio_lang', ''))
                         
                         cur.execute("""
-                            INSERT INTO public.challenge_options (text, correct, challenge_id)
-                            VALUES (%s, %s, %s);
-                        """, (opt_text, is_correct, vid_chal))
+                            INSERT INTO public.challenge_options (text, correct, challenge_id, audio_lang)
+                            VALUES (%s, %s, %s, %s);
+                        """, (opt_text, is_correct, vid_chal, opt_audio_lang))
 
         conn.commit()
         print("\n[SUCESSO] Todos os dados foram inseridos com sucesso!")

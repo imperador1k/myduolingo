@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { onChallengeComplete, onChallengeWrong, onLessonComplete } from "@/actions/user-progress";
 import { StreakModal } from "@/components/modals/streak-modal";
 import { useTTS } from "@/hooks/use-tts";
-import { getAudioLanguage } from "@/lib/tts-helper";
 
 // Types
 type ChallengeOption = {
@@ -17,6 +16,7 @@ type ChallengeOption = {
     correct: boolean;
     imageSrc: string | null;
     audioSrc: string | null;
+    audioLang?: string | null;
 };
 
 type Challenge = {
@@ -28,6 +28,8 @@ type Challenge = {
     challengeOptions: ChallengeOption[];
     context?: string | null;
     explanation?: string | null;
+    questionAudioLang?: string | null;
+    contextAudioLang?: string | null;
 };
 
 type Lesson = {
@@ -161,14 +163,16 @@ export const LessonClient = ({
     useEffect(() => {
         if (!currentChallenge?.question) return;
 
-        const questionAudioLang = getAudioLanguage(currentChallenge.question, languageCode);
-        
         // Small timeout to ensure DOM is ready and transition is done
         const timer = setTimeout(() => {
-            playAudio(currentChallenge.question, 0.9, questionAudioLang);
+            playAudio(
+                currentChallenge.question, 
+                0.9, 
+                currentChallenge.questionAudioLang || languageCode
+            );
         }, 500);
         return () => clearTimeout(timer);
-    }, [currentChallenge?.question, languageCode, playAudio]);
+    }, [currentChallenge?.question, languageCode, playAudio, currentChallenge?.questionAudioLang]);
 
     // Play sound feedback
     const playSound = (type: "correct" | "wrong" | "completed") => {
@@ -194,8 +198,11 @@ export const LessonClient = ({
         // Find the selected option text and speak it
         const selectedOpt = options.find((opt) => opt.id === optionId);
         if (selectedOpt?.text) {
-            const optionAudioLang = getAudioLanguage(selectedOpt.text, languageCode);
-            playAudio(selectedOpt.text, 0.9, optionAudioLang);
+            playAudio(
+                selectedOpt.text, 
+                0.9, 
+                selectedOpt.audioLang || languageCode
+            );
         }
     };
 
@@ -542,7 +549,11 @@ export const LessonClient = ({
                                     "absolute top-2 right-2 rounded-full w-10 h-10 p-0 text-sky-500 bg-white border border-slate-200 shadow-sm transition-all hover:bg-slate-50",
                                     isPlaying && "border-sky-300 bg-sky-50"
                                 )}
-                                onClick={() => playAudio(currentChallenge.context as string, 0.9, getAudioLanguage(currentChallenge.context as string, languageCode))}
+                                onClick={() => playAudio(
+                                    currentChallenge.context as string, 
+                                    0.9, 
+                                    currentChallenge.contextAudioLang || languageCode
+                                )}
                             >
                                 <Volume2 className={cn("h-5 w-5", isPlaying && "animate-pulse fill-sky-500/20")} />
                             </Button>
@@ -561,7 +572,11 @@ export const LessonClient = ({
                                     "bg-white border-2 border-slate-200 w-24 h-24 rounded-full shadow-sm transition-all active:scale-95 hover:bg-slate-50",
                                     isPlaying && "border-sky-400 bg-sky-50"
                                 )}
-                                onClick={() => playAudio(currentChallenge.question, 0.9, getAudioLanguage(currentChallenge.question, languageCode))}
+                                onClick={() => playAudio(
+                                    currentChallenge.question, 
+                                    0.9, 
+                                    currentChallenge.questionAudioLang || languageCode
+                                )}
                             >
                                 <Volume2 className={cn("h-12 w-12 text-sky-500 fill-sky-500/20", isPlaying && "animate-pulse")} />
                             </Button>
@@ -569,7 +584,11 @@ export const LessonClient = ({
                             <Button
                                 variant="ghost"
                                 className="bg-white border-2 border-slate-200 w-12 h-12 rounded-xl shadow-sm hover:bg-slate-50 transition-transform active:scale-95"
-                                onClick={() => playAudio(currentChallenge.question, 0.5, getAudioLanguage(currentChallenge.question, languageCode))}
+                                onClick={() => playAudio(
+                                    currentChallenge.question, 
+                                    0.5, 
+                                    currentChallenge.questionAudioLang || languageCode
+                                )}
                             >
                                 <span className="text-2xl">🐢</span>
                             </Button>

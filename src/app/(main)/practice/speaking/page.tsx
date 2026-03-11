@@ -6,6 +6,8 @@ import { savePracticeSession } from "@/actions/practice";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, Mic, Square, Sparkles, Volume2, Info, Pause, Download, Shuffle, Target, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTTS } from "@/hooks/use-tts";
+import { getLocaleForLanguage } from "@/lib/constants";
 
 import { PracticeSetup } from "@/components/practice-setup";
 
@@ -48,6 +50,10 @@ export default function SpeakingPracticePage() {
         setIsSetupComplete(true);
         handleGeneratePrompt(newConfig);
     };
+
+    // Dynamically set TTS language from config (e.g., 'Spanish' → 'es-ES')
+    const targetLocale = config ? getLocaleForLanguage(config.language) : "en-US";
+    const { playAudio: playPromptTTS } = useTTS(targetLocale);
 
     const handleGeneratePrompt = (cfg = config) => {
         if (!cfg) return;
@@ -142,7 +148,8 @@ export default function SpeakingPracticePage() {
         }
 
         const recognition = new SpeechRecognitionConstructor();
-        recognition.lang = (promptData as any)?.languageCode || "en-US";
+        // Use the target language locale for recognition, not a hardcoded 'en-US'
+        recognition.lang = targetLocale;
         recognition.continuous = true;
         recognition.interimResults = true;
 
@@ -267,11 +274,8 @@ export default function SpeakingPracticePage() {
                             className="text-slate-400 hover:text-rose-500"
                             onClick={() => {
                                 if (!promptData.text) return;
-                                window.speechSynthesis.cancel();
-                                const speech = new SpeechSynthesisUtterance(promptData.text);
-                                speech.lang = (promptData as any).languageCode || "en-US"; // Use the code from backend
-                                speech.rate = 0.9;
-                                window.speechSynthesis.speak(speech);
+                                // playPromptTTS uses the correct target language from config
+                                playPromptTTS(promptData.text, 0.9, targetLocale);
                             }}
                             title="Ouvir frase"
                         >

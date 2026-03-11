@@ -1,10 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Settings, Loader2, Image as ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { onSelectCourse } from "@/actions/user-progress";
+import { updateCourseDetails } from "@/actions/courses";
+import { toast } from "sonner";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 type Course = {
     id: number;
@@ -35,9 +44,11 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [selectedCourse, setSelectedCourse] = useState<number | null>(activeCourseId || null);
+    const [editingCourseId, setEditingCourseId] = useState<number | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     const handleSelect = (courseId: number) => {
-        if (isPending) return;
+        if (isPending || editingCourseId !== null) return; // don't select while editing
 
         setSelectedCourse(courseId);
 
@@ -48,6 +59,33 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
                 })
                 .catch(console.error);
         });
+    };
+
+    const handleEditSubmit = async (courseId: number, event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const file = formData.get("file") as File;
+        const title = formData.get("title") as string;
+        
+        if (!title.trim()) {
+            toast.error("O título não pode estar vazio.");
+            return;
+        }
+
+        setIsSaving(true);
+        toast.loading("A guardar alterações...", { id: `edit-${courseId}` });
+
+        try {
+            await updateCourseDetails(courseId, formData);
+            toast.success("Curso atualizado com sucesso!", { id: `edit-${courseId}` });
+            setEditingCourseId(null);
+        } catch (error) {
+            toast.error("Erro ao guardar as alterações", { id: `edit-${courseId}` });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const getLanguageData = (title: string, languageName: string) => {
@@ -110,13 +148,19 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
                                         />
 
                                         <div className="relative flex items-center gap-4">
-                                            {/* Flag with animation */}
-                                            <div className={cn(
-                                                "flex h-16 w-16 items-center justify-center rounded-xl text-4xl transition-transform",
-                                                "bg-gradient-to-br from-slate-50 to-slate-100 shadow-inner",
-                                                "group-hover:scale-110 group-hover:rotate-3"
-                                            )}>
-                                                {data.flag}
+                                            {/* Flag or Image */}
+                                            <div 
+                                                className={cn(
+                                                    "relative flex h-16 w-16 items-center justify-center rounded-xl text-4xl transition-transform overflow-hidden",
+                                                    "bg-gradient-to-br from-slate-50 to-slate-100 shadow-inner",
+                                                    "group-hover:scale-110 group-hover:rotate-3"
+                                                )}
+                                            >
+                                                {course.imageSrc && course.imageSrc.startsWith("http") ? (
+                                                    <img src={course.imageSrc} alt={course.title} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    data.flag
+                                                )}
                                             </div>
 
                                             {/* Course info */}
@@ -146,6 +190,77 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
                                                 ATIVO
                                             </div>
                                         )}
+
+                                        {/* Course Settings Button (Top Right) */}
+                                        <div className="absolute top-2 right-2">
+                                            <Dialog open={editingCourseId === course.id} onOpenChange={(open) => setEditingCourseId(open ? course.id : null)}>
+                                                <DialogTrigger asChild>
+                                                    <button 
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors opacity-0 group-hover:opacity-100"
+                                                    >
+                                                        <Settings className="h-4 w-4" />
+                                                    </button>
+                                                </DialogTrigger>
+                                                <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
+                                                    <DialogHeader>
+                                                        <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                                                            <Settings className="h-6 w-6 text-indigo-500" />
+                                                            Editar Curso
+                                                        </DialogTitle>
+                                                    </DialogHeader>
+                                                    <form onSubmit={(e) => handleEditSubmit(course.id, e)} className="space-y-6 mt-4">
+                                                        
+                                                        {/* Preview current image if exists */}
+                                                        {course.imageSrc && course.imageSrc.startsWith("http") && (
+                                                            <div className="flex justify-center mb-4">
+                                                                <img src={course.imageSrc} alt="Preview" className="w-24 h-24 rounded-2xl object-cover border-4 border-slate-100 shadow-sm" />
+                                                            </div>
+                                                        )}
+
+                                                        <div className="space-y-2">
+                                                            <label htmlFor="title" className="text-sm font-bold text-slate-700">Nome do Curso</label>
+                                                            <input 
+                                                                type="text" 
+                                                                name="title" 
+                                                                id="title"
+                                                                defaultValue={course.title} 
+                                                                className="w-full p-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 outline-none transition-all font-medium text-slate-700"
+                                                                placeholder="Ex: Espanhol para Viagens"
+                                                            />
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <label htmlFor="file" className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                                                <ImageIcon className="h-4 w-4 text-slate-500" />
+                                                                Nova Imagem (Opcional)
+                                                            </label>
+                                                            <div className="relative">
+                                                                <input 
+                                                                    type="file" 
+                                                                    name="file" 
+                                                                    id="file"
+                                                                    accept="image/*" 
+                                                                    className="w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 transition-colors border-2 border-dashed border-slate-200 rounded-xl p-2 cursor-pointer"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <button 
+                                                            type="submit" 
+                                                            disabled={isSaving}
+                                                            className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-500/30 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                                                        >
+                                                            {isSaving ? (
+                                                                <Loader2 className="h-5 w-5 animate-spin" />
+                                                            ) : (
+                                                                "Guardar Alterações"
+                                                            )}
+                                                        </button>
+                                                    </form>
+                                                </DialogContent>
+                                            </Dialog>
+                                        </div>
                                     </button>
                                 );
                             })}

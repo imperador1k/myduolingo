@@ -438,23 +438,32 @@ export default function EvaluationPage() {
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             {/* Top Bar */}
-            {phase !== "welcome" && phase !== "results" && (
+            {phase !== "results" && (
                 <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-3">
                     <div className="max-w-2xl mx-auto flex items-center gap-4">
                         <Link href="/learn" className="text-slate-400 hover:text-slate-600 transition-colors">
-                            <ChevronLeft className="h-6 w-6" />
+                            <ChevronLeft className="h-8 w-8 sm:h-6 sm:w-6" />
                         </Link>
-                        <div className="flex-1">
-                            <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-700 ease-out"
-                                    style={{ width: `${progress}%` }}
-                                />
+                        {phase !== "welcome" && (
+                            <>
+                                <div className="flex-1">
+                                    <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-700 ease-out"
+                                            style={{ width: `${progress}%` }}
+                                        />
+                                    </div>
+                                </div>
+                                <span className="text-sm font-bold text-slate-500 min-w-[60px] text-right">
+                                    {Math.round(progress)}%
+                                </span>
+                            </>
+                        )}
+                        {phase === "welcome" && (
+                            <div className="flex-1 flex justify-center sm:justify-start">
+                                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest sm:hidden opacity-0">Back</span>
                             </div>
-                        </div>
-                        <span className="text-sm font-bold text-slate-500 min-w-[60px] text-right">
-                            {Math.round(progress)}%
-                        </span>
+                        )}
                     </div>
                 </div>
             )}

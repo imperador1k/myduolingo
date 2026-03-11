@@ -26,7 +26,15 @@ export const useTTS = (languageCode: string = "en") => {
         window.speechSynthesis.cancel(); // Cancel any ongoing speech
 
         const langToUse = overrideLanguageCode || languageCode;
-        const bcp47Code = BCP47_MAP[langToUse.toLowerCase()] || "en-US";
+
+        // If already a full BCP-47 code (e.g., 'es-ES', 'pt-PT'), use it directly
+        // Otherwise look up the short code in the map (e.g., 'es' -> 'es-ES')
+        let bcp47Code: string;
+        if (langToUse.includes("-")) {
+            bcp47Code = langToUse; // e.g., 'es-ES', 'pt-PT' from DB
+        } else {
+            bcp47Code = BCP47_MAP[langToUse.toLowerCase()] || "en-US";
+        }
         const utterance = new SpeechSynthesisUtterance(text);
         
         utterance.lang = bcp47Code;

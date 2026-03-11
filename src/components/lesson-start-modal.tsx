@@ -54,15 +54,16 @@ export const LessonStartModal = ({ lesson, isOpen, onClose }: Props) => {
             />
 
             {/* Modal */}
-            <div className="fixed left-1/2 top-1/2 z-50 w-[90%] max-w-md -translate-x-1/2 -translate-y-1/2 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-                <div className="relative overflow-hidden rounded-3xl border-2 border-white/20 bg-white shadow-2xl">
-                    {/* Decorative gradient header */}
-                    <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-br from-green-400 via-emerald-500 to-teal-500" />
+            <div className="fixed left-1/2 top-1/2 z-50 w-[90%] max-w-md -translate-x-1/2 -translate-y-1/2 animate-in zoom-in-95 duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]">
+                <div className="relative overflow-hidden rounded-[2rem] border-2 border-white/20 bg-white shadow-2xl shadow-black/20">
+                    {/* Decorative vibrant header */}
+                    <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-br from-green-400 via-emerald-400 to-teal-400 opacity-90 mix-blend-multiply" />
+                    <div className="absolute inset-x-0 top-0 h-32 bg-[url('/noise.png')] opacity-20 mix-blend-overlay pointer-events-none" />
 
                     {/* Close button */}
                     <button
                         onClick={onClose}
-                        className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+                        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/10 text-white/90 backdrop-blur-md transition-all hover:bg-black/20 hover:scale-105 active:scale-95"
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -87,32 +88,32 @@ export const LessonStartModal = ({ lesson, isOpen, onClose }: Props) => {
                         </div>
 
                         {/* Stats Grid */}
-                        <div className="mt-6 grid grid-cols-3 gap-3">
+                        <div className="mt-8 grid grid-cols-3 gap-3">
                             {/* Questions */}
-                            <div className="flex flex-col items-center rounded-2xl bg-slate-50 p-3">
-                                <BookOpen className="h-5 w-5 text-blue-500" />
-                                <span className="mt-1 text-lg font-bold text-slate-700">
+                            <div className="flex flex-col items-center rounded-2xl bg-gray-50 border-2 border-gray-100 p-3 shadow-sm">
+                                <BookOpen className="h-6 w-6 text-blue-500 mb-1" />
+                                <span className="text-lg font-black text-slate-700">
                                     {lesson.challengeCount}
                                 </span>
-                                <span className="text-xs text-slate-400">questões</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">questões</span>
                             </div>
 
                             {/* XP */}
-                            <div className="flex flex-col items-center rounded-2xl bg-amber-50 p-3">
-                                <Zap className="h-5 w-5 text-amber-500" />
-                                <span className="mt-1 text-lg font-bold text-amber-600">
+                            <div className="flex flex-col items-center rounded-2xl bg-gray-50 border-2 border-gray-100 p-3 shadow-sm">
+                                <Zap className="h-6 w-6 text-amber-500 mb-1" />
+                                <span className="text-lg font-black text-amber-600">
                                     +{lesson.xpReward}
                                 </span>
-                                <span className="text-xs text-slate-400">XP</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">XP</span>
                             </div>
 
                             {/* Time */}
-                            <div className="flex flex-col items-center rounded-2xl bg-slate-50 p-3">
-                                <Clock className="h-5 w-5 text-slate-500" />
-                                <span className="mt-1 text-lg font-bold text-slate-700">
+                            <div className="flex flex-col items-center rounded-2xl bg-gray-50 border-2 border-gray-100 p-3 shadow-sm">
+                                <Clock className="h-6 w-6 text-emerald-500 mb-1" />
+                                <span className="text-lg font-black text-slate-700">
                                     ~{Math.max(1, Math.ceil(lesson.challengeCount * 0.5))}
                                 </span>
-                                <span className="text-xs text-slate-400">min</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">min</span>
                             </div>
                         </div>
 
@@ -133,37 +134,37 @@ export const LessonStartModal = ({ lesson, isOpen, onClose }: Props) => {
                         )}
 
                         {/* Buttons */}
-                        <div className="mt-6 flex gap-3">
+                        <div className="mt-8 flex flex-col sm:flex-row gap-3">
                             <Button
                                 onClick={onClose}
                                 variant="ghost"
-                                className="flex-1 border-2 border-slate-200 hover:bg-slate-50"
+                                className="flex-1 order-2 sm:order-1 text-gray-400 font-bold hover:bg-gray-100 rounded-xl py-6 border-0"
                                 disabled={isLoading}
                             >
-                                Cancelar
+                                CANCELAR
                             </Button>
                             <Button
                                 onClick={handleStart}
                                 className={cn(
-                                    "flex-1 gap-2 border-b-4 border-green-600 bg-green-500 text-white",
-                                    "hover:bg-green-400 active:border-b-0 active:translate-y-1",
-                                    isLoading && "opacity-70"
+                                    "flex-[2] order-1 sm:order-2 gap-2 bg-green-500 border-2 border-green-600 border-b-4 text-white font-extrabold text-lg rounded-xl py-6 transition-all",
+                                    "hover:bg-green-400 active:border-b-0 active:translate-y-[4px] hover:-translate-y-[2px]",
+                                    isLoading && "opacity-70 cursor-not-allowed"
                                 )}
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
-                                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                    <div className="h-6 w-6 animate-spin rounded-full border-4 border-white/30 border-t-white" />
                                 ) : (
                                     <>
                                         {isResume ? (
                                             <>
-                                                <Sparkles className="h-5 w-5" />
-                                                Continuar
+                                                <Sparkles className="h-6 w-6" />
+                                                CONTINUAR
                                             </>
                                         ) : (
                                             <>
-                                                <Star className="h-5 w-5" />
-                                                Começar!
+                                                <Star className="h-6 w-6 fill-white" />
+                                                COMEÇAR
                                             </>
                                         )}
                                     </>

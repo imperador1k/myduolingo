@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Star, Check, Lock, Heart } from "lucide-react";
+import { Star, Check, Lock, Heart, Crown } from "lucide-react";
 import { LessonStartModal } from "@/components/lesson-start-modal";
 
 type Challenge = {
@@ -53,33 +53,28 @@ const LessonNode = ({
     noHearts,
     onLessonClick
 }: LessonNodeProps) => {
-    // Zigzag positioning
-    const positions = ["center", "left", "center", "right", "center"];
-    const position = positions[index % 5];
-
-    const positionClasses = {
-        left: "-translate-x-12",
-        center: "",
-        right: "translate-x-12",
-    };
+    // Exact Winding Snake Pattern Offsets
+    const cycleLength = 8;
+    const offsets = [0, 40, 60, 40, 0, -40, -60, -40];
+    const xOffset = offsets[index % cycleLength];
 
     const getNodeStyles = () => {
         if (noHearts && (isCurrent || lesson.completed)) {
             return "bg-rose-400 border-rose-500 border-b-4 text-white";
         }
         if (isCurrent) {
-            return "bg-green-500 border-green-600 border-b-4 text-white shadow-lg scale-110";
+            return "bg-green-500 border-green-600 border-b-[6px] text-white active:border-b-0 active:translate-y-1.5 focus:outline-none";
         }
         if (lesson.completed) {
-            return "bg-green-500 border-green-600 border-b-4 text-white";
+            return "bg-yellow-400 border-yellow-500 border-b-[6px] text-white active:border-b-0 active:translate-y-1.5 focus:outline-none";
         }
-        return "bg-slate-200 border-slate-300 border-b-4 text-slate-400";
+        return "bg-gray-200 border-gray-300 border-b-[6px] text-gray-400 cursor-not-allowed";
     };
 
     const getIcon = () => {
-        if (noHearts && (isCurrent || lesson.completed)) return <Heart className="h-6 w-6" />;
+        if (noHearts && (isCurrent || lesson.completed)) return <Heart className="h-7 w-7 fill-white" />;
         if (isCurrent) return <Star className="h-8 w-8 fill-white" />;
-        if (lesson.completed) return <Check className="h-8 w-8" />;
+        if (lesson.completed) return <Crown className="h-8 w-8 fill-white" />;
         return <Lock className="h-6 w-6" />;
     };
 
@@ -114,35 +109,46 @@ const LessonNode = ({
     };
 
     return (
-        <div className={cn("flex justify-center", positionClasses[position as keyof typeof positionClasses])}>
+        <div 
+            className="relative flex justify-center w-full my-3"
+            style={{ transform: `translateX(${xOffset}px)` }}
+        >
             <Link
                 href={noHearts ? "/shop" : "#"}
                 onClick={handleClick}
                 className={cn(
-                    "relative flex items-center justify-center",
-                    isLocked && "cursor-not-allowed"
+                    "relative flex items-center justify-center rounded-full outline-none transition-transform",
+                    isLocked && "cursor-not-allowed opacity-80"
                 )}
             >
-                {/* Glow effect for current */}
+                {/* Glow ring for current active lesson */}
                 {isCurrent && (
-                    <div className="absolute h-20 w-20 animate-ping rounded-full bg-green-500 opacity-20" />
+                    <div className="absolute h-[90px] w-[90px] animate-ping rounded-full bg-green-500 opacity-20" />
                 )}
 
-                {/* START label */}
-                {isCurrent && (
-                    <span className="absolute -top-8 rounded-lg bg-white px-3 py-1 text-sm font-bold text-green-500 shadow-lg">
-                        COMEÇAR
-                    </span>
+                {/* START Pill Tooltip */}
+                {isCurrent && !noHearts && (
+                    <div className="absolute -top-14 z-10 animate-bounce cursor-pointer" style={{ animationDuration: '2s' }}>
+                        <div className="relative rounded-xl border-2 border-slate-200 bg-white px-4 py-2 text-sm font-black tracking-wide text-green-500 shadow-xl uppercase">
+                            Começar
+                            <div className="absolute -bottom-2 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-slate-200 bg-white" />
+                        </div>
+                    </div>
                 )}
 
-                {/* Node */}
+                {/* Tactile 3D Node */}
                 <div
                     className={cn(
-                        "flex h-16 w-16 items-center justify-center rounded-full transition-all duration-200",
+                        "relative flex h-[70px] w-[70px] items-center justify-center rounded-full transition-all duration-200",
                         getNodeStyles(),
-                        isAccessible && "hover:scale-105 active:scale-95 active:border-b-0"
+                        isAccessible && !isCurrent && "hover:scale-105 hover:-translate-y-0.5",
+                        isCurrent && "hover:scale-105"
                     )}
                 >
+                    {/* Inner highlight for extra 3D pop on active/completed */}
+                    {(isCurrent || lesson.completed) && !noHearts && (
+                        <div className="absolute top-1 w-3/4 h-[20px] rounded-full bg-white/20 blur-[1px]" />
+                    )}
                     {getIcon()}
                 </div>
             </Link>
@@ -196,9 +202,12 @@ export const LessonMap = ({ units, noHearts }: Props) => {
 
                     return (
                         <div key={unit.id}>
-                            {/* Lesson Path */}
-                            <div className="py-8">
-                                <div className="flex flex-col gap-6">
+                            {/* Lesson Path with Connecting Line */}
+                            <div className="relative py-8 flex flex-col items-center">
+                                {/* The Central Ambient Line behind the snake path */}
+                                <div className="absolute top-0 bottom-0 left-1/2 w-8 -translate-x-1/2 rounded-full bg-slate-100 opacity-50 z-0" />
+                                
+                                <div className="flex flex-col gap-6 w-full max-w-sm z-10">
                                     {lessonsWithStatus.map((lesson, index) => (
                                         <LessonNode
                                             key={lesson.id}

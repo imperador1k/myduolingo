@@ -1,23 +1,29 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { getUnits, getUserProgress, getCourses } from "@/db/queries";
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Notebook } from "lucide-react";
 import { LessonMap } from "@/components/lesson-map";
 
 // Unit Header Component
 const UnitHeader = ({ title, description }: { title: string; description: string }) => (
-    <div className="flex items-center justify-between rounded-xl bg-green-500 p-3 lg:p-5 text-white">
-        <div>
-            <h2 className="text-lg font-bold">{title}</h2>
-            <p className="text-sm opacity-90">{description}</p>
+    <div className="flex items-center justify-between rounded-3xl bg-gradient-to-r from-green-400 to-emerald-500 p-6 text-white shadow-lg shadow-green-500/30 mb-8 border-b-4 border-emerald-600 top-4 z-10 sticky">
+        <div className="flex items-center gap-4">
+            <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
+                <Notebook className="h-6 w-6 text-white" />
+            </div>
+            <div>
+                <h2 className="text-2xl font-black tracking-tight drop-shadow-sm">{title}</h2>
+                <p className="text-sm font-medium opacity-90 mt-1">{description}</p>
+            </div>
         </div>
         <Button
             variant="ghost"
-            className="bg-white/20 text-white hover:bg-white/30"
-            size="sm"
+            className="bg-white/20 text-white hover:bg-white/30 rounded-xl"
+            size="lg"
         >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-6 w-6" />
         </Button>
     </div>
 );
@@ -110,6 +116,29 @@ export default async function LearnPage() {
                             <span className="text-lg">❤️</span>
                             <span className="font-bold">{userProgress.hearts}</span>
                         </div>
+                    </div>
+                </div>
+
+                {/* Motivational Mascot */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12 sm:mb-16 pt-4 animate-in fade-in zoom-in-95 duration-700">
+                    <div className="relative animate-[bounce_4s_ease-in-out_infinite]">
+                        <Image 
+                            src="/duolingo-home.png" 
+                            alt="Mascot" 
+                            width={220} 
+                            height={220} 
+                            className="w-40 sm:w-52 drop-shadow-2xl rounded-3xl"
+                        />
+                    </div>
+                    {/* Speech Bubble */}
+                    <div className="relative bg-white border-2 border-slate-200 rounded-2xl p-5 shadow-lg max-w-[250px] text-center sm:text-left">
+                        <p className="text-lg font-black text-slate-700 tracking-tight leading-tight">Vamos aprender! 🚀</p>
+                        <p className="text-sm font-medium text-slate-500 mt-1">Pronto para dominar o mundo hoje?</p>
+                        
+                        {/* Desktop Arrow (Left) */}
+                        <div className="absolute top-1/2 -left-2.5 -translate-y-1/2 w-5 h-5 bg-white border-l-2 border-b-2 border-slate-200 rotate-45 hidden sm:block shadow-[-4px_4px_4px_-2px_rgba(0,0,0,0.05)]" />
+                        {/* Mobile Arrow (Top) */}
+                        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-5 h-5 bg-white border-l-2 border-t-2 border-slate-200 rotate-45 sm:hidden shadow-[-4px_-4px_4px_-2px_rgba(0,0,0,0.05)]" />
                     </div>
                 </div>
 

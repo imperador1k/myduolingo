@@ -106,12 +106,14 @@ def gerar_prompts(id_tema, lang_code):
           "challenges": [
             {
               "context": "String (A short sentence, dialogue, or scenario setting the scene. MANDATORY above A1.)",
+              "context_audio_lang": "String (BCP-47 language code for context audio, e.g. 'pt-PT', 'es-ES')",
               "question": "String (The query based on the context)",
+              "question_audio_lang": "String (BCP-47 language code for question audio, e.g. 'pt-PT', 'es-ES')",
               "type": "SELECT",
               "options": [
-                { "text": "Distractor 1", "correct": false },
-                { "text": "Correct Answer", "correct": true },
-                { "text": "Distractor 2", "correct": false }
+                { "text": "Distractor 1", "correct": false, "audio_lang": "String (BCP-47 code)" },
+                { "text": "Correct Answer", "correct": true, "audio_lang": "String (BCP-47 code)" },
+                { "text": "Distractor 2", "correct": false, "audio_lang": "String (BCP-47 code)" }
               ],
               "explanation": "String (Pedagogical explanation in PORTUGUESE. For B1+, explain WHY the context clue leads to the answer, NOT just a dictionary definition.)"
             }
@@ -168,10 +170,14 @@ INSTRUCTIONS:
      fill-in-the-blank. Context must be extremely simple (e.g., "The ___ is red.").
    - **Context field:** Optional for pure translation. For the 20% context challenges,
      provide 1 very simple sentence.
-
 5. **EXPLANATION RULE:**
    - Explain the Morphology (why is it feminine?) or Syntax (word order) in PORTUGUESE.
    - Keep explanations short and beginner-friendly.
+
+6. **AUDIO LANGUAGE TAGS (CRITICAL):**
+   - You MUST determine the correct BCP 47 language code for reading the text aloud. 
+   - If the text is an instruction or explanation in Portuguese, use 'pt-PT'. 
+   - If the text is the target language, use the target language's code (e.g., 'es-ES', 'en-US', 'fr-FR').
 
 OUTPUT: Return ONLY raw JSON matching this EXACT schema:
 {json_structure}
@@ -222,13 +228,17 @@ INSTRUCTIONS:
      logically fits the scenario. The context MUST contain a semantic clue.
 
 5. **DISTRACTORS:** Wrong tenses, false friends, or preposition errors.
-
 6. **EXPLANATION RULE (CRITICAL):**
    - For ISOLATED challenges: Explain the conjugation rule or vocabulary meaning.
    - For CONTEXTUAL challenges: Explain WHY the context clue points to the answer.
      Do NOT just define the word. Explain the LOGIC: "The sentence says 'yesterday',
      which signals the past tense, so we need 'went' not 'go'."
    - All explanations in PORTUGUESE.
+
+7. **AUDIO LANGUAGE TAGS (CRITICAL):**
+   - You MUST determine the correct BCP 47 language code for reading the text aloud. 
+   - If the text is an instruction or explanation in Portuguese, use 'pt-PT'. 
+   - If the text is the target language, use the target language's code (e.g., 'es-ES', 'en-US', 'fr-FR').
 
 OUTPUT: Return ONLY raw JSON matching this EXACT schema:
 {json_structure}

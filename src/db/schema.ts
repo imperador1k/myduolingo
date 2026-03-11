@@ -66,6 +66,8 @@ export const challenges = pgTable("challenges", {
         .notNull(),
     context: text("context"), // Scenario or dialogue snippet
     explanation: text("explanation"), // Reasoning for the answer
+    questionAudioLang: text("question_audio_lang"),
+    contextAudioLang: text("context_audio_lang"),
 });
 
 export const challengesRelations = relations(challenges, ({ one, many }) => ({
@@ -84,6 +86,7 @@ export const challengeOptions = pgTable("challenge_options", {
     correct: boolean("correct").notNull(),
     imageSrc: text("image_src"),
     audioSrc: text("audio_src"),
+    audioLang: text("audio_lang"),
     challengeId: integer("challenge_id")
         .references(() => challenges.id, { onDelete: "cascade" })
         .notNull(),
