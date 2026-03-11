@@ -55,17 +55,29 @@ export const createUserProgress = async (courseId: number) => {
     }
 
     // Check if user already has progress
-    const existingProgress = await db.query.userProgress.findFirst({
-        where: eq(userProgress.userId, userId),
-    });
+    const [existingProgress, course] = await Promise.all([
+        db.query.userProgress.findFirst({
+            where: eq(userProgress.userId, userId),
+        }),
+        db.query.courses.findFirst({
+            where: eq(courses.id, courseId),
+        }),
+    ]);
+
+    if (!course) {
+        throw new Error("Course not found");
+    }
 
     if (existingProgress) {
-        // Update active course
+        // Update active course and active language
         await db
             .update(userProgress)
-            .set({ activeCourseId: courseId })
+            .set({
+                activeCourseId: courseId,
+                activeLanguage: course.language
+            })
             .where(eq(userProgress.userId, userId));
-        return { ...existingProgress, activeCourseId: courseId };
+        return { ...existingProgress, activeCourseId: courseId, activeLanguage: course.language };
     }
 
     // For new users, we'll use default values
@@ -77,6 +89,7 @@ export const createUserProgress = async (courseId: number) => {
             userName: "Estudante",
             userImageSrc: "/mascot.svg",
             activeCourseId: courseId,
+            activeLanguage: course.language,
             hearts: 5,
             points: 0,
         })

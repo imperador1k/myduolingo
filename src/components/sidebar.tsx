@@ -13,7 +13,8 @@ import {
     Users,
     Bell,
     Mail,
-    Dumbbell
+    Dumbbell,
+    GraduationCap,
 } from "lucide-react";
 
 type SidebarItemProps = {
@@ -83,6 +84,11 @@ export const Sidebar = ({ className, notificationCount }: Props) => {
                     label="Praticar AI"
                     href="/practice"
                     iconSrc={<Dumbbell className="h-6 w-6" />}
+                />
+                <SidebarItem
+                    label="Avaliação"
+                    href="/evaluation"
+                    iconSrc={<GraduationCap className="h-6 w-6" />}
                 />
                 <SidebarItem
                     label="Classificação"

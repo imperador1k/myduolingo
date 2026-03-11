@@ -38,8 +38,8 @@ export const generatePracticePrompt = async (
         // If default or simplified "Active Course", fetch from DB
         if (language === "Active Course" || !language) {
             const userProgress = await getUserProgress();
-            if (userProgress?.activeCourse?.title) {
-                courseTitle = userProgress.activeCourse.title;
+            if (userProgress?.activeLanguage) {
+                courseTitle = userProgress.activeLanguage;
             } else {
                 courseTitle = "English"; // Fallback
             }
@@ -154,8 +154,8 @@ export const analyzeWriting = async (
 
         if (language === "Active Course" || !language) {
             const userProgress = await getUserProgress();
-            if (userProgress?.activeCourse?.title) {
-                courseTitle = userProgress.activeCourse.title;
+            if (userProgress?.activeCourse?.language) {
+                courseTitle = userProgress.activeCourse.language;
             } else {
                 courseTitle = "English";
             }
@@ -220,8 +220,8 @@ export const analyzeSpeaking = async (
 
         if (language === "Active Course" || !language) {
             const userProgress = await getUserProgress();
-            if (userProgress?.activeCourse?.title) {
-                courseTitle = userProgress.activeCourse.title;
+            if (userProgress?.activeCourse?.language) {
+                courseTitle = userProgress.activeCourse.language;
             } else {
                 courseTitle = "English";
             }
@@ -285,8 +285,8 @@ export const generateReadingText = async (
 
         if (language === "Active Course" || !language) {
             const userProgress = await getUserProgress();
-            if (userProgress?.activeCourse?.title) {
-                courseTitle = userProgress.activeCourse.title;
+            if (userProgress?.activeCourse?.language) {
+                courseTitle = userProgress.activeCourse.language;
             } else {
                 courseTitle = "English";
             }
@@ -394,8 +394,8 @@ export const analyzeReading = async (
         let courseTitle = language;
         if (language === "Active Course" || !language) {
             const userProgress = await getUserProgress();
-            if (userProgress?.activeCourse?.title) {
-                courseTitle = userProgress.activeCourse.title;
+            if (userProgress?.activeCourse?.language) {
+                courseTitle = userProgress.activeCourse.language;
             } else {
                 courseTitle = "English";
             }
@@ -450,8 +450,8 @@ export const generateListeningScript = async (
         let courseTitle = language;
         if (language === "Active Course" || !language) {
             const userProgress = await getUserProgress();
-            if (userProgress?.activeCourse?.title) {
-                courseTitle = userProgress.activeCourse.title;
+            if (userProgress?.activeCourse?.language) {
+                courseTitle = userProgress.activeCourse.language;
             } else {
                 courseTitle = "English";
             }
@@ -524,8 +524,8 @@ export const analyzeListening = async (
         let courseTitle = language;
         if (language === "Active Course" || !language) {
             const userProgress = await getUserProgress();
-            if (userProgress?.activeCourse?.title) {
-                courseTitle = userProgress.activeCourse.title;
+            if (userProgress?.activeCourse?.language) {
+                courseTitle = userProgress.activeCourse.language;
             } else {
                 courseTitle = "English";
             }

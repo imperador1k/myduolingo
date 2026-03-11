@@ -17,6 +17,7 @@ import {
     BookOpen,
     MessageSquare,
     Dumbbell,
+    GraduationCap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -120,6 +121,13 @@ export const MobileNav = () => {
                                 icon={<Settings className="h-6 w-6" />}
                                 label="Defin."
                                 isActive={pathname === "/settings"}
+                                onClick={closeMenu}
+                            />
+                            <MobileItem
+                                href="/evaluation"
+                                icon={<GraduationCap className="h-6 w-6" />}
+                                label="Avaliação"
+                                isActive={pathname === "/evaluation"}
                                 onClick={closeMenu}
                             />
                         </div>
