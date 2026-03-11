@@ -1,6 +1,6 @@
 "use server";
 
-import { followUser, unfollowUser, sendMessage, markMessagesAsRead } from "@/db/queries";
+import { followUser, unfollowUser, sendMessage, markMessagesAsRead, markNotificationAsRead } from "@/db/queries";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
 import { notifications } from "@/db/schema";
@@ -79,5 +79,15 @@ export const onMarkMessagesAsRead = async (partnerId: string) => {
         revalidatePath("/"); // Update global unread badge everywhere
     } catch (error) {
         console.error("Mark messages as read error:", error);
+    }
+};
+
+export const onMarkNotificationAsRead = async (id: number) => {
+    try {
+        await markNotificationAsRead(id);
+        revalidatePath("/notifications");
+        revalidatePath("/"); // Update global unread badges
+    } catch (error) {
+        console.error("Mark notification as read error:", error);
     }
 };

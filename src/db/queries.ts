@@ -1053,3 +1053,18 @@ export const markMessagesAsRead = async (partnerId: string) => {
             )
         );
 };
+
+export const markNotificationAsRead = async (id: number) => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    await db
+        .update(notifications)
+        .set({ read: true })
+        .where(
+            and(
+                eq(notifications.id, id),
+                eq(notifications.userId, userId)
+            )
+        );
+};
