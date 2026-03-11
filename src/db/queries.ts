@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
+import { createNotification } from "@/lib/notifications";
 import { eq, desc, and, count, ilike, ne, or, asc } from "drizzle-orm";
 import { db } from "./drizzle";
 import {
@@ -447,6 +448,8 @@ export const refillHearts = async () => {
         })
         .where(eq(userProgress.userId, userId));
 
+    createNotification(userId, "system", "Corações restaurados! Estás pronto para aprender. ❤️", "/learn").catch(console.error);
+
     return { hearts: 5, points: currentProgress.points - cost };
 };
 
@@ -838,12 +841,17 @@ export const followUser = async (targetUserId: string) => {
         followingId: targetUserId,
     });
 
-    await db.insert(notifications).values({
-        userId: targetUserId,
-        type: "FOLLOW",
-        message: `Novo seguidor!`,
-        link: `/profile/${currentUserId}`,
+    const currentUser = await db.query.userProgress.findFirst({
+        where: eq(userProgress.userId, currentUserId),
     });
+    const userName = currentUser?.userName || "Alguém";
+
+    await createNotification(
+        targetUserId,
+        "follow",
+        `${userName} começou a seguir-te! 👀`,
+        `/profile/${currentUserId}`
+    );
 
     revalidatePath(`/profile/${targetUserId}`);
     revalidatePath("/friends");
@@ -904,6 +912,18 @@ export const sendMessage = async (receiverId: string, content: string, type: "te
         type,
         fileName,
     });
+
+    const currentUser = await db.query.userProgress.findFirst({
+        where: eq(userProgress.userId, senderId),
+    });
+    const userName = currentUser?.userName || "Alguém";
+
+    await createNotification(
+        receiverId,
+        "message",
+        `Nova mensagem de ${userName} 💬`,
+        `/messages`
+    );
 
     revalidatePath("/messages");
 };

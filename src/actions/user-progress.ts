@@ -2,6 +2,7 @@
 
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "@/lib/notifications";
 import {
     getUserProgress,
     upsertChallengeProgress,
@@ -70,6 +71,16 @@ export const onLessonComplete = async () => {
     // But we want to return the status to show the modal here.
     // Calling it again is safe (checks date).
     const streakResult = await updateStreak();
+
+    // 🏆 Congratulate user on lesson completion
+    createNotification(
+        userId,
+        "streak",
+        streakResult.streakExtended
+            ? `Incrível! Ofensiva em ${streakResult.streak} dias! 🔥`
+            : `Lição concluída! Continua assim! 💪`,
+        "/leaderboard"
+    ).catch(console.error); // Non-blocking: don't await, just fire-and-forget
 
     revalidatePath("/learn");
     revalidatePath("/lesson");
@@ -210,6 +221,8 @@ export const onBuyXpBoost = async () => {
 
     const result = await buyXpBoost();
 
+    createNotification(userId, "system", "Boost de XP ativado! As próximas lições valem o dobro! ⚡", "/learn").catch(console.error);
+
     revalidatePath("/shop");
     revalidatePath("/learn");
     revalidatePath("/lesson");
@@ -227,6 +240,8 @@ export const onBuyHeartShield = async () => {
 
     const result = await buyHeartShield();
 
+    createNotification(userId, "system", "Escudo de Corações equipado! A tua próxima resposta errada está protegida. 🛡️", "/learn").catch(console.error);
+
     revalidatePath("/shop");
     revalidatePath("/learn");
 
@@ -242,6 +257,8 @@ export const onBuyStreakFreeze = async () => {
     }
 
     const result = await buyStreakFreeze();
+
+    createNotification(userId, "system", "Escudo de Ofensiva equipado! A tua ofensiva está protegida por 1 dia. 🛡️", "/learn").catch(console.error);
 
     revalidatePath("/shop");
     revalidatePath("/learn");
