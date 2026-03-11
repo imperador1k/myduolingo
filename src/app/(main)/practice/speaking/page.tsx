@@ -10,6 +10,7 @@ import { useTTS } from "@/hooks/use-tts";
 import { getLocaleForLanguage } from "@/lib/constants";
 
 import { PracticeSetup } from "@/components/practice-setup";
+import { AILoadingScreen } from "@/components/ai-loading-screen";
 
 // Add support for Web Speech API types
 interface IWindow extends Window {
@@ -20,7 +21,7 @@ interface IWindow extends Window {
 type SpeakingStatus = 'idle' | 'recording' | 'paused';
 
 export default function SpeakingPracticePage() {
-    const [promptData, setPromptData] = useState<{ text: string; translation: string; hints?: string[] } | null>(null);
+    const [promptData, setPromptData] = useState<{ scenario: string; translation: string; rules: string[]; hints?: string[]; languageCode?: string } | null>(null);
     const [transcript, setTranscript] = useState("");
     const [status, setStatus] = useState<SpeakingStatus>('idle');
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -189,7 +190,7 @@ export default function SpeakingPracticePage() {
 
         startAnalysisTransition(async () => {
             handleStop();
-            const result = await analyzeSpeaking(transcript, promptData.text, config.level, config.language);
+            const result = await analyzeSpeaking(transcript, promptData.scenario, config.level, config.language);
             setFeedback(result);
 
             try {
@@ -197,7 +198,7 @@ export default function SpeakingPracticePage() {
                     type: "speaking",
                     language: config.language,
                     cefrLevel: config.level,
-                    prompt: promptData.text,
+                    prompt: promptData.scenario,
                     promptData: promptData,
                     userInput: transcript,
                     feedback: result,
@@ -234,6 +235,10 @@ export default function SpeakingPracticePage() {
 
     if (!isSetupComplete) {
         return <PracticeSetup type="speaking" onStart={handleStartSession} />;
+    }
+
+    if (isGeneratingPrompt) {
+        return <AILoadingScreen title="A gerar Módulo de Simulação de Voz AI..." />;
     }
 
 
@@ -273,32 +278,45 @@ export default function SpeakingPracticePage() {
                             size="sm"
                             className="text-slate-400 hover:text-rose-500"
                             onClick={() => {
-                                if (!promptData.text) return;
+                                if (!promptData.scenario) return;
                                 // playPromptTTS uses the correct target language from config
-                                playPromptTTS(promptData.text, 0.9, targetLocale);
+                                playPromptTTS(promptData.scenario, 0.9, targetLocale);
                             }}
-                            title="Ouvir frase"
+                            title="Ouvir cena"
                         >
                             <Volume2 className="h-5 w-5" />
                         </Button>
                     )}
                 </div>
-                {isGeneratingPrompt ? (
-                    <div className="flex h-20 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-slate-300" /></div>
-                ) : (
-                    <div>
-                        <p className="text-xl font-medium text-slate-800">{promptData?.text}</p>
-                        <p className="mt-1 text-sm text-slate-500">{promptData?.translation}</p>
-                        {promptData?.hints && promptData.hints.length > 0 && (
-                            <div className="mt-4 pt-4 border-t border-slate-100">
-                                <p className="text-xs font-bold uppercase text-slate-400 mb-2">Sugestões:</p>
-                                <ul className="list-disc pl-5 space-y-1">
-                                    {promptData.hints.map((hint, i) => <li key={i} className="text-sm text-slate-600">{hint}</li>)}
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                )}
+                <div>
+                    <p className="text-xl font-medium text-slate-800">{promptData?.scenario}</p>
+                    <p className="mt-1 text-sm text-slate-500">{promptData?.translation}</p>
+
+                    {promptData?.rules && promptData.rules.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-slate-100">
+                            <p className="text-xs font-bold uppercase text-amber-500 flex items-center gap-1 mb-2">
+                                <Target className="h-4 w-4" /> REGRAS DE CONVERSAÇÃO:
+                            </p>
+                            <ul className="space-y-2">
+                                {promptData.rules.map((rule, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-sm text-slate-700 bg-amber-50/50 p-2 rounded-lg border border-amber-100">
+                                        <CheckCircle2 className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+                                        <span>{rule}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {promptData?.hints && promptData.hints.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-slate-100">
+                            <p className="text-xs font-bold uppercase text-slate-400 mb-2">Sugestões:</p>
+                            <ul className="list-disc pl-5 space-y-1">
+                                {promptData.hints.map((hint, i) => <li key={i} className="text-sm text-slate-600">{hint}</li>)}
+                            </ul>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Recording Area */}

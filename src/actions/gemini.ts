@@ -71,7 +71,7 @@ export const generatePracticePrompt = async (
     level: string = "B1",
     language: string = "Active Course",
     focusMode: boolean = false
-): Promise<{ text: string; translation: string; hints: string[]; languageCode?: string }> => {
+): Promise<{ scenario: string; translation: string; rules: string[]; hints: string[]; languageCode?: string }> => {
     try {
         const randomSeed = Date.now();
         let courseTitle = language;
@@ -183,8 +183,9 @@ export const generatePracticePrompt = async (
         // Fallback topics if API fails
         const fallbacks = [
             {
-                text: "Describe your daily routine.",
+                scenario: "A server error occurred. For practice, describe your daily routine.",
                 translation: "Descreve a tua rotina diária.",
+                rules: ["Use the present tense", "Mention at least 3 activities", "Include times of day"],
                 hints: ["What time do you wake up?", "What do you do?", "Evening routine"],
             }
         ];

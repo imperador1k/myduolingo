@@ -9,8 +9,10 @@ import { Loader2, RefreshCw, Send, Sparkles, Shuffle, Target, CheckCircle2 } fro
 import { cn } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
 import { PracticeSetup } from "@/components/practice-setup";
+import { AILoadingScreen } from "@/components/ai-loading-screen";
+
 export default function WritingPracticePage() {
-    const [promptData, setPromptData] = useState<{ text: string; translation: string; hints?: string[] } | null>(null);
+    const [promptData, setPromptData] = useState<{ scenario: string; translation: string; rules: string[]; hints?: string[]; languageCode?: string } | null>(null);
     const [userResponse, setUserResponse] = useState("");
     const [isFocusMode, setIsFocusMode] = useState(false);
     const [feedback, setFeedback] = useState<{
@@ -49,7 +51,7 @@ export default function WritingPracticePage() {
         if (!userResponse.trim() || !promptData || !config) return;
 
         startAnalysisTransition(async () => {
-            const result = await analyzeWriting(userResponse, promptData.text, config.level, config.language);
+            const result = await analyzeWriting(userResponse, promptData.scenario, config.level, config.language);
             setFeedback(result);
 
             try {
@@ -57,7 +59,7 @@ export default function WritingPracticePage() {
                     type: "writing",
                     language: config.language,
                     cefrLevel: config.level,
-                    prompt: promptData.text,
+                    prompt: promptData.scenario,
                     promptData: promptData,
                     userInput: userResponse,
                     feedback: result,
@@ -75,6 +77,10 @@ export default function WritingPracticePage() {
 
     if (!isSetupComplete) {
         return <PracticeSetup type="writing" onStart={handleStartSession} />;
+    }
+
+    if (isGeneratingPrompt) {
+        return <AILoadingScreen title="A gerar Módulo de Escrita AI..." />;
     }
 
     return (
@@ -191,27 +197,37 @@ export default function WritingPracticePage() {
                     <Sparkles className="h-5 w-5" />
                     <h2 className="font-bold uppercase tracking-wide">Tópico Sugerido</h2>
                 </div>
-                {isGeneratingPrompt ? (
-                    <div className="flex h-20 items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-slate-300" />
-                    </div>
-                ) : (
-                    <div>
-                        <p className="text-xl font-medium text-slate-800">{promptData?.text}</p>
-                        <p className="mt-1 text-sm text-slate-500">{promptData?.translation}</p>
+                <div>
+                    <p className="text-xl font-medium text-slate-800">{promptData?.scenario}</p>
+                    <p className="mt-1 text-sm text-slate-500">{promptData?.translation}</p>
 
-                        {promptData?.hints && promptData.hints.length > 0 && (
-                            <div className="mt-4 pt-4 border-t border-slate-100">
-                                <p className="text-xs font-bold uppercase text-slate-400 mb-2">Ideias para explorar:</p>
-                                <ul className="list-disc pl-5 space-y-1">
-                                    {promptData.hints.map((hint, i) => (
-                                        <li key={i} className="text-sm text-slate-600">{hint}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                )}
+                    {promptData?.rules && promptData.rules.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-slate-100">
+                            <p className="text-xs font-bold uppercase text-amber-500 flex items-center gap-1 mb-2">
+                                <Target className="h-4 w-4" /> REGRAS DO EXERCÍCIO:
+                            </p>
+                            <ul className="space-y-2">
+                                {promptData.rules.map((rule, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-sm text-slate-700 bg-amber-50/50 p-2 rounded-lg border border-amber-100">
+                                        <CheckCircle2 className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+                                        <span>{rule}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {promptData?.hints && promptData.hints.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-slate-100">
+                            <p className="text-xs font-bold uppercase text-slate-400 mb-2">Ideias para explorar:</p>
+                            <ul className="list-disc pl-5 space-y-1">
+                                {promptData.hints.map((hint, i) => (
+                                    <li key={i} className="text-sm text-slate-600">{hint}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Input Area */}

@@ -11,6 +11,7 @@ import { useTTS } from "@/hooks/use-tts";
 import { getLocaleForLanguage } from "@/lib/constants";
 
 import { PracticeSetup } from "@/components/practice-setup";
+import { AILoadingScreen } from "@/components/ai-loading-screen";
 
 export default function ListeningPracticePage() {
     const [scriptData, setScriptData] = useState<{ script: string; topic: string; questions?: string[] } | null>(null);
@@ -18,9 +19,10 @@ export default function ListeningPracticePage() {
     const [isSetupComplete, setIsSetupComplete] = useState(false);
     const [config, setConfig] = useState<{ language: string; level: string; mode: "random" | "focus" } | null>(null);
 
-    const [userNotes, setUserNotes] = useState("");
+    const [userAnswers, setUserAnswers] = useState<string[]>([]);
     const [inputMode, setInputMode] = useState<"text" | "voice">("text");
     const [isRecording, setIsRecording] = useState(false);
+    const [activeQuestionIndex, setActiveQuestionIndex] = useState<number | null>(null);
 
     // Audio State
     const [isPlaying, setIsPlaying] = useState(false);
@@ -90,12 +92,15 @@ export default function ListeningPracticePage() {
         stopAudio();
         startGenerationTransition(async () => {
             setFeedback(null);
-            setUserNotes("");
+            setUserAnswers([]);
             setShowScript(false);
             setHasAudioFinished(false);
 
             const data = await generateListeningScript(cfg.level, cfg.language, cfg.mode === "focus");
             setScriptData(data);
+            if (data?.questions) {
+                setUserAnswers(new Array(data.questions.length).fill(""));
+            }
         });
     };
 
@@ -124,13 +129,19 @@ export default function ListeningPracticePage() {
                     finalTranscript += event.results[i][0].transcript;
                 }
             }
-            if (finalTranscript) {
-                setUserNotes(prev => prev + (prev ? " " : "") + finalTranscript);
+            if (finalTranscript && activeQuestionIndex !== null) {
+                setUserAnswers(prev => {
+                    const newAnswers = [...prev];
+                    const current = newAnswers[activeQuestionIndex];
+                    newAnswers[activeQuestionIndex] = current + (current ? " " : "") + finalTranscript;
+                    return newAnswers;
+                });
             }
         };
 
         recognition.onend = () => {
             setIsRecording(false);
+            setActiveQuestionIndex(null);
         };
 
         recognitionRef.current = recognition;
@@ -138,12 +149,23 @@ export default function ListeningPracticePage() {
         setIsRecording(true);
     };
 
+    const handleTextChange = (index: number, value: string) => {
+        const newAnswers = [...userAnswers];
+        newAnswers[index] = value;
+        setUserAnswers(newAnswers);
+    };
+
     const handleSubmit = () => {
-        if (!userNotes.trim() || !scriptData || !config) return;
+        if (!scriptData || !config || userAnswers.every(a => !a.trim())) return;
 
         stopAudio();
         startAnalysisTransition(async () => {
-            const result = await analyzeListening(userNotes, scriptData.topic, scriptData.script, config.level, config.language);
+            const formattedAnswers = scriptData.questions?.map((q, i) => ({
+                question: q,
+                answer: userAnswers[i] || "No answer provided.",
+            })) || [];
+
+            const result = await analyzeListening(JSON.stringify(formattedAnswers), scriptData.topic, scriptData.script, config.level, config.language);
             setFeedback(result);
             setShowScript(true);
 
@@ -154,7 +176,7 @@ export default function ListeningPracticePage() {
                     cefrLevel: config.level,
                     prompt: scriptData.topic,
                     promptData: scriptData,
-                    userInput: userNotes,
+                    userInput: JSON.stringify(formattedAnswers),
                     feedback: result,
                     score: result.score,
                 });
@@ -173,6 +195,10 @@ export default function ListeningPracticePage() {
 
     if (!isSetupComplete) {
         return <PracticeSetup type="listening" onStart={handleStartSession} />;
+    }
+
+    if (isGenerating) {
+        return <AILoadingScreen title="A gerar Módulo Auditivo AI..." />;
     }
 
     return (
@@ -202,12 +228,7 @@ export default function ListeningPracticePage() {
 
             {/* Audio Control Card */}
             <div className="mb-8 rounded-xl border-2 border-slate-200 bg-white p-8 shadow-sm text-center">
-                {isGenerating ? (
-                    <div className="flex flex-col items-center justify-center py-8">
-                        <Loader2 className="h-10 w-10 animate-spin text-indigo-500 mb-4" />
-                        <p className="text-slate-500 animate-pulse">Generating audio script...</p>
-                    </div>
-                ) : scriptData ? (
+                {scriptData ? (
                     <div className="space-y-6">
                         <div>
                             <p className="text-sm font-bold uppercase tracking-wide text-indigo-400 mb-2">Topic</p>
@@ -253,18 +274,13 @@ export default function ListeningPracticePage() {
 
                         {scriptData.questions && (
                             <div className={cn(
-                                "text-left bg-indigo-50 p-4 rounded-lg border border-indigo-100 mx-auto max-w-lg transition-all duration-500",
+                                "text-center mb-4 transition-all duration-500",
                                 !hasAudioFinished && "opacity-50 blur-[2px] select-none grayscale"
                             )}>
-                                <p className="font-bold text-indigo-800 mb-2 flex items-center gap-2">
-                                    <AlertCircle className="h-4 w-4" />
-                                    {hasAudioFinished ? "Focus Points:" : "Hidden Hints"}
+                                <p className="font-bold text-slate-500 uppercase tracking-wide flex items-center justify-center gap-2 mb-2">
+                                    <AlertCircle className="h-4 w-4 text-indigo-400" />
+                                    {hasAudioFinished ? "Play the audio to discover the answers!" : "Questions are locked while audio plays..."}
                                 </p>
-                                <ul className="list-disc list-inside text-indigo-700 space-y-1">
-                                    {scriptData.questions.map((q, i) => (
-                                        <li key={i}>{hasAudioFinished ? q : "..................................."}</li>
-                                    ))}
-                                </ul>
                             </div>
                         )}
                     </div>
@@ -301,58 +317,60 @@ export default function ListeningPracticePage() {
                         </div>
                     </div>
 
-                    {inputMode === 'voice' ? (
-                        <div className="min-h-[300px] bg-slate-50 border-2 rounded-xl border-dashed border-slate-300 flex flex-col items-center justify-center p-6 space-y-4">
-                            {!isRecording ? (
-                                <Button
-                                    size="lg"
-                                    onClick={toggleRecording}
-                                    className="h-20 w-20 rounded-full bg-indigo-500 hover:bg-indigo-600 text-white shadow-xl hover:scale-105 transition-all"
-                                >
-                                    <Mic className="h-8 w-8" />
-                                </Button>
-                            ) : (
-                                <Button
-                                    size="lg"
-                                    onClick={toggleRecording}
-                                    variant="danger"
-                                    className="h-20 w-20 rounded-full animate-pulse shadow-xl hover:scale-105 transition-all"
-                                >
-                                    <Square className="h-8 w-8" />
-                                </Button>
-                            )}
-                            <p className="text-slate-500 font-medium">
-                                {isRecording ? "Listening... (Speak clearly)" : "Click mic to start recording"}
-                            </p>
+                    <div className="space-y-6">
+                        {scriptData?.questions?.map((q, idx) => (
+                            <div key={idx} className={cn("bg-white p-4 rounded-xl border-2 transition-all", hasAudioFinished ? "border-slate-200" : "border-slate-100 opacity-50 select-none")}>
+                                <h4 className="font-bold text-slate-700 mb-3 flex items-start gap-2">
+                                    <span className="text-indigo-500 bg-indigo-50 px-2 rounded">{idx+1}.</span>
+                                    {hasAudioFinished ? q : "???"}
+                                </h4>
+                                
+                                {inputMode === 'voice' ? (
+                                    <div className="flex gap-3 items-center">
+                                        <Button
+                                            size="icon"
+                                            onClick={() => {
+                                                if (isRecording && activeQuestionIndex === idx) {
+                                                    recognitionRef.current?.stop();
+                                                } else {
+                                                    setActiveQuestionIndex(idx);
+                                                    toggleRecording();
+                                                }
+                                            }}
+                                            className={cn("h-12 w-12 rounded-full shadow-md transition-all", isRecording && activeQuestionIndex === idx ? "bg-red-500 hover:bg-red-600 animate-pulse" : "bg-indigo-500 hover:bg-indigo-600")}
+                                            disabled={!hasAudioFinished || (isRecording && activeQuestionIndex !== idx)}
+                                        >
+                                            {isRecording && activeQuestionIndex === idx ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                                        </Button>
+                                        <div className="flex-1 min-h-[48px] p-3 bg-slate-50 rounded-lg border border-slate-200 text-sm text-slate-600">
+                                            {userAnswers[idx] || (isRecording && activeQuestionIndex === idx ? <span className="italic text-slate-400">Listening...</span> : <span className="italic text-slate-400">Record your answer</span>)}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Textarea
+                                        placeholder="Write your answer here..."
+                                        className="min-h-[100px] resize-none border-slate-200 bg-slate-50 focus-visible:ring-indigo-500"
+                                        value={userAnswers[idx] || ""}
+                                        onChange={(e) => handleTextChange(idx, e.target.value)}
+                                        disabled={!hasAudioFinished || isGenerating || isAnalyzing}
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
 
-                            {userNotes && (
-                                <div className="w-full mt-4 p-4 bg-white rounded-lg border border-slate-200 text-left max-h-[150px] overflow-y-auto">
-                                    <p className="text-slate-700 text-sm whitespace-pre-wrap">{userNotes}</p>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <Textarea
-                            placeholder="Write your summary here in English..."
-                            className="min-h-[300px] resize-none rounded-xl border-2 p-4 text-lg focus-visible:ring-indigo-500 bg-white"
-                            value={userNotes}
-                            onChange={(e) => setUserNotes(e.target.value)}
-                            disabled={isGenerating || isAnalyzing}
-                        />
-                    )}
-
-                    <div className="flex justify-end gap-3">
+                    <div className="flex justify-end gap-3 mt-4">
                         {inputMode === 'voice' && isRecording && (
-                            <Button variant="ghost" onClick={toggleRecording} size="sm">
+                            <Button variant="ghost" onClick={() => recognitionRef.current?.stop()} size="sm">
                                 Stop Recording First
                             </Button>
                         )}
 
                         <Button
                             size="lg"
-                            className="bg-indigo-500 hover:bg-indigo-600 text-white w-full"
+                            className="bg-indigo-500 hover:bg-indigo-600 text-white w-full shadow-lg"
                             onClick={handleSubmit}
-                            disabled={!userNotes.trim() || isAnalyzing || isGenerating || isRecording}
+                            disabled={userAnswers.every(a => !a.trim()) || isAnalyzing || isGenerating || isRecording}
                         >
                             {isAnalyzing ? (
                                 <>

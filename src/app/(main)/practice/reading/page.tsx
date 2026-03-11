@@ -25,6 +25,7 @@ interface ExamData {
 }
 
 import { PracticeSetup } from "@/components/practice-setup";
+import { AILoadingScreen } from "@/components/ai-loading-screen";
 
 // ... Types ...
 
@@ -124,6 +125,10 @@ export default function ReadingPracticePage() {
         return <PracticeSetup type="reading" onStart={handleStartSession} />;
     }
 
+    if (isGenerating) {
+        return <AILoadingScreen title="A gerar Módulo de Leitura AI..." />;
+    }
+
     return (
         <div className="h-[calc(100vh-64px)] overflow-hidden flex flex-col bg-slate-50">
             {/* Header */}
@@ -148,13 +153,7 @@ export default function ReadingPracticePage() {
 
             {/* Main Content - Two Column Split */}
             <div className="flex-1 flex overflow-hidden">
-                {isGenerating ? (
-                    <div className="flex-1 flex flex-col items-center justify-center">
-                        <Loader2 className="h-12 w-12 text-emerald-500 animate-spin mb-4" />
-                        <h3 className="text-xl font-bold text-slate-700">Generating C2 Exam Material...</h3>
-                        <p className="text-slate-500">Creating complex text and inference questions.</p>
-                    </div>
-                ) : !examData ? (
+                {!examData ? (
                     <div className="flex-1 flex items-center justify-center text-slate-400">
                         Failed to load exam. Try again.
                     </div>
