@@ -2,6 +2,7 @@ import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { StreakCheck } from "@/components/streak-check";
+import { getUnreadMessageCount, getUnreadNotificationCount } from "@/db/queries";
 
 type Props = {
     children: React.ReactNode;
@@ -9,17 +10,27 @@ type Props = {
 
 export const dynamic = "force-dynamic";
 
-export default function MainLayout({ children }: Props) {
+export default async function MainLayout({ children }: Props) {
+    const unreadMessages = await getUnreadMessageCount();
+    const unreadNotifications = await getUnreadNotificationCount();
+
     return (
         <>
             <MobileHeader />
-            <Sidebar className="hidden lg:flex" />
+            <Sidebar 
+                className="hidden lg:flex" 
+                notificationCount={unreadNotifications} 
+                unreadMessageCount={unreadMessages} 
+            />
             <main className="lg:pl-[256px] h-full pt-[50px] lg:pt-0 overflow-y-auto overflow-x-hidden">
                 <div className="max-w-[1056px] mx-auto pt-6 min-h-full pb-48 lg:pb-8">
                     {children}
                 </div>
             </main>
-            <MobileNav />
+            <MobileNav 
+                notificationCount={unreadNotifications} 
+                unreadMessageCount={unreadMessages} 
+            />
             <StreakCheck />
         </>
     );

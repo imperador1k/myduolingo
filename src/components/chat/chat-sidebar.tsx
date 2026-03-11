@@ -19,6 +19,7 @@ type Conversation = {
         read: boolean;
         senderId: string;
     };
+    unreadCount: number;
 };
 
 type Props = {
@@ -137,14 +138,25 @@ export const ChatSidebar = ({ conversations }: Props) => {
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-baseline mb-1">
-                                <span className="font-bold text-slate-700 truncate">{conv.partner.userName}</span>
-                                <span className="text-xs text-slate-400">
-                                    {new Date(conv.lastMessage.createdAt).toLocaleDateString()}
+                                <span className={cn("truncate", conv.unreadCount > 0 ? "font-bold text-slate-800" : "font-bold text-slate-700")}>
+                                    {conv.partner.userName}
                                 </span>
+                                <div className="flex items-center gap-2">
+                                    <span className={cn("text-xs", conv.unreadCount > 0 ? "text-sky-500 font-bold" : "text-slate-400")}>
+                                        {new Date(conv.lastMessage.createdAt).toLocaleDateString()}
+                                    </span>
+                                </div>
                             </div>
-                            <p className={cn("text-sm truncate", !conv.lastMessage.read && conv.lastMessage.senderId !== "me" ? "font-bold text-slate-800" : "text-slate-500")}>
-                                {conv.lastMessage.senderId === "me" && "Tu: "} {conv.lastMessage.content}
-                            </p>
+                            <div className="flex justify-between items-center pr-1">
+                                <p className={cn("text-sm truncate mr-2", conv.unreadCount > 0 && conv.lastMessage.senderId !== "me" ? "font-bold text-slate-800" : "text-slate-500")}>
+                                    {conv.lastMessage.senderId === "me" && "Tu: "} {conv.lastMessage.content}
+                                </p>
+                                {conv.unreadCount > 0 && (
+                                    <div className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-sky-500 px-1.5 text-[10px] font-bold text-white shadow-sm">
+                                        {conv.unreadCount > 99 ? "99+" : conv.unreadCount}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 ))}

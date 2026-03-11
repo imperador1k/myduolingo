@@ -53,9 +53,10 @@ const SidebarItem = ({ label, iconSrc, href, notificationCount }: SidebarItemPro
 type Props = {
     className?: string;
     notificationCount?: number;
+    unreadMessageCount?: number;
 };
 
-export const Sidebar = ({ className, notificationCount }: Props) => {
+export const Sidebar = ({ className, notificationCount, unreadMessageCount }: Props) => {
     return (
         <div className={cn("fixed left-0 top-0 hidden h-full w-[256px] flex-col border-r-2 px-4 lg:flex", className)}>
             {/* Logo */}
@@ -110,6 +111,7 @@ export const Sidebar = ({ className, notificationCount }: Props) => {
                     label="Mensagens"
                     href="/messages"
                     iconSrc={<Mail className="h-6 w-6" />}
+                    notificationCount={unreadMessageCount}
                 />
                 <SidebarItem
                     label="Loja"

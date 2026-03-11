@@ -1,10 +1,10 @@
 "use client";
 
 import { useRealtimeMessages } from "./use-realtime-messages";
-import { onSendMessage } from "@/actions/user-actions";
+import { onSendMessage, onMarkMessagesAsRead } from "@/actions/user-actions";
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Send, Image as ImageIcon, X, FileText, Download, ChevronLeft } from "lucide-react";
+import { Send, Image as ImageIcon, X, FileText, Download, ChevronLeft, CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -30,9 +30,26 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
     const [showGifPicker, setShowGifPicker] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+    const scrollToBottom = () => {
+        if (bottomRef.current) {
+            bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+        // Scroll immediately, and also after a short delay to account for rendering/image loading
+        scrollToBottom();
+        const timeoutId = setTimeout(scrollToBottom, 150);
+        
+        // Mark as read if there are ANY unread messages from the partner
+        // This fixes the bug where previous unread messages were ignored if the user sent a new message acting as the 'last' message
+        const hasUnreadFromPartner = messages.some(msg => msg.senderId === partner.userId && !msg.read);
+        if (hasUnreadFromPartner) {
+            onMarkMessagesAsRead(partner.userId);
+        }
+
+        return () => clearTimeout(timeoutId);
+    }, [messages, partner.userId]);
 
     const handleSubmit = async (formData: FormData) => {
         const content = formData.get("content")?.toString();
@@ -59,6 +76,15 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
     };
 
     const isGif = (content: string) => content.includes("giphy.com/media");
+
+    const formatTimestamp = (dateString: string | Date) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    // Find the index of the last message sent by ME to render the "Visto" status
+    const lastMyMessageIndex = [...messages].reverse().findIndex((m) => m.senderId === userId);
+    const actualLastMyMessageIndex = lastMyMessageIndex !== -1 ? messages.length - 1 - lastMyMessageIndex : -1;
 
     return (
         <div className="flex flex-col h-full w-full bg-white relative">
@@ -111,7 +137,7 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
                     const isFile = msg.type === "file";
 
                     return (
-                        <div key={i} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
+                        <div key={i} className={cn("flex w-full flex-col", isMe ? "items-end" : "items-start")}>
                             <div className={cn(
                                 "max-w-[70%] rounded-2xl shadow-sm text-sm overflow-hidden",
                                 isMe ? "bg-sky-500 text-white rounded-br-none" : "bg-white border-2 border-slate-200 text-slate-700 rounded-bl-none",
@@ -141,6 +167,19 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
                                     </div>
                                 ) : (
                                     msg.content
+                                )}
+                            </div>
+                            
+                            {/* Timestamp and Read Status */}
+                            <div className={cn(
+                                "flex items-center gap-1 text-[10px] sm:text-xs text-slate-400 mt-1 mx-1",
+                                isMe ? "justify-end" : "justify-start"
+                            )}>
+                                <span>{formatTimestamp(msg.createdAt)}</span>
+                                {isMe && i === actualLastMyMessageIndex && msg.read && (
+                                    <span className="flex items-center gap-0.5 ml-1 font-semibold text-sky-500">
+                                        Visto
+                                    </span>
                                 )}
                             </div>
                         </div>

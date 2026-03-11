@@ -925,6 +925,23 @@ export const getUnreadNotificationCount = cache(async () => {
     return result.count;
 });
 
+export const getUnreadMessageCount = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return 0;
+
+    const [result] = await db
+        .select({ count: count() })
+        .from(messages)
+        .where(
+            and(
+                eq(messages.receiverId, userId),
+                eq(messages.read, false)
+            )
+        );
+
+    return result.count;
+});
+
 export const searchUsers = async (query: string) => {
     const { userId } = await auth();
     if (!userId) return [];
@@ -964,8 +981,18 @@ export const getConversations = cache(async () => {
         if (!conversations.has(partnerId)) {
             conversations.set(partnerId, {
                 partner: msg.senderId === userId ? msg.receiver : msg.sender,
-                lastMessage: msg,
+                lastMessage: {
+                    ...msg,
+                    senderId: msg.senderId === userId ? "me" : msg.senderId,
+                },
+                unreadCount: 0,
             });
+        }
+
+        // Count unread messages (received by current user, not read)
+        if (msg.receiverId === userId && !msg.read) {
+            const conv = conversations.get(partnerId);
+            conv.unreadCount += 1;
         }
     }
 
@@ -988,6 +1015,7 @@ export const getConversations = cache(async () => {
                     read: true,
                     createdAt: new Date(),
                 },
+                unreadCount: 0,
             });
         }
     }
@@ -1009,3 +1037,19 @@ export const getMessagesForThread = cache(async (otherUserId: string) => {
 
     return thread;
 });
+
+export const markMessagesAsRead = async (partnerId: string) => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    await db
+        .update(messages)
+        .set({ read: true })
+        .where(
+            and(
+                eq(messages.receiverId, userId),
+                eq(messages.senderId, partnerId),
+                eq(messages.read, false)
+            )
+        );
+};

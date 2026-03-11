@@ -27,18 +27,24 @@ type MobileItemProps = {
     label: string;
     isActive?: boolean;
     onClick?: () => void;
+    badgeCount?: number;
 };
 
-const MobileItem = ({ href, icon, label, isActive, onClick }: MobileItemProps) => {
+const MobileItem = ({ href, icon, label, isActive, onClick, badgeCount }: MobileItemProps) => {
     return (
         <Link
             href={href}
             onClick={onClick}
             className={cn(
-                "flex flex-col items-center gap-1 text-slate-500 hover:text-slate-600 transition",
+                "relative flex flex-col items-center gap-1 text-slate-500 hover:text-slate-600 transition",
                 isActive && "text-sky-500"
             )}
         >
+            {badgeCount && badgeCount > 0 ? (
+                <div className="absolute top-0 right-1 translate-x-1/2 -translate-y-1/2 z-10 bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white animate-pulse">
+                    {badgeCount > 99 ? "99+" : badgeCount}
+                </div>
+            ) : null}
             <div
                 className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-xl",
@@ -53,7 +59,12 @@ const MobileItem = ({ href, icon, label, isActive, onClick }: MobileItemProps) =
     );
 };
 
-export const MobileNav = () => {
+type MobileNavProps = {
+    notificationCount?: number;
+    unreadMessageCount?: number;
+};
+
+export const MobileNav = ({ notificationCount, unreadMessageCount }: MobileNavProps) => {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
 
@@ -101,6 +112,7 @@ export const MobileNav = () => {
                                 label="Msgs"
                                 isActive={pathname === "/messages"}
                                 onClick={closeMenu}
+                                badgeCount={unreadMessageCount}
                             />
                             <MobileItem
                                 href="/notifications"
@@ -108,6 +120,7 @@ export const MobileNav = () => {
                                 label="Notif."
                                 isActive={pathname === "/notifications"}
                                 onClick={closeMenu}
+                                badgeCount={notificationCount}
                             />
                             <MobileItem
                                 href="/leaderboard"

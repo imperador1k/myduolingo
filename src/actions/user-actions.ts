@@ -1,6 +1,6 @@
 "use server";
 
-import { followUser, unfollowUser, sendMessage } from "@/db/queries";
+import { followUser, unfollowUser, sendMessage, markMessagesAsRead } from "@/db/queries";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
 import { notifications } from "@/db/schema";
@@ -68,7 +68,16 @@ export const onSearchUsers = async (query: string) => {
         const { searchUsers } = await import("@/db/queries");
         return await searchUsers(query);
     } catch (error) {
-        console.error("Search error:", error);
         return [];
+    }
+};
+
+export const onMarkMessagesAsRead = async (partnerId: string) => {
+    try {
+        await markMessagesAsRead(partnerId);
+        revalidatePath("/messages");
+        revalidatePath("/"); // Update global unread badge everywhere
+    } catch (error) {
+        console.error("Mark messages as read error:", error);
     }
 };
