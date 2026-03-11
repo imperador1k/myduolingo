@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
+import { LottieAnimation } from "@/components/lottie-animation";
 
 export const dynamic = "force-dynamic";
 
@@ -13,33 +14,19 @@ export default async function Home() {
       {/* Header */}
       <header className="mx-auto flex w-full max-w-[988px] items-center justify-between px-4 py-4 lg:px-0">
         <div className="flex items-center gap-2">
-          {/* Using the mascot SVG if available, otherwise just text/emoji for now unless they have logo.svg */}
-          <Image src="/mascot.svg" alt="Mascot" width={40} height={40} />
+          <Image src="/icon.png" alt="Logo" width={40} height={40} className="rounded-xl" />
           <h1 className="text-2xl font-extrabold tracking-wide text-green-600">
             duolingo
           </h1>
         </div>
-        {/* User didn't want the language selector or site language dropdown. 
-            Login button is typically absent on this specific landing view in the screenshot 
-            (it has "Já tenho uma conta" below), but good to keep if user wants to access it top right.
-            Screenshot shows "IDIOMA DO SITE: PORTUGUÊS". User said "não quero o footer... nem o idioma do site".
-            So header is just Logo.
-        */}
       </header>
 
       {/* Main Content */}
       <main className="flex flex-1 flex-col items-center justify-center gap-10 px-4 py-10 lg:flex-row lg:gap-24 lg:px-0">
 
-        {/* Left side - Hero Video */}
-        <div className="relative h-[300px] w-[300px] lg:h-[420px] lg:w-[420px]">
-          <video
-            src="/duolingo_home.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="object-contain h-full w-full"
-          />
+        {/* Left side - Lottie Hero Animation */}
+        <div className="animate-in zoom-in duration-500 h-[280px] w-[280px] lg:h-[400px] lg:w-[400px]">
+          <LottieAnimation className="h-full w-full" />
         </div>
 
         {/* Right side - CTA */}

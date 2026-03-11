@@ -111,7 +111,12 @@ const LessonNode = ({
     return (
         <div 
             className="relative flex justify-center w-full my-3"
-            style={{ transform: `translateX(${xOffset}px)` }}
+            style={{
+                transform: `translateX(${xOffset}px)`,
+                // Staggered entrance: each node fades+slides in with a delay
+                animation: `lessonNodeIn 0.45s ease both`,
+                animationDelay: `${index * 60}ms`,
+            }}
         >
             <Link
                 href={noHearts ? "/shop" : "#"}
@@ -129,9 +134,9 @@ const LessonNode = ({
                 {/* START Pill Tooltip */}
                 {isCurrent && !noHearts && (
                     <div className="absolute -top-14 z-10 animate-bounce cursor-pointer" style={{ animationDuration: '2s' }}>
-                        <div className="relative rounded-xl border-2 border-slate-200 bg-white px-4 py-2 text-sm font-black tracking-wide text-green-500 shadow-xl uppercase">
+                        <div className="relative rounded-xl bg-green-500 px-4 py-2 text-sm font-black tracking-wide text-white shadow-xl shadow-green-500/40 uppercase">
                             Começar
-                            <div className="absolute -bottom-2 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-slate-200 bg-white" />
+                            <div className="absolute -bottom-2 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 bg-green-500" />
                         </div>
                     </div>
                 )}
@@ -139,10 +144,11 @@ const LessonNode = ({
                 {/* Tactile 3D Node */}
                 <div
                     className={cn(
-                        "relative flex h-[70px] w-[70px] items-center justify-center rounded-full transition-all duration-200",
+                        "relative flex h-[76px] w-[76px] items-center justify-center rounded-full transition-all duration-200",
                         getNodeStyles(),
-                        isAccessible && !isCurrent && "hover:scale-105 hover:-translate-y-0.5",
-                        isCurrent && "hover:scale-105"
+                        isCurrent && "shadow-xl shadow-green-400/50",
+                        isAccessible && !isCurrent && "hover:scale-105 hover:-translate-y-1 hover:shadow-lg",
+                        isCurrent && "hover:scale-110"
                     )}
                 >
                     {/* Inner highlight for extra 3D pop on active/completed */}
@@ -205,7 +211,7 @@ export const LessonMap = ({ units, noHearts }: Props) => {
                             {/* Lesson Path with Connecting Line */}
                             <div className="relative py-8 flex flex-col items-center">
                                 {/* The Central Ambient Line behind the snake path */}
-                                <div className="absolute top-0 bottom-0 left-1/2 w-8 -translate-x-1/2 rounded-full bg-slate-100 opacity-50 z-0" />
+                                <div className="absolute top-0 bottom-0 left-1/2 w-2 -translate-x-1/2 rounded-full bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200 opacity-80 z-0" />
                                 
                                 <div className="flex flex-col gap-6 w-full max-w-sm z-10">
                                     {lessonsWithStatus.map((lesson, index) => (

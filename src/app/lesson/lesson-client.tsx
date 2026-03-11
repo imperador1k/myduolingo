@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, X, Zap, Shield, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { onChallengeComplete, onChallengeWrong, onLessonComplete } from "@/actions/user-progress";
 import { StreakModal } from "@/components/modals/streak-modal";
 import { useTTS } from "@/hooks/use-tts";
+import { BearDanceLottie, StarAngryLottie, HappyStarLottie } from "@/components/lottie-animation";
 
 // Types
 type ChallengeOption = {
@@ -157,22 +158,9 @@ export const LessonClient = ({
     const progress = ((activeIndex) / challenges.length) * 100;
 
     // Audio Logic (using Smart TTS Hook)
-    const { playAudio, isPlaying } = useTTS(languageCode);
+    const { playAudio, playMixedSpeech, isPlaying } = useTTS(languageCode);
 
-    // Auto-play audio when question changes
-    useEffect(() => {
-        if (!currentChallenge?.question) return;
-
-        // Small timeout to ensure DOM is ready and transition is done
-        const timer = setTimeout(() => {
-            playAudio(
-                currentChallenge.question, 
-                0.9, 
-                currentChallenge.questionAudioLang || languageCode
-            );
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [currentChallenge?.question, languageCode, playAudio, currentChallenge?.questionAudioLang]);
+    // Audio is now user-triggered only (no autoplay)
 
     // Play sound feedback
     const playSound = (type: "correct" | "wrong" | "completed") => {
@@ -216,29 +204,28 @@ export const LessonClient = ({
             playSound("correct");
             setCorrectCount((prev) => prev + 1);
 
-            startTransition(() => {
-                onChallengeComplete(currentChallenge.id).then((result) => {
-                    // Use XP from server (10 normal, 20 with boost)
-                    const xp = result.xpGained || 10;
-                    setPoints((prev) => prev + xp);
-                    setXpGained((prev) => prev + xp);
-                });
+            onChallengeComplete(currentChallenge.id).then((result) => {
+                const xp = result.xpGained || 10;
+                setPoints((prev) => prev + xp);
+                setXpGained((prev) => prev + xp);
             });
+
+
         } else {
             setStatus("wrong");
             playSound("wrong");
             setWrongCount((prev) => prev + 1);
 
-            startTransition(() => {
-                onChallengeWrong().then((result) => {
-                    if (result.shieldUsed) {
-                        // Shield protected - don't lose heart, show message
-                    } else if (result.hearts !== undefined) {
-                        setHearts(result.hearts);
-                        setHeartsLost((prev) => prev + 1);
-                    }
-                });
+            onChallengeWrong().then((result) => {
+                if (result.shieldUsed) {
+                    // Shield protected
+                } else if (result.hearts !== undefined) {
+                    setHearts(result.hearts);
+                    setHeartsLost((prev) => prev + 1);
+                }
             });
+
+
         }
     };
 
@@ -333,9 +320,9 @@ export const LessonClient = ({
                         </h1>
                     </div>
 
-                    {/* Mascot */}
-                    <div className="mb-10 w-[200px] h-[200px] relative">
-                        <img src="/mascot.svg" alt="Mascot" className="w-full h-full object-contain" />
+                    {/* Hero Mascot Lottie */}
+                    <div className="mb-8 w-72 h-72 relative animate-in fade-in slide-in-from-bottom-8 duration-700">
+                        <HappyStarLottie className="w-full h-full drop-shadow-2xl" />
                     </div>
 
                     {/* Stats Cards */}
@@ -472,6 +459,7 @@ export const LessonClient = ({
 
     return (
         <>
+
             {/* Exit Confirmation Modal */}
             {showExitModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -646,68 +634,77 @@ export const LessonClient = ({
                             )}
 
                             {status === "wrong" && (
-                                <div className="flex flex-col lg:flex-row justify-between w-full items-center gap-4">
-                                    <div className="flex flex-col gap-y-2 w-full">
-                                        <div className="flex items-center gap-x-2">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-500 shrink-0">
-                                                <span className="text-white">✗</span>
-                                            </div>
-                                            <div>
-                                                <p className="text-lg font-bold text-rose-600">Incorreto!</p>
-                                                <p className="text-sm text-rose-500">
-                                                    Resposta correta:{" "}
-                                                    {currentChallenge.challengeOptions.find((o) => o.correct)?.text}
-                                                </p>
-                                            </div>
+                                <div className="flex flex-col w-full gap-4 animate-in slide-in-from-bottom-4 duration-300">
+                                    {/* Hero row: Lottie + status */}
+                                    <div className="flex items-center gap-4">
+                                        <StarAngryLottie className="w-20 h-20 shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xl font-black text-rose-600 tracking-tight">Incorreto! 😞</p>
+                                            <p className="text-sm text-rose-500 mt-0.5">
+                                                Resposta correta:{" "}
+                                                <span className="font-bold">{currentChallenge.challengeOptions.find((o) => o.correct)?.text}</span>
+                                            </p>
                                         </div>
-                                        {/* Explanation Box */}
-                                        {currentChallenge.explanation && (
-                                            <div className="mt-2 text-rose-800 bg-rose-200/50 p-3 rounded-lg text-sm border-l-4 border-rose-500 relative pb-10 sm:pb-3 sm:pr-12">
-                                                <strong>Explicação:</strong> {currentChallenge.explanation}
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="sm"
-                                                    className="absolute bottom-2 right-2 sm:top-1 sm:bottom-auto rounded-full w-8 h-8 p-0 text-rose-500 bg-rose-100 hover:bg-rose-200"
-                                                    onClick={() => playAudio(currentChallenge.explanation as string, 0.9, "pt-PT")}
-                                                >
-                                                    <Volume2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        )}
                                     </div>
-                                    <Button variant="danger" onClick={handleContinue} disabled={isPending} className="w-full lg:w-auto mt-2 lg:mt-0">
+                                    {/* Explanation */}
+                                    {currentChallenge.explanation && (
+                                        <div className="text-rose-800 bg-rose-200/60 p-4 rounded-2xl text-sm border-l-4 border-rose-500 relative pb-10 sm:pb-4 sm:pr-14 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
+                                            <strong className="text-rose-700">💡 Explicação:</strong>{" "}
+                                            {currentChallenge.explanation}
+                                            <Button 
+                                                variant="ghost" 
+                                                size="sm"
+                                                className="absolute bottom-2 right-2 sm:top-2 sm:bottom-auto rounded-full w-9 h-9 p-0 text-rose-500 bg-rose-100 hover:bg-rose-200 shadow-sm"
+                                                onClick={() => playMixedSpeech(currentChallenge.explanation as string, "pt-PT", languageCode)}
+                                            >
+                                                <Volume2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                    {/* Continue button */}
+                                    <Button 
+                                        variant="danger" 
+                                        onClick={handleContinue} 
+                                        disabled={isPending} 
+                                        className="w-full py-4 text-base font-extrabold rounded-2xl border-b-4 border-rose-700 active:border-b-0 active:translate-y-1 transition-all"
+                                    >
                                         {hearts === 0 ? "Terminar" : "Continuar"}
                                     </Button>
                                 </div>
                             )}
 
                             {status === "correct" && (
-                                <div className="flex justify-between w-full items-center">
-                                    <div className="flex flex-col gap-y-2 w-full">
-                                        <div className="flex items-center gap-x-2">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500">
-                                                <span className="text-white">✓</span>
-                                            </div>
-                                            <span className="text-lg font-bold text-green-600">
-                                                Correto! +10 XP
-                                            </span>
+                                <div className="flex flex-col w-full gap-4 animate-in slide-in-from-bottom-4 duration-300">
+                                    {/* Hero row: Lottie + status */}
+                                    <div className="flex items-center gap-4">
+                                        <BearDanceLottie className="w-20 h-20 shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xl font-black text-green-600 tracking-tight">Correto! 🎉</p>
+                                            <p className="text-sm text-green-500 font-bold mt-0.5">+10 XP — Muito bem!</p>
                                         </div>
-                                        {/* Explanation Box (Even for correct answers) */}
-                                        {currentChallenge.explanation && (
-                                            <div className="mt-2 text-green-800 bg-green-200/50 p-3 rounded-lg text-sm border-l-4 border-green-500 max-w-[600px] relative pb-10 sm:pb-3 sm:pr-12">
-                                                <strong>Sabias que?</strong> {currentChallenge.explanation}
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="sm"
-                                                    className="absolute bottom-2 right-2 sm:top-1 sm:bottom-auto rounded-full w-8 h-8 p-0 text-green-600 bg-green-100 hover:bg-green-200"
-                                                    onClick={() => playAudio(currentChallenge.explanation as string, 0.9, "pt-PT")}
-                                                >
-                                                    <Volume2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        )}
                                     </div>
-                                    <Button variant="primary" onClick={handleContinue} disabled={isPending}>
+                                    {/* Explanation */}
+                                    {currentChallenge.explanation && (
+                                        <div className="text-green-800 bg-green-200/60 p-4 rounded-2xl text-sm border-l-4 border-green-500 relative pb-10 sm:pb-4 sm:pr-14 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
+                                            <strong className="text-green-700">💡 Sabias que?</strong>{" "}
+                                            {currentChallenge.explanation}
+                                            <Button 
+                                                variant="ghost" 
+                                                size="sm"
+                                                className="absolute bottom-2 right-2 sm:top-2 sm:bottom-auto rounded-full w-9 h-9 p-0 text-green-600 bg-green-100 hover:bg-green-200 shadow-sm"
+                                                onClick={() => playMixedSpeech(currentChallenge.explanation as string, "pt-PT", languageCode)}
+                                            >
+                                                <Volume2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                    {/* Continue button */}
+                                    <Button 
+                                        variant="primary" 
+                                        onClick={handleContinue} 
+                                        disabled={isPending}
+                                        className="w-full py-4 text-base font-extrabold rounded-2xl border-b-4 border-green-700 active:border-b-0 active:translate-y-1 transition-all"
+                                    >
                                         Continuar
                                     </Button>
                                 </div>

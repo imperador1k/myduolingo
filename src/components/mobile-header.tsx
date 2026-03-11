@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { InfinityIcon, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { TedyLottie } from "@/components/lottie-animation";
 
 export const MobileHeader = async () => {
     const userProgress = await getUserProgress();
@@ -44,9 +45,9 @@ export const MobileHeader = async () => {
                     <span className="text-amber-500 font-bold">{userProgress.streak}</span>
                 </Link>
 
-                {/* Hearts */}
+                {/* Hearts — Tedy Lottie */}
                 <Link href="/shop" className="flex items-center gap-x-1">
-                    <Image src="/duolingo_heart.jpg" height={22} width={22} alt="Hearts" />
+                    <TedyLottie className="w-7 h-7" />
                     <span className="text-rose-500 font-bold">
                         {userProgress.hearts === 5 ? 5 : userProgress.hearts}
                     </span>
@@ -55,3 +56,4 @@ export const MobileHeader = async () => {
         </nav>
     );
 };
+

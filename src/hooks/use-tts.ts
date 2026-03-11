@@ -17,56 +17,115 @@ const BCP47_MAP: Record<string, string> = {
     "nl": "nl-NL",
 };
 
+/**
+ * Resolve a language code (short or full BCP-47) to a proper BCP-47 code.
+ */
+function resolveBcp47(langCode: string): string {
+    if (langCode.includes("-")) return langCode;
+    return BCP47_MAP[langCode.toLowerCase()] || "en-US";
+}
+
+/**
+ * Find the best matching voice for a given BCP-47 language code.
+ */
+function findVoice(bcp47Code: string): SpeechSynthesisVoice | undefined {
+    const voices = window.speechSynthesis.getVoices();
+    if (bcp47Code === "pt-PT") {
+        return (
+            voices.find((v) => v.lang === "pt-PT" || v.lang === "pt_PT") ||
+            voices.find((v) =>
+                v.name.includes("Joana") ||
+                v.name.includes("Catarina") ||
+                v.name.includes("Helia") ||
+                v.name.includes("Microsoft Tomas")
+            ) ||
+            voices.find((v) => v.lang.startsWith("pt"))
+        );
+    }
+    return (
+        voices.find((v) => v.lang === bcp47Code) ||
+        voices.find((v) => v.lang.startsWith(bcp47Code.split("-")[0]))
+    );
+}
+
 export const useTTS = (languageCode: string = "en") => {
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const playAudio = useCallback((text: string, speed: number = 0.9, overrideLanguageCode?: string) => {
-        if (!text || typeof window === "undefined" || !window.speechSynthesis) return;
+    const playAudio = useCallback(
+        (text: string, speed: number = 0.9, overrideLanguageCode?: string) => {
+            if (!text || typeof window === "undefined" || !window.speechSynthesis) return;
 
-        window.speechSynthesis.cancel(); // Cancel any ongoing speech
+            window.speechSynthesis.cancel();
 
-        const langToUse = overrideLanguageCode || languageCode;
+            const bcp47Code = resolveBcp47(overrideLanguageCode || languageCode);
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = bcp47Code;
+            utterance.rate = speed;
 
-        // If already a full BCP-47 code (e.g., 'es-ES', 'pt-PT'), use it directly
-        // Otherwise look up the short code in the map (e.g., 'es' -> 'es-ES')
-        let bcp47Code: string;
-        if (langToUse.includes("-")) {
-            bcp47Code = langToUse; // e.g., 'es-ES', 'pt-PT' from DB
-        } else {
-            bcp47Code = BCP47_MAP[langToUse.toLowerCase()] || "en-US";
-        }
-        const utterance = new SpeechSynthesisUtterance(text);
-        
-        utterance.lang = bcp47Code;
-        utterance.rate = speed;
+            const bestVoice = findVoice(bcp47Code);
+            if (bestVoice) utterance.voice = bestVoice;
 
-        const voices = window.speechSynthesis.getVoices();
-        let bestVoice: SpeechSynthesisVoice | undefined;
+            utterance.onstart = () => setIsPlaying(true);
+            utterance.onend = () => setIsPlaying(false);
+            utterance.onerror = () => setIsPlaying(false);
 
-        if (bcp47Code === "pt-PT") {
-            // Strict enforcement for European Portuguese
-            bestVoice = voices.find((v) => v.lang === "pt-PT" || v.lang === "pt_PT") ||
-                        voices.find((v) => v.name.includes("Joana") || 
-                                           v.name.includes("Catarina") || 
-                                           v.name.includes("Helia") || 
-                                           v.name.includes("Microsoft Tomas")) ||
-                        voices.find((v) => v.lang.startsWith("pt")); // Fallback to any PT
-        } else {
-            // Standard matching for other languages
-            bestVoice = voices.find((v) => v.lang === bcp47Code) || 
-                        voices.find((v) => v.lang.startsWith(bcp47Code.split("-")[0]));
-        }
-            
-        if (bestVoice) {
-            utterance.voice = bestVoice;
-        }
+            window.speechSynthesis.speak(utterance);
+        },
+        [languageCode]
+    );
 
-        utterance.onstart = () => setIsPlaying(true);
-        utterance.onend = () => setIsPlaying(false);
-        utterance.onerror = () => setIsPlaying(false);
+    /**
+     * Play mixed-language text where quoted words use the target language voice
+     * and unquoted text uses the base language voice.
+     *
+     * Example: 'O conceito de "la autenticidad" é chave.'
+     *  -> "O conceito de "  spoken in baseLang (pt-PT)
+     *  -> "la autenticidad" spoken in targetLang (es-ES)
+     *  -> " é chave."      spoken in baseLang (pt-PT)
+     */
+    const playMixedSpeech = useCallback(
+        (text: string, baseLang: string, targetLang: string, speed: number = 0.9) => {
+            if (!text || typeof window === "undefined" || !window.speechSynthesis) return;
 
-        window.speechSynthesis.speak(utterance);
-    }, [languageCode]);
+            window.speechSynthesis.cancel();
+
+            // Split by quoted segments (single or double quotes), keeping delimiters
+            const chunks = text.split(/(["'«»""''].*?["'«»""''])/g).filter(Boolean);
+
+            const baseBcp47 = resolveBcp47(baseLang);
+            const targetBcp47 = resolveBcp47(targetLang);
+
+            chunks.forEach((chunk, i) => {
+                const isQuoted = /^["'«»""'']/.test(chunk);
+                // Strip quotes from the quoted text
+                const cleanText = isQuoted
+                    ? chunk.replace(/^["'«»""'']+|["'«»""'']+$/g, "").trim()
+                    : chunk.trim();
+
+                if (!cleanText) return;
+
+                const bcp47 = isQuoted ? targetBcp47 : baseBcp47;
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = bcp47;
+                utterance.rate = speed;
+
+                const voice = findVoice(bcp47);
+                if (voice) utterance.voice = voice;
+
+                // Only track isPlaying on first/last chunk
+                if (i === 0) {
+                    utterance.onstart = () => setIsPlaying(true);
+                }
+                if (i === chunks.length - 1) {
+                    utterance.onend = () => setIsPlaying(false);
+                    utterance.onerror = () => setIsPlaying(false);
+                }
+
+                window.speechSynthesis.speak(utterance);
+            });
+        },
+        []
+    );
 
     useEffect(() => {
         return () => {
@@ -76,5 +135,5 @@ export const useTTS = (languageCode: string = "en") => {
         };
     }, []);
 
-    return { playAudio, isPlaying };
+    return { playAudio, playMixedSpeech, isPlaying };
 };
