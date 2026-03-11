@@ -188,6 +188,8 @@ export default function SpeakingPracticePage() {
             try {
                 await savePracticeSession({
                     type: "speaking",
+                    language: config.language,
+                    cefrLevel: config.level,
                     prompt: promptData.text,
                     promptData: promptData,
                     userInput: transcript,

@@ -11,7 +11,10 @@ const model = genAI.getGenerativeModel({
 
 
 
-import { getCurrentUnit, getUserProgress } from "@/db/queries";
+import { db } from "@/db/drizzle";
+import { courses, units } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { getUserProgress, getCurrentUnit } from "@/db/queries";
 import { getAIProfile, type LanguageCode } from "@/lib/ai-config";
 
 // Helper to map course title to BCP 47 language code
@@ -24,6 +27,44 @@ const getLanguageCode = (courseTitle: string): LanguageCode => {
     if (normalized.includes("portuguese") || normalized.includes("português")) return "pt";
     return "en"; // Default
 };
+
+// ============================================================
+// Helper: Robust JSON extraction strategy for generative AI
+// ============================================================
+function extractJSON(text: string): string {
+    let clean = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+
+    // Find the first { or [
+    const firstBrace = clean.indexOf("{");
+    const firstBracket = clean.indexOf("[");
+
+    let startIndex = -1;
+    let isArray = false;
+
+    if (firstBrace !== -1 && firstBracket !== -1) {
+        if (firstBrace < firstBracket) {
+            startIndex = firstBrace;
+        } else {
+            startIndex = firstBracket;
+            isArray = true;
+        }
+    } else if (firstBrace !== -1) {
+        startIndex = firstBrace;
+    } else if (firstBracket !== -1) {
+        startIndex = firstBracket;
+        isArray = true;
+    }
+
+    if (startIndex !== -1) {
+        const endingChar = isArray ? "]" : "}";
+        const endIndex = clean.lastIndexOf(endingChar);
+        if (endIndex > startIndex) {
+            return clean.substring(startIndex, endIndex + 1);
+        }
+    }
+
+    return clean;
+}
 
 export const generatePracticePrompt = async (
     type: "writing" | "speaking",
@@ -77,12 +118,28 @@ export const generatePracticePrompt = async (
         }
 
         if (focusMode) {
-            const currentUnit = await getCurrentUnit();
-            if (currentUnit) {
-                contextInstruction = `MODO FOCADO. O aluno está a estudar a unidade: "${currentUnit.title}". Descrição: "${currentUnit.description}". 
-                 Gera um tópico que se relacione ESTRITAMENTE com este tema.`;
-            } else {
-                contextInstruction = `MODO FOCADO (Fallback). Gera um tópico muito BÁSICO e introdutório.`;
+            try {
+                // Fetch context specific to the requested language (not relying on global active course)
+                const course = await db.query.courses.findFirst({
+                    where: eq(courses.language, courseTitle)
+                });
+                
+                if (course) {
+                    const firstUnit = await db.query.units.findFirst({
+                        where: eq(units.courseId, course.id),
+                        orderBy: (units, { asc }) => [asc(units.order)]
+                    });
+                    
+                    if (firstUnit) {
+                        contextInstruction = `MODO FOCADO. O tópico deve focar-se ESTRITAMENTE no tema: "${firstUnit.title}" (Descrição: ${firstUnit.description}).`;
+                    } else {
+                        contextInstruction = `MODO FOCADO (Fallback). Gera um tópico muito BÁSICO e introdutório.`;
+                    }
+                } else {
+                    contextInstruction = `MODO ALEATÓRIO (Nenhum curso encontrado). Cria um cenário quotidiano normal e criativo.`;
+                }
+            } catch (err) {
+                 contextInstruction = `MODO ALEATÓRIO (Fallback Erro). Cria um cenário quotidiano normal.`;
             }
         }
 
@@ -116,7 +173,7 @@ export const generatePracticePrompt = async (
         const text = response.text();
 
         // Clean up markdown code blocks if present
-        const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        const cleanText = extractJSON(text);
 
         const data = JSON.parse(cleanText);
         return { ...data, languageCode: profile.voice };
@@ -191,7 +248,7 @@ export const analyzeWriting = async (
         const result = await model.generateContent(inputPrompt);
         const response = await result.response;
         const responseText = response.text();
-        const cleanText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+        const cleanText = extractJSON(responseText);
 
         return JSON.parse(cleanText);
     } catch (error) {
@@ -308,10 +365,24 @@ export const generateReadingText = async (
         }
 
         if (focusMode) {
-            const currentUnit = await getCurrentUnit();
-            if (currentUnit) {
-                topicInstruction = `TOPIC: "${currentUnit.title}" - ${currentUnit.description}`;
-            } else {
+            try {
+                const course = await db.query.courses.findFirst({
+                    where: eq(courses.language, courseTitle)
+                });
+                if (course) {
+                    const firstUnit = await db.query.units.findFirst({
+                        where: eq(units.courseId, course.id),
+                        orderBy: (units, { asc }) => [asc(units.order)]
+                    });
+                    if (firstUnit) {
+                        topicInstruction = `TOPIC: "${firstUnit.title}" - ${firstUnit.description}`;
+                    } else {
+                        topicInstruction = `TOPIC: Culture and Daily Life`;
+                    }
+                } else {
+                    topicInstruction = `TOPIC: Culture and Daily Life`;
+                }
+            } catch (err) {
                 topicInstruction = `TOPIC: Culture and Daily Life`;
             }
         }
@@ -473,12 +544,25 @@ export const generateListeningScript = async (
         let contextInstruction = `sobre um tema interessante e cotidiano ou profissional (Viagens, Trabalho, Tecnologia, Cultura). ${levelConstraint}. (Seed: ${randomSeed})`;
 
         if (focusMode) {
-            const currentUnit = await getCurrentUnit();
-            if (currentUnit) {
-                contextInstruction = `MODO FOCADO. O aluno está a estudar a unidade: "${currentUnit.title}". Podes usar o contexto: "${currentUnit.description}". 
-                 Gera um script que se relacione ESTRITAMENTE com este tema. ${levelConstraint}`;
-            } else {
-                contextInstruction = `MODO FOCADO (Fallback). Gera um diálogo SIMPLES. ${levelConstraint}`;
+            try {
+                const course = await db.query.courses.findFirst({
+                    where: eq(courses.language, courseTitle)
+                });
+                if (course) {
+                    const firstUnit = await db.query.units.findFirst({
+                        where: eq(units.courseId, course.id),
+                        orderBy: (units, { asc }) => [asc(units.order)]
+                    });
+                    if (firstUnit) {
+                        contextInstruction = `MODO FOCADO. O tema é: "${firstUnit.title}" (${firstUnit.description}). Gera um script focado nisto. ${levelConstraint}`;
+                    } else {
+                        contextInstruction = `MODO FOCADO (Fallback). Gera um diálogo SIMPLES. ${levelConstraint}`;
+                    }
+                } else {
+                    contextInstruction = `MODO ALEATÓRIO. Gera um diálogo SIMPLES. ${levelConstraint}`;
+                }
+            } catch (err) {
+                contextInstruction = `MODO ALEATÓRIO. Gera um diálogo SIMPLES. ${levelConstraint}`;
             }
         }
 
@@ -493,7 +577,7 @@ export const generateListeningScript = async (
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
-        const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        const cleanText = extractJSON(text);
         const data = JSON.parse(cleanText);
         const langCode = getLanguageCode(courseTitle);
         const profile = getAIProfile(langCode);

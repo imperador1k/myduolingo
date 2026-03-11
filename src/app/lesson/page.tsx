@@ -26,6 +26,7 @@ const LessonPage = async ({ searchParams }: Props) => {
             initialPoints={userProgress.points}
             xpBoostLessons={userProgress.xpBoostLessons || 0}
             heartShields={userProgress.heartShields || 0}
+            languageCode={userProgress.activeCourse?.languageCode || "en"}
         />
     );
 };

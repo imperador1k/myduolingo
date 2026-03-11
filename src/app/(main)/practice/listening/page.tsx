@@ -157,6 +157,8 @@ export default function ListeningPracticePage() {
             try {
                 await savePracticeSession({
                     type: "listening",
+                    language: config.language,
+                    cefrLevel: config.level,
                     prompt: scriptData.topic,
                     promptData: scriptData,
                     userInput: userNotes,

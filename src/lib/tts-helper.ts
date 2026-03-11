@@ -26,9 +26,6 @@ const LANGUAGE_MAP: Record<string, string> = {
     // Japanese
     'jpn': 'ja-JP',
 
-    // Chinese (Simplified)
-    'cmn': 'zh-CN',
-
     // Russian
     'rus': 'ru-RU'
 };
@@ -54,4 +51,35 @@ export const detectLanguage = (text: string, fallbackLang: string = 'en-US'): st
     }
 
     return LANGUAGE_MAP[detected] || fallbackLang;
+};
+
+/**
+ * Lightweight heuristic to determine if text is a Portuguese instruction
+ * (e.g. "Como se diz...", "Traduza para...") or if it should be read in
+ * the target language being learned.
+ *
+ * @param text The string of text to analyze
+ * @param targetLanguageCode The course's active language code (e.g., 'es', 'en')
+ * @returns The language code to use ('pt-PT' or targetLanguageCode)
+ */
+export const getAudioLanguage = (text: string, targetLanguageCode: string): string => {
+    if (!text) return targetLanguageCode;
+
+    const lowerText = text.toLowerCase();
+    
+    // Expanded dictionary of Portuguese instructional words and common conversational connectors
+    const ptWords = "traduza|como se diz|qual|selecione|complete|preencha|escolha|não|um|uma|é|você|ele|ela|o que significa|a frase|a palavra|sabias que|que|para|com|por|quem|onde|quando|porque|pessoa|tribunal|decisões|são|está|este|esta|esse|essa|isso|muito|mais|nosso|nossa|seja|fazer|sobre|mesmo|ainda|como";
+    
+    // Safely match word boundaries accounting for Unicode/accents and punctuation
+    const ptRegex = new RegExp(`(?:^|[\\s,.\\-!?()'"«»])(${ptWords})(?=[\\s,.\\-!?()'"«»]|$)`, 'i');
+
+    // Also flag obvious Portuguese-specific accented suffixes which rarely appear in English
+    const hasPtAccents = /(ões|ães|çao|ções)\b/i.test(lowerText);
+
+    if (ptRegex.test(text) || hasPtAccents) {
+        return 'pt-PT';
+    }
+
+    // Otherwise use the target language code
+    return targetLanguageCode;
 };

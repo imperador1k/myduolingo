@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { onChallengeComplete, onChallengeWrong, onLessonComplete } from "@/actions/user-progress";
 import { StreakModal } from "@/components/modals/streak-modal";
-import { detectLanguage } from "@/lib/tts-helper";
+import { useTTS } from "@/hooks/use-tts";
+import { getAudioLanguage } from "@/lib/tts-helper";
 
 // Types
 type ChallengeOption = {
@@ -41,6 +42,7 @@ type Props = {
     initialPoints: number;
     xpBoostLessons: number;
     heartShields: number;
+    languageCode: string;
 };
 
 // Progress Bar Component
@@ -119,7 +121,8 @@ export const LessonClient = ({
     initialHearts,
     initialPoints,
     xpBoostLessons,
-    heartShields
+    heartShields,
+    languageCode
 }: Props) => {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
@@ -151,37 +154,21 @@ export const LessonClient = ({
     const options = currentChallenge?.challengeOptions || [];
     const progress = ((activeIndex) / challenges.length) * 100;
 
-    // Audio Logic
-    const playAudio = (text: string, speed: number = 0.9) => {
-        if (!text) return;
-
-        // Cancel any current speaking to avoid overlap
-        window.speechSynthesis.cancel();
-
-        // Detect language or fallback to 'en-US' (or we could pass active course lang if available)
-        // Ideally we should prefer the active course language as fallback, but for now 'en-US' is safe default if detection fails.
-        // Actually, let's try to infer if it's the target language or base language. 
-        // But the whole point of this feature request is dynamic detection.
-        // Importing the helper directly here.
-
-        const detectedLang = detectLanguage(text, 'en-US');
-
-        const speech = new SpeechSynthesisUtterance(text);
-        speech.lang = detectedLang;
-        speech.rate = speed;
-        window.speechSynthesis.speak(speech);
-    };
+    // Audio Logic (using Smart TTS Hook)
+    const { playAudio, isPlaying } = useTTS(languageCode);
 
     // Auto-play audio when question changes
     useEffect(() => {
         if (!currentChallenge?.question) return;
 
+        const questionAudioLang = getAudioLanguage(currentChallenge.question, languageCode);
+        
         // Small timeout to ensure DOM is ready and transition is done
         const timer = setTimeout(() => {
-            playAudio(currentChallenge.question, 0.9);
+            playAudio(currentChallenge.question, 0.9, questionAudioLang);
         }, 500);
         return () => clearTimeout(timer);
-    }, [currentChallenge?.question]);
+    }, [currentChallenge?.question, languageCode, playAudio]);
 
     // Play sound feedback
     const playSound = (type: "correct" | "wrong" | "completed") => {
@@ -207,7 +194,8 @@ export const LessonClient = ({
         // Find the selected option text and speak it
         const selectedOpt = options.find((opt) => opt.id === optionId);
         if (selectedOpt?.text) {
-            playAudio(selectedOpt.text, 0.9);
+            const optionAudioLang = getAudioLanguage(selectedOpt.text, languageCode);
+            playAudio(selectedOpt.text, 0.9, optionAudioLang);
         }
     };
 
@@ -546,9 +534,19 @@ export const LessonClient = ({
 
                     {/* CONTEXT (Scenario) - Shows up if present */}
                     {currentChallenge.context && (
-                        <div className="w-full max-w-[600px] bg-slate-100 p-4 rounded-xl border-2 border-slate-200 text-center mb-[-20px]">
+                        <div className="w-full max-w-[600px] bg-slate-100 p-4 rounded-xl border-2 border-slate-200 text-center mb-[-20px] relative transition-colors duration-300">
                             <span className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1 block">Contexto</span>
-                            <p className="text-lg font-medium text-slate-700 italic">
+                            <Button 
+                                variant="ghost" 
+                                className={cn(
+                                    "absolute top-2 right-2 rounded-full w-10 h-10 p-0 text-sky-500 bg-white border border-slate-200 shadow-sm transition-all hover:bg-slate-50",
+                                    isPlaying && "border-sky-300 bg-sky-50"
+                                )}
+                                onClick={() => playAudio(currentChallenge.context as string, 0.9, getAudioLanguage(currentChallenge.context as string, languageCode))}
+                            >
+                                <Volume2 className={cn("h-5 w-5", isPlaying && "animate-pulse fill-sky-500/20")} />
+                            </Button>
+                            <p className="text-lg font-medium text-slate-700 italic mt-2">
                                 "{currentChallenge.context}"
                             </p>
                         </div>
@@ -559,16 +557,19 @@ export const LessonClient = ({
                         <div className="flex items-center gap-4">
                             <Button
                                 variant="ghost"
-                                className="bg-white border-2 border-slate-200 w-24 h-24 rounded-full shadow-sm hover:bg-slate-50 transition-transform active:scale-95"
-                                onClick={() => playAudio(currentChallenge.question, 0.9)}
+                                className={cn(
+                                    "bg-white border-2 border-slate-200 w-24 h-24 rounded-full shadow-sm transition-all active:scale-95 hover:bg-slate-50",
+                                    isPlaying && "border-sky-400 bg-sky-50"
+                                )}
+                                onClick={() => playAudio(currentChallenge.question, 0.9, getAudioLanguage(currentChallenge.question, languageCode))}
                             >
-                                <Volume2 className="h-12 w-12 text-sky-500 fill-sky-500/20" />
+                                <Volume2 className={cn("h-12 w-12 text-sky-500 fill-sky-500/20", isPlaying && "animate-pulse")} />
                             </Button>
 
                             <Button
                                 variant="ghost"
                                 className="bg-white border-2 border-slate-200 w-12 h-12 rounded-xl shadow-sm hover:bg-slate-50 transition-transform active:scale-95"
-                                onClick={() => playAudio(currentChallenge.question, 0.5)}
+                                onClick={() => playAudio(currentChallenge.question, 0.5, getAudioLanguage(currentChallenge.question, languageCode))}
                             >
                                 <span className="text-2xl">🐢</span>
                             </Button>
@@ -642,8 +643,16 @@ export const LessonClient = ({
                                         </div>
                                         {/* Explanation Box */}
                                         {currentChallenge.explanation && (
-                                            <div className="mt-2 text-rose-800 bg-rose-200/50 p-3 rounded-lg text-sm border-l-4 border-rose-500">
+                                            <div className="mt-2 text-rose-800 bg-rose-200/50 p-3 rounded-lg text-sm border-l-4 border-rose-500 relative pb-10 sm:pb-3 sm:pr-12">
                                                 <strong>Explicação:</strong> {currentChallenge.explanation}
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm"
+                                                    className="absolute bottom-2 right-2 sm:top-1 sm:bottom-auto rounded-full w-8 h-8 p-0 text-rose-500 bg-rose-100 hover:bg-rose-200"
+                                                    onClick={() => playAudio(currentChallenge.explanation as string, 0.9, "pt-PT")}
+                                                >
+                                                    <Volume2 className="h-4 w-4" />
+                                                </Button>
                                             </div>
                                         )}
                                     </div>
@@ -666,8 +675,16 @@ export const LessonClient = ({
                                         </div>
                                         {/* Explanation Box (Even for correct answers) */}
                                         {currentChallenge.explanation && (
-                                            <div className="mt-2 text-green-800 bg-green-200/50 p-3 rounded-lg text-sm border-l-4 border-green-500 max-w-[600px]">
+                                            <div className="mt-2 text-green-800 bg-green-200/50 p-3 rounded-lg text-sm border-l-4 border-green-500 max-w-[600px] relative pb-10 sm:pb-3 sm:pr-12">
                                                 <strong>Sabias que?</strong> {currentChallenge.explanation}
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm"
+                                                    className="absolute bottom-2 right-2 sm:top-1 sm:bottom-auto rounded-full w-8 h-8 p-0 text-green-600 bg-green-100 hover:bg-green-200"
+                                                    onClick={() => playAudio(currentChallenge.explanation as string, 0.9, "pt-PT")}
+                                                >
+                                                    <Volume2 className="h-4 w-4" />
+                                                </Button>
                                             </div>
                                         )}
                                     </div>

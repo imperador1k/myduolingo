@@ -223,6 +223,8 @@ export const practiceSessions = pgTable("practice_sessions", {
     id: serial("id").primaryKey(),
     userId: text("user_id").notNull(),
     type: text("type", { enum: ["writing", "speaking", "reading", "listening"] }).notNull(),
+    language: text("language").notNull().default("English"),
+    cefrLevel: text("cefr_level").notNull().default("B1"),
     prompt: text("prompt").notNull(),
     // Store JSON data as text for simplicity in this setup
     promptData: text("prompt_data"),

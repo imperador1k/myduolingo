@@ -28,6 +28,8 @@ export const getPracticeHistory = async () => {
 
 export const savePracticeSession = async (data: {
     type: "writing" | "speaking" | "reading" | "listening";
+    language: string;
+    cefrLevel: string;
     prompt: string;
     promptData: any; // will be stringified
     userInput: string;
@@ -44,6 +46,8 @@ export const savePracticeSession = async (data: {
     await db.insert(practiceSessions).values({
         userId,
         type: data.type,
+        language: data.language,
+        cefrLevel: data.cefrLevel,
         prompt: data.prompt,
         promptData: JSON.stringify(data.promptData),
         userInput: data.userInput,

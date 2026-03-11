@@ -106,6 +106,8 @@ export default function ReadingPracticePage() {
             try {
                 await savePracticeSession({
                     type: "reading",
+                    language: config.language,
+                    cefrLevel: config.level,
                     prompt: examData.article_title,
                     promptData: examData,
                     userInput: JSON.stringify({ mcqAnswers, userEssay }),

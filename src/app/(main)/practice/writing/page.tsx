@@ -55,6 +55,8 @@ export default function WritingPracticePage() {
             try {
                 await savePracticeSession({
                     type: "writing",
+                    language: config.language,
+                    cefrLevel: config.level,
                     prompt: promptData.text,
                     promptData: promptData,
                     userInput: userResponse,
