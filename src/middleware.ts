@@ -6,6 +6,7 @@ const isPublicRoute = createRouteMatcher([
     "/sign-up(.*)",
     "/auth-success(.*)",
     "/api/webhooks(.*)",
+    "/api/auth/native-google",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
