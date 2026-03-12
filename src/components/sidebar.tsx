@@ -15,6 +15,7 @@ import {
     Mail,
     Dumbbell,
     GraduationCap,
+    Settings,
 } from "lucide-react";
 
 type SidebarItemProps = {
@@ -122,6 +123,11 @@ export const Sidebar = ({ className, notificationCount, unreadMessageCount }: Pr
                     label="Perfil"
                     href="/profile"
                     iconSrc={<User className="h-6 w-6" />}
+                />
+                <SidebarItem
+                    label="Definições"
+                    href="/settings"
+                    iconSrc={<Settings className="h-6 w-6" />}
                 />
             </div>
         </div>

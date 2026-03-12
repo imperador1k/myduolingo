@@ -12,7 +12,6 @@ import {
     Target,
     Heart,
     Zap,
-    ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,28 +26,23 @@ export default async function ProfilePage() {
         redirect("/courses");
     }
 
-    // Calculate total lessons completed
-    let totalLessons = 0;
     let completedLessons = 0;
     units.forEach(unit => {
         unit.lessons.forEach(lesson => {
-            totalLessons++;
             if (lesson.completed) completedLessons++;
         });
     });
 
     const streak = userProgress.streak || 0;
-    const longestStreak = userProgress.longestStreak || 0;
     const totalXpEarned = userProgress.totalXpEarned || userProgress.points || 0;
 
     const stats = [
-        { icon: <Flame className="h-6 w-6 text-orange-500" />, value: streak, label: "Streak", color: "bg-orange-50" },
-        { icon: <Zap className="h-6 w-6 text-amber-500" />, value: totalXpEarned.toLocaleString(), label: "XP Total", color: "bg-amber-50" },
-        { icon: <Target className="h-6 w-6 text-green-500" />, value: completedLessons, label: "Lições", color: "bg-green-50" },
-        { icon: <Heart className="h-6 w-6 text-rose-500" />, value: userProgress.hearts, label: "Corações", color: "bg-rose-50" },
+        { icon: <Flame className="h-6 w-6 text-orange-500" />, value: streak, label: "Streak", color: "bg-orange-50 border-orange-100" },
+        { icon: <Zap className="h-6 w-6 text-amber-500" />, value: totalXpEarned.toLocaleString(), label: "XP Total", color: "bg-amber-50 border-amber-100" },
+        { icon: <Target className="h-6 w-6 text-green-500" />, value: completedLessons, label: "Lições", color: "bg-green-50 border-green-100" },
+        { icon: <Heart className="h-6 w-6 text-rose-500" />, value: userProgress.hearts, label: "Corações", color: "bg-rose-50 border-rose-100" },
     ];
 
-    // Permanent achievements - once unlocked, never lost!
     const achievements = ACHIEVEMENTS.map((achievement: Achievement) => ({
         ...achievement,
         unlocked: achievement.condition(userProgress),
@@ -57,10 +51,11 @@ export default async function ProfilePage() {
     const unlockedCount = achievements.filter(a => a.unlocked).length;
 
     return (
-        <div className="pb-12">
+        <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 pb-28">
+
             {/* Profile Header */}
-            <div className="mb-8 flex flex-col items-center text-center sm:flex-row sm:text-left">
-                <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-green-100 text-5xl shadow-lg sm:mb-0 sm:mr-6">
+            <div className="relative mb-8 flex flex-col items-center text-center sm:flex-row sm:text-left pt-4">
+                <div className="mb-4 flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-green-100 text-5xl shadow-lg ring-4 ring-white sm:mb-0 sm:mr-6">
                     {user.imageUrl ? (
                         <img
                             src={user.imageUrl}
@@ -71,8 +66,9 @@ export default async function ProfilePage() {
                         "🧑‍🎓"
                     )}
                 </div>
-                <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-slate-700">
+
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-2xl font-bold text-slate-700 truncate">
                         {user.firstName || user.username || "Estudante"}
                     </h1>
                     <p className="text-slate-500">@{user.username || "estudante"}</p>
@@ -80,6 +76,13 @@ export default async function ProfilePage() {
                         Membro desde {new Date(user.createdAt).toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}
                     </p>
                 </div>
+
+                {/* Settings icon — top-right corner of header */}
+                <Link href="/settings" className="absolute top-4 right-0">
+                    <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl">
+                        <Settings className="h-6 w-6" />
+                    </Button>
+                </Link>
             </div>
 
             {/* Stats Grid */}
@@ -88,7 +91,7 @@ export default async function ProfilePage() {
                     <div
                         key={i}
                         className={cn(
-                            "flex flex-col items-center rounded-xl border-2 p-4",
+                            "flex flex-col items-center rounded-2xl border-2 p-4 transition-all",
                             stat.color
                         )}
                     >
@@ -100,7 +103,7 @@ export default async function ProfilePage() {
             </div>
 
             {/* XP Balance */}
-            <div className="mb-8 flex items-center justify-between rounded-xl border-2 border-amber-100 bg-amber-50 p-4">
+            <div className="mb-8 flex items-center justify-between rounded-2xl border-2 border-amber-100 bg-amber-50 px-5 py-4">
                 <div>
                     <p className="text-sm text-amber-600">Saldo de XP</p>
                     <p className="text-2xl font-bold text-amber-700">{userProgress.points} XP</p>
@@ -111,10 +114,10 @@ export default async function ProfilePage() {
             </div>
 
             {/* Achievements */}
-            <div className="mb-8">
+            <div className="mb-10">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-bold text-slate-600">🏆 Conquistas</h2>
-                    <span className="text-sm text-slate-400">
+                    <span className="rounded-full bg-slate-100 px-3 py-0.5 text-sm font-semibold text-slate-500">
                         {unlockedCount}/{achievements.length}
                     </span>
                 </div>
@@ -123,45 +126,39 @@ export default async function ProfilePage() {
                         <div
                             key={i}
                             className={cn(
-                                "flex flex-col items-center rounded-xl border-2 p-3 text-center transition-all",
+                                "flex flex-col items-center rounded-2xl border-2 p-3 text-center transition-all",
                                 achievement.unlocked
                                     ? "border-amber-200 bg-amber-50"
                                     : "border-slate-200 bg-slate-100 opacity-40"
                             )}
                         >
                             <span className={cn("text-3xl", !achievement.unlocked && "grayscale")}>{achievement.icon}</span>
-                            <p className="mt-1 text-sm font-bold text-slate-700">
-                                {achievement.title}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                                {achievement.description}
-                            </p>
+                            <p className="mt-1 text-sm font-bold text-slate-700">{achievement.title}</p>
+                            <p className="text-xs text-slate-400">{achievement.description}</p>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* Settings */}
-            <Link href="/settings">
-                <Button
-                    variant="ghost"
-                    className="w-full mb-2 text-slate-500 hover:bg-slate-50 hover:text-slate-600"
-                >
-                    <Settings className="mr-2 h-5 w-5" />
-                    Definições
-                </Button>
-            </Link>
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3">
+                <Link href="/settings" className="w-full">
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-3 rounded-2xl border-2 border-slate-200 bg-white py-6 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                    >
+                        <Settings className="h-5 w-5 text-slate-400" />
+                        Definições
+                    </Button>
+                </Link>
 
-            {/* Logout */}
-            <SignOutButton redirectUrl="/">
-                <Button
-                    variant="ghost"
-                    className="w-full text-rose-500 hover:bg-rose-50 hover:text-rose-600"
-                >
-                    <LogOut className="mr-2 h-5 w-5" />
-                    Terminar Sessão
-                </Button>
-            </SignOutButton>
+                <SignOutButton redirectUrl="/">
+                    <button className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-rose-200 bg-white px-12 py-4 text-base font-bold text-rose-500 transition-all hover:bg-rose-50 hover:border-rose-300 active:scale-[0.98]">
+                        <LogOut className="h-5 w-5" />
+                        Terminar Sessão
+                    </button>
+                </SignOutButton>
+            </div>
         </div>
     );
 }
