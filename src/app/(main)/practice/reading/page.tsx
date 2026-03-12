@@ -25,7 +25,7 @@ interface ExamData {
 }
 
 import { PracticeSetup } from "@/components/practice-setup";
-import { AILoadingScreen } from "@/components/ai-loading-screen";
+import { AILoadingScreen } from "@/components/ui/ai-loading-screen";
 
 // ... Types ...
 
@@ -126,7 +126,7 @@ export default function ReadingPracticePage() {
     }
 
     if (isGenerating) {
-        return <AILoadingScreen title="A gerar Módulo de Leitura AI..." />;
+        return <AILoadingScreen message="A Criar Exame de Leitura..." submessage="A compilar artigos e perguntas" />;
     }
 
     return (

@@ -2,7 +2,7 @@ import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
 import { createNotification } from "@/lib/notifications";
-import { eq, desc, and, count, ilike, ne, or, asc } from "drizzle-orm";
+import { eq, desc, and, count, ilike, ne, or, asc, sql, inArray } from "drizzle-orm";
 import { db } from "./drizzle";
 import {
     courses,
@@ -14,7 +14,8 @@ import {
     challengeProgress,
     follows,
     notifications,
-    messages
+    messages,
+    challengeMistakes
 } from "./schema";
 
 
@@ -33,6 +34,28 @@ export const getUserProgress = cache(async () => {
             activeCourse: true,
         },
     });
+
+    if (!data) return null;
+
+    // ── Passive Heart Regeneration ──
+    // If hearts < 5 and at least 5 hours have passed since last heart change,
+    // automatically restore hearts to 5.
+    const REGEN_MS = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
+
+    if (data.hearts < 5 && data.lastHeartChange) {
+        const elapsed = Date.now() - new Date(data.lastHeartChange).getTime();
+
+        if (elapsed >= REGEN_MS) {
+            await db
+                .update(userProgress)
+                .set({ hearts: 5, lastHeartChange: new Date() })
+                .where(eq(userProgress.userId, userId));
+
+            // Mutate in-memory so UI reflects immediately
+            (data as any).hearts = 5;
+            (data as any).lastHeartChange = new Date();
+        }
+    }
 
     return data;
 });
@@ -383,7 +406,10 @@ export const reduceHearts = async () => {
 
     await db
         .update(userProgress)
-        .set({ hearts: currentProgress.hearts - 1 })
+        .set({
+            hearts: currentProgress.hearts - 1,
+            lastHeartChange: new Date(),
+        })
         .where(eq(userProgress.userId, userId));
 
     return { hearts: currentProgress.hearts - 1 };
@@ -1087,4 +1113,123 @@ export const markNotificationAsRead = async (id: number) => {
                 eq(notifications.userId, userId)
             )
         );
+};
+
+// ============ HEART CLINIC (Mistake Tracking & Practice) ============
+
+export const logMistake = async (challengeId: number) => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    // Avoid duplicate entries for the same challenge
+    const existing = await db.query.challengeMistakes.findFirst({
+        where: and(
+            eq(challengeMistakes.userId, userId),
+            eq(challengeMistakes.challengeId, challengeId)
+        ),
+    });
+
+    if (!existing) {
+        await db.insert(challengeMistakes).values({
+            userId,
+            challengeId,
+        });
+    }
+};
+
+export const resolveMistake = async (challengeId: number) => {
+    const { userId } = await auth();
+    if (!userId) return;
+
+    await db
+        .delete(challengeMistakes)
+        .where(
+            and(
+                eq(challengeMistakes.userId, userId),
+                eq(challengeMistakes.challengeId, challengeId)
+            )
+        );
+};
+
+export const getHeartClinicLesson = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return null;
+
+    // 1. Get up to 10 challenge IDs from mistakes
+    const mistakes = await db.query.challengeMistakes.findMany({
+        where: eq(challengeMistakes.userId, userId),
+        orderBy: (cm, { desc }) => [desc(cm.createdAt)],
+        limit: 10,
+    });
+
+    const mistakeIds = mistakes.map(m => m.challengeId);
+
+    // 2. If fewer than 10, fill with random completed challenges
+    let fillerIds: number[] = [];
+    if (mistakeIds.length < 10) {
+        const needed = 10 - mistakeIds.length;
+        const completed = await db.query.challengeProgress.findMany({
+            where: and(
+                eq(challengeProgress.userId, userId),
+                eq(challengeProgress.completed, true)
+            ),
+            limit: needed + 20, // fetch extras to filter out duplicates
+        });
+
+        fillerIds = completed
+            .map(c => c.challengeId)
+            .filter(id => !mistakeIds.includes(id))
+            .slice(0, needed);
+    }
+
+    const allChallengeIds = [...mistakeIds, ...fillerIds];
+
+    if (allChallengeIds.length === 0) return null;
+
+    // 3. Fetch full challenge + options data
+    const clinicChallenges = await db.query.challenges.findMany({
+        where: inArray(challenges.id, allChallengeIds),
+        with: {
+            challengeOptions: true,
+            challengeProgress: {
+                where: eq(challengeProgress.userId, userId),
+            },
+        },
+    });
+
+    // 4. Normalize like getLesson does
+    const normalizedChallenges = clinicChallenges.map(challenge => ({
+        ...challenge,
+        completed: false, // Force all to "not completed" so the user must redo them
+    }));
+
+    // 5. Wrap in a mock lesson object
+    return {
+        id: -1,
+        title: "Cl\u00ednica de Erros",
+        order: 0,
+        unitId: 0,
+        challenges: normalizedChallenges,
+    };
+});
+
+export const completeClinicLesson = async () => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    const progress = await getUserProgress();
+    if (!progress) throw new Error("User progress not found");
+
+    const newHearts = Math.min((progress.hearts || 0) + 1, 5);
+
+    await db
+        .update(userProgress)
+        .set({ hearts: newHearts })
+        .where(eq(userProgress.userId, userId));
+
+    revalidatePath("/learn");
+    revalidatePath("/lesson");
+    revalidatePath("/shop");
+
+    return { hearts: newHearts };
 };

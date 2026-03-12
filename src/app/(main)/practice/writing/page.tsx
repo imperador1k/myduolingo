@@ -4,12 +4,12 @@ import { useEffect, useState, useTransition } from "react";
 import { generatePracticePrompt, analyzeWriting } from "@/actions/gemini";
 import { savePracticeSession } from "@/actions/practice";
 import { Button } from "@/components/ui/button";
+import { AILoadingScreen } from "@/components/ui/ai-loading-screen";
 import { Textarea } from "../../../../components/ui/textarea"; // Correct relative path
 import { Loader2, RefreshCw, Send, Sparkles, Shuffle, Target, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
 import { PracticeSetup } from "@/components/practice-setup";
-import { AILoadingScreen } from "@/components/ai-loading-screen";
 
 export default function WritingPracticePage() {
     const [promptData, setPromptData] = useState<{ scenario: string; translation: string; rules: string[]; hints?: string[]; languageCode?: string } | null>(null);
@@ -80,7 +80,7 @@ export default function WritingPracticePage() {
     }
 
     if (isGeneratingPrompt) {
-        return <AILoadingScreen title="A gerar Módulo de Escrita AI..." />;
+        return <AILoadingScreen message="A criar Módulo de Escrita..." submessage="A IA está a preparar o teu desafio" />;
     }
 
     return (

@@ -1,21 +1,48 @@
 import { redirect } from "next/navigation";
-import { getLesson, getUserProgress } from "@/db/queries";
+import { getLesson, getUserProgress, getHeartClinicLesson } from "@/db/queries";
 import { LessonClient } from "./lesson-client";
 
 export const dynamic = "force-dynamic";
 
 type Props = {
-    searchParams: Promise<{ id?: string }>;
+    searchParams: Promise<{ id?: string; clinic?: string }>;
 };
 
 const LessonPage = async ({ searchParams }: Props) => {
     const params = await searchParams;
-    const lessonId = params.id ? parseInt(params.id) : undefined;
-
-    const lessonData = await getLesson(lessonId);
     const userProgress = await getUserProgress();
 
-    if (!lessonData || !userProgress) {
+    if (!userProgress) {
+        redirect("/learn");
+    }
+
+    // Heart Clinic mode: load mistake-based challenges
+    if (params.clinic === "true") {
+        const clinicData = await getHeartClinicLesson();
+
+        if (!clinicData) {
+            // No mistakes to practice — redirect with a message
+            redirect("/shop");
+        }
+
+        return (
+            <LessonClient
+                initialLesson={clinicData}
+                initialHearts={userProgress.hearts}
+                initialPoints={userProgress.points}
+                xpBoostLessons={userProgress.xpBoostLessons || 0}
+                heartShields={userProgress.heartShields || 0}
+                languageCode={userProgress.activeCourse?.languageCode || "en"}
+                isClinic
+            />
+        );
+    }
+
+    // Normal lesson mode
+    const lessonId = params.id ? parseInt(params.id) : undefined;
+    const lessonData = await getLesson(lessonId);
+
+    if (!lessonData) {
         redirect("/learn");
     }
 

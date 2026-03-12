@@ -11,7 +11,7 @@ import { useTTS } from "@/hooks/use-tts";
 import { getLocaleForLanguage } from "@/lib/constants";
 
 import { PracticeSetup } from "@/components/practice-setup";
-import { AILoadingScreen } from "@/components/ai-loading-screen";
+import { AILoadingScreen } from "@/components/ui/ai-loading-screen";
 
 export default function ListeningPracticePage() {
     const [scriptData, setScriptData] = useState<{ script: string; topic: string; questions?: string[] } | null>(null);
@@ -198,7 +198,7 @@ export default function ListeningPracticePage() {
     }
 
     if (isGenerating) {
-        return <AILoadingScreen title="A gerar Módulo Auditivo AI..." />;
+        return <AILoadingScreen message="A Gerar Módulo Auditivo..." submessage="A IA está a preparar um áudio nativo" />;
     }
 
     return (

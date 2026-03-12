@@ -10,7 +10,7 @@ import { useTTS } from "@/hooks/use-tts";
 import { getLocaleForLanguage } from "@/lib/constants";
 
 import { PracticeSetup } from "@/components/practice-setup";
-import { AILoadingScreen } from "@/components/ai-loading-screen";
+import { AILoadingScreen } from "@/components/ui/ai-loading-screen";
 
 // Add support for Web Speech API types
 interface IWindow extends Window {
@@ -238,7 +238,7 @@ export default function SpeakingPracticePage() {
     }
 
     if (isGeneratingPrompt) {
-        return <AILoadingScreen title="A gerar Módulo de Simulação de Voz AI..." />;
+        return <AILoadingScreen message="A preparar Cenário Falado..." submessage="A IA está a calibrar o teu parceiro de conversa" />;
     }
 
 

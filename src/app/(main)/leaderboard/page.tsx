@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getTopUsers, getUserProgress } from "@/db/queries";
 import { cn } from "@/lib/utils";
+import { LottieBlock } from "@/components/ui/lottie-block";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,9 @@ export default async function LeaderboardPage() {
 
     return (
         <div className="pb-12">
+            {/* Trophy Lottie — swap JSON later */}
+            <LottieBlock className="w-24 h-24 md:w-36 md:h-36 mx-auto" />
+
             {/* Header */}
             <div className="mb-6 text-center">
                 <h1 className="text-2xl font-bold text-slate-700">🏆 Classificação</h1>

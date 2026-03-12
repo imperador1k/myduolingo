@@ -4,6 +4,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Flame, UserPlus, MessageCircle, Bell } from "lucide-react";
 import { onMarkNotificationAsRead } from "@/actions/user-actions";
+import { LottieBlock } from "@/components/ui/lottie-block";
+import useSound from "use-sound";
 
 type Notification = {
     id: number;
@@ -20,7 +22,8 @@ type Props = {
 };
 
 export const NotificationList = ({ notifications }: Props) => {
-    
+    const [playSuccess] = useSound("/sounds/success.mp3", { volume: 0.3 });
+
     const getIcon = (type: string) => {
         switch (type) {
             case "streak":
@@ -36,6 +39,7 @@ export const NotificationList = ({ notifications }: Props) => {
 
     const handleClick = async (id: number, read: boolean) => {
         if (!read) {
+            try { playSuccess(); } catch { /* sound may not exist */ }
             await onMarkNotificationAsRead(id);
         }
     };
@@ -43,7 +47,8 @@ export const NotificationList = ({ notifications }: Props) => {
     if (notifications.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
-                <p className="text-4xl mb-4">🔔</p>
+                {/* Sleeping mascot Lottie — swap JSON later */}
+                <LottieBlock className="w-32 h-32 md:w-48 md:h-48 mx-auto mb-4" />
                 <p className="font-bold">Sem notificações novas</p>
                 <p className="text-slate-400">Tudo calmo por aqui.</p>
             </div>
@@ -52,8 +57,7 @@ export const NotificationList = ({ notifications }: Props) => {
 
     return (
         <div className="flex flex-col gap-3">
-            {notifications.map((n) => {
-                // If there's a link, we navigate. Otherwise it's just a div.
+            {notifications.map((n, index) => {
                 const Wrapper = n.link ? Link : ("div" as any);
                 const props = n.link ? { href: n.link } : {};
 
@@ -64,9 +68,11 @@ export const NotificationList = ({ notifications }: Props) => {
                         onClick={() => handleClick(n.id, n.read)}
                         className={cn(
                             "relative flex items-center gap-4 rounded-2xl border-2 p-4 transition-all hover:bg-slate-50",
+                            "animate-in slide-in-from-right fade-in duration-300",
                             !n.read ? "bg-sky-50/50 border-sky-200" : "bg-white border-slate-200",
                             n.link && "cursor-pointer"
                         )}
+                        style={{ animationDelay: `${index * 50}ms`, animationFillMode: "backwards" }}
                     >
                         {/* Unread Indicator Pulse Dot */}
                         {!n.read && (

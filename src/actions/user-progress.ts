@@ -15,7 +15,10 @@ import {
     updateStreak,
     consumeXpBoost,
     consumeHeartShield,
-    checkStreakReset
+    checkStreakReset,
+    logMistake,
+    resolveMistake,
+    completeClinicLesson
 } from "@/db/queries";
 
 export const onChallengeComplete = async (challengeId: number) => {
@@ -27,6 +30,9 @@ export const onChallengeComplete = async (challengeId: number) => {
 
     // Mark challenge as complete
     await upsertChallengeProgress(challengeId);
+
+    // Resolve from mistakes table (if it was a previous error, they mastered it now)
+    await resolveMistake(challengeId);
 
     // Check for XP boost
     const userProgressData = await getUserProgress();
@@ -94,11 +100,16 @@ export const onLessonComplete = async () => {
     };
 };
 
-export const onChallengeWrong = async () => {
+export const onChallengeWrong = async (challengeId?: number) => {
     const { userId } = await auth();
 
     if (!userId) {
         throw new Error("Unauthorized");
+    }
+
+    // Log the mistake for the Heart Clinic
+    if (challengeId) {
+        await logMistake(challengeId);
     }
 
     // Check for heart shield first
@@ -272,5 +283,27 @@ export const checkStreakStatus = async () => {
 
     // This query will check dates and reset if needed
     const result = await checkStreakReset();
+    return result;
+};
+
+// ============ HEART CLINIC ============
+
+export const onClinicComplete = async () => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    const result = await completeClinicLesson();
+
+    createNotification(
+        userId,
+        "system",
+        `Clínica concluída! Ganhaste 1 vida. Agora tens ${result.hearts} ❤️`,
+        "/learn"
+    ).catch(console.error);
+
+    revalidatePath("/learn");
+    revalidatePath("/lesson");
+    revalidatePath("/shop");
+
     return result;
 };

@@ -14,6 +14,7 @@ import {
     Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LottieBlock } from "@/components/ui/lottie-block";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,9 @@ export default async function ProfilePage() {
 
     return (
         <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 pb-28">
+
+            {/* Celebration Lottie */}
+            <LottieBlock className="w-24 h-24 md:w-32 md:h-32 mx-auto -mb-4" />
 
             {/* Profile Header */}
             <div className="relative mb-8 flex flex-col items-center text-center sm:flex-row sm:text-left pt-4">

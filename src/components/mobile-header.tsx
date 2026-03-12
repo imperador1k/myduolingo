@@ -9,51 +9,42 @@ export const MobileHeader = async () => {
     const userProgress = await getUserProgress();
 
     if (!userProgress) {
-        return null; // Or generic header
+        return null;
     }
 
     return (
-        <nav className="lg:hidden px-4 h-[50px] flex items-center justify-between bg-white border-b fixed top-0 w-full z-50">
-            {/* Active Course */}
-            <Link href="/courses">
-                <Button variant="ghost" size="sm" className="gap-2">
-                    {userProgress.activeCourse ? (
-                        <Image
-                            src={userProgress.activeCourse.imageSrc}
-                            alt={userProgress.activeCourse.title}
-                            className="rounded-md border"
-                            width={32}
-                            height={32}
-                        />
-                    ) : (
-                        <div className="h-8 w-8 rounded-md bg-slate-200" />
-                    )}
-                </Button>
+        <nav className="lg:hidden fixed top-0 w-full z-50 flex items-center justify-center gap-2 py-2 px-2 pointer-events-none">
+            
+            {/* XP Pill */}
+            <Link href="/shop" className="pointer-events-auto">
+                <div className="flex items-center gap-1.5 rounded-full bg-amber-50/90 backdrop-blur-sm border-2 border-amber-200 px-3 py-1 shadow-sm active:scale-95 transition-transform">
+                    <Image src="/raio_duolingo.png" height={18} width={18} alt="XP" />
+                    <span className="text-amber-600 font-extrabold text-sm">{userProgress.points}</span>
+                </div>
             </Link>
 
-            {/* Stats */}
-            <div className="flex items-center gap-x-4">
-                {/* XP */}
-                <div className="flex items-center gap-x-1">
-                    <Image src="/raio_duolingo.png" height={22} width={22} alt="XP" />
-                    <span className="text-amber-500 font-bold">{userProgress.points}</span>
+            {/* Streak Pill */}
+            <Link href="/shop" className="pointer-events-auto">
+                <div className="flex items-center gap-1.5 rounded-full bg-orange-50/90 backdrop-blur-sm border-2 border-orange-200 px-3 py-1 shadow-sm active:scale-95 transition-transform">
+                    <Image src="/flame_duolingo.png" height={18} width={18} alt="Streak" className={userProgress.streak > 0 ? "" : "grayscale opacity-50"} />
+                    <span className="text-orange-600 font-extrabold text-sm">{userProgress.streak}</span>
                 </div>
+            </Link>
 
-                {/* Streak */}
-                <Link href="/shop" className="flex items-center gap-x-1">
-                    <Image src="/flame_duolingo.png" height={22} width={22} alt="Streak" className={userProgress.streak > 0 ? "" : "grayscale"} />
-                    <span className="text-amber-500 font-bold">{userProgress.streak}</span>
-                </Link>
-
-                {/* Hearts — Tedy Lottie */}
-                <Link href="/shop" className="flex items-center gap-x-1">
-                    <TedyLottie className="w-7 h-7" />
-                    <span className="text-rose-500 font-bold">
+            {/* Hearts Pill */}
+            <Link href="/shop" className="pointer-events-auto">
+                <div className={`flex items-center gap-1.5 rounded-full backdrop-blur-sm border-2 px-3 py-1 shadow-sm active:scale-95 transition-transform ${
+                    userProgress.hearts > 0 
+                        ? "bg-rose-50/90 border-rose-200 text-rose-600" 
+                        : "bg-slate-100 border-slate-200 text-slate-500 grayscale opacity-80"
+                }`}>
+                    <TedyLottie className="w-5 h-5" />
+                    <span className="font-extrabold text-sm">
                         {userProgress.hearts === 5 ? 5 : userProgress.hearts}
                     </span>
-                </Link>
-            </div>
+                </div>
+            </Link>
+
         </nav>
     );
 };
-

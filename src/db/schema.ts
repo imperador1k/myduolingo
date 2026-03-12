@@ -139,6 +139,8 @@ export const userProgress = pgTable("user_progress", {
     streakFreezes: integer("streak_freezes").notNull().default(0),
     // CEFR Placement — per-language levels: { "English": "B2", "Japanese": "A1" }
     cefrLevels: jsonb("cefr_levels").notNull().default({}),
+    // Heart regeneration — timestamp of last heart loss
+    lastHeartChange: timestamp("last_heart_change").defaultNow(),
 });
 
 export const userProgressRelations = relations(userProgress, ({ one, many }) => ({
@@ -242,5 +244,22 @@ export const practiceSessionsRelations = relations(practiceSessions, ({ one }) =
     user: one(userProgress, {
         fields: [practiceSessions.userId],
         references: [userProgress.userId],
+    }),
+}));
+
+// ===== CHALLENGE MISTAKES (Heart Clinic) =====
+export const challengeMistakes = pgTable("challenge_mistakes", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    challengeId: integer("challenge_id")
+        .references(() => challenges.id, { onDelete: "cascade" })
+        .notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const challengeMistakesRelations = relations(challengeMistakes, ({ one }) => ({
+    challenge: one(challenges, {
+        fields: [challengeMistakes.challengeId],
+        references: [challenges.id],
     }),
 }));

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Heart, X, Zap, Shield, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { onChallengeComplete, onChallengeWrong, onLessonComplete } from "@/actions/user-progress";
+import { onChallengeComplete, onChallengeWrong, onLessonComplete, onClinicComplete } from "@/actions/user-progress";
 import { StreakModal } from "@/components/modals/streak-modal";
 import { useTTS } from "@/hooks/use-tts";
 import { BearDanceLottie, StarAngryLottie, HappyStarLottie } from "@/components/lottie-animation";
@@ -46,6 +46,7 @@ type Props = {
     xpBoostLessons: number;
     heartShields: number;
     languageCode: string;
+    isClinic?: boolean;
 };
 
 // Progress Bar Component
@@ -125,7 +126,8 @@ export const LessonClient = ({
     initialPoints,
     xpBoostLessons,
     heartShields,
-    languageCode
+    languageCode,
+    isClinic
 }: Props) => {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
@@ -370,19 +372,20 @@ export const LessonClient = ({
                             onClick={() => {
                                 if (isSuccess) {
                                     startTransition(() => {
-                                        onLessonComplete()
-                                            .then((res) => {
+                                        const completeAction = isClinic ? onClinicComplete : onLessonComplete;
+                                        completeAction()
+                                            .then((res: any) => {
                                                 if (res?.streakExtended) {
                                                     setStreakDays(res.streak ?? 0);
                                                     setShowStreakModal(true);
                                                 } else {
-                                                    router.push("/learn");
+                                                    router.push(isClinic ? "/shop" : "/learn");
                                                 }
                                             })
                                             .catch((err) => {
                                                 console.error("Error completing lesson:", err);
                                                 // Fallback to exit even on error to avoid sticking
-                                                router.push("/learn");
+                                                router.push(isClinic ? "/shop" : "/learn");
                                             });
                                     });
                                 } else {
@@ -434,6 +437,14 @@ export const LessonClient = ({
                             onClick={() => router.push("/shop")}
                         >
                             Recarregar Corações
+                        </Button>
+                        <Button
+                            variant="primary" // Re-using primary for positive actions
+                            size="lg"
+                            className="w-full border-green-400 bg-green-500 hover:bg-green-400"
+                            onClick={() => router.push("/lesson?clinic=true")}
+                        >
+                            Praticar para ganhar vidas ❤️
                         </Button>
                         <Button
                             variant="ghost"
