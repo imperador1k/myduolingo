@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import useSound from "use-sound";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
@@ -68,23 +67,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ({ className, variant, size, asChild = false, onClick, ...props }, ref) => {
         const Comp = asChild ? Slot : "button";
 
-        // Global button sound with fallback
-        const [playClick] = useSound("/click_button.mp3", { volume: 0.5 });
-
-        const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-            try {
-                playClick();
-            } catch {
-                // Ignore if browser blocks autoplay or sound file is missing
-            }
-            if (onClick) onClick(e);
-        };
-
         return (
             <Comp
                 className={cn(buttonVariants({ variant, size, className }))}
                 ref={ref}
-                onClick={handleClick as any}
+                onClick={onClick}
                 {...props}
             />
         );

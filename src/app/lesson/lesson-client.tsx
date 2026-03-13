@@ -200,34 +200,38 @@ export const LessonClient = ({
         if (selectedOption === null) return;
 
         const selectedOpt = options.find((opt) => opt.id === selectedOption);
-
         if (selectedOpt?.correct) {
             setStatus("correct");
             playSound("correct");
             setCorrectCount((prev) => prev + 1);
 
-            onChallengeComplete(currentChallenge.id).then((result) => {
-                const xp = result.xpGained || 10;
-                setPoints((prev) => prev + xp);
-                setXpGained((prev) => prev + xp);
-            });
-
+            if (isClinic) {
+                // Local points for the clinic
+                setPoints((prev) => prev + 10);
+                setXpGained((prev) => prev + 10);
+            } else {
+                onChallengeComplete(currentChallenge.id).then((result) => {
+                    const xp = result.xpGained || 10;
+                    setPoints((prev) => prev + xp);
+                    setXpGained((prev) => prev + xp);
+                });
+            }
 
         } else {
             setStatus("wrong");
             playSound("wrong");
             setWrongCount((prev) => prev + 1);
 
-            onChallengeWrong().then((result) => {
-                if (result.shieldUsed) {
-                    // Shield protected
-                } else if (result.hearts !== undefined) {
-                    setHearts(result.hearts);
-                    setHeartsLost((prev) => prev + 1);
-                }
-            });
-
-
+            if (!isClinic) {
+                onChallengeWrong().then((result) => {
+                    if (result.shieldUsed) {
+                        // Shield protected
+                    } else if (result.hearts !== undefined) {
+                        setHearts(result.hearts);
+                        setHeartsLost((prev) => prev + 1);
+                    }
+                });
+            }
         }
     };
 
@@ -292,7 +296,7 @@ export const LessonClient = ({
     };
 
     const handleContinue = () => {
-        if (hearts === 0) {
+        if (hearts === 0 && !isClinic) {
             handleLessonComplete();
             return;
         }
@@ -411,7 +415,7 @@ export const LessonClient = ({
     }
 
     // Out of Hearts Screen
-    if (hearts === 0 && status === "none") {
+    if (hearts === 0 && !isClinic && status === "none") {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-rose-400 to-rose-500 px-6">
                 <div className="w-full max-w-md text-center">

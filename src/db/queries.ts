@@ -1155,28 +1155,52 @@ export const getHeartClinicLesson = cache(async () => {
     const { userId } = await auth();
     if (!userId) return null;
 
-    // 1. Get up to 10 challenge IDs from mistakes
-    const mistakes = await db.query.challengeMistakes.findMany({
-        where: eq(challengeMistakes.userId, userId),
-        orderBy: (cm, { desc }) => [desc(cm.createdAt)],
-        limit: 10,
-    });
+    const userProgressData = await getUserProgress();
+    if (!userProgressData?.activeCourseId) return null;
 
-    const mistakeIds = mistakes.map(m => m.challengeId);
+    // 1. Get up to 10 challenge IDs from mistakes exactly for this course
+    const mistakesQuery = await db
+        .select({
+            challengeId: challengeMistakes.challengeId,
+        })
+        .from(challengeMistakes)
+        .innerJoin(challenges, eq(challengeMistakes.challengeId, challenges.id))
+        .innerJoin(lessons, eq(challenges.lessonId, lessons.id))
+        .innerJoin(units, eq(lessons.unitId, units.id))
+        .where(
+            and(
+                eq(challengeMistakes.userId, userId),
+                eq(units.courseId, userProgressData.activeCourseId)
+            )
+        )
+        .orderBy(desc(challengeMistakes.createdAt))
+        .limit(10);
 
-    // 2. If fewer than 10, fill with random completed challenges
+    const mistakeIds = mistakesQuery.map(m => m.challengeId);
+
+    // 2. If fewer than 10, fill with random completed challenges FROM THIS COURSE
     let fillerIds: number[] = [];
     if (mistakeIds.length < 10) {
         const needed = 10 - mistakeIds.length;
-        const completed = await db.query.challengeProgress.findMany({
-            where: and(
-                eq(challengeProgress.userId, userId),
-                eq(challengeProgress.completed, true)
-            ),
-            limit: needed + 20, // fetch extras to filter out duplicates
-        });
+        
+        const completedQuery = await db
+            .select({
+                challengeId: challengeProgress.challengeId,
+            })
+            .from(challengeProgress)
+            .innerJoin(challenges, eq(challengeProgress.challengeId, challenges.id))
+            .innerJoin(lessons, eq(challenges.lessonId, lessons.id))
+            .innerJoin(units, eq(lessons.unitId, units.id))
+            .where(
+                and(
+                    eq(challengeProgress.userId, userId),
+                    eq(challengeProgress.completed, true),
+                    eq(units.courseId, userProgressData.activeCourseId)
+                )
+            )
+            .limit(needed + 20);
 
-        fillerIds = completed
+        fillerIds = completedQuery
             .map(c => c.challengeId)
             .filter(id => !mistakeIds.includes(id))
             .slice(0, needed);

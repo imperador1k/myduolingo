@@ -26,7 +26,7 @@ const main = async () => {
         // Create Courses
         console.log("📚 Creating courses...");
         const [portugueseCourse] = await db.insert(schema.courses).values([
-            { title: "Português", imageSrc: "/pt.svg" },
+            { title: "Português", imageSrc: "/pt.svg", languageCode: "pt-PT" },
         ]).returning();
 
         // Create Units
