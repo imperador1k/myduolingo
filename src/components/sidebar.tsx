@@ -17,6 +17,7 @@ import {
     GraduationCap,
     Settings,
 } from "lucide-react";
+import { useUISounds } from "@/hooks/use-ui-sounds";
 
 type SidebarItemProps = {
     label: string;
@@ -28,10 +29,12 @@ type SidebarItemProps = {
 const SidebarItem = ({ label, iconSrc, href, notificationCount }: SidebarItemProps) => {
     const pathname = usePathname();
     const isActive = pathname === href;
+    const { playClick } = useUISounds();
 
     return (
         <Link href={href}>
             <div
+                onClick={() => playClick()}
                 className={cn(
                     "flex items-center gap-x-3 rounded-xl px-4 py-3 text-slate-500 transition-all hover:bg-slate-100",
                     isActive && "bg-sky-500/15 text-sky-500 border-2 border-sky-300"

@@ -21,13 +21,17 @@ type Props = {
     onClose: () => void;
 };
 
+import { useUISounds } from "@/hooks/use-ui-sounds";
+
 export const LessonStartModal = ({ lesson, isOpen, onClose }: Props) => {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const { playStart } = useUISounds();
 
     if (!isOpen || !lesson) return null;
 
     const handleStart = () => {
+        playStart();
         setIsLoading(true);
         router.push(`/lesson?id=${lesson.id}`);
     };

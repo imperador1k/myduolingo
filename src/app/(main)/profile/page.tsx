@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LottieBlock } from "@/components/ui/lottie-block";
+import { AchievementsList } from "@/components/achievements-list";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,9 @@ export default async function ProfilePage() {
     ];
 
     const achievements = ACHIEVEMENTS.map((achievement: Achievement) => ({
-        ...achievement,
+        title: achievement.title,
+        description: achievement.description,
+        icon: achievement.icon,
         unlocked: achievement.condition(userProgress),
     }));
 
@@ -57,9 +60,9 @@ export default async function ProfilePage() {
             {/* Celebration Lottie */}
             <LottieBlock className="w-24 h-24 md:w-32 md:h-32 mx-auto -mb-4" />
 
-            {/* Profile Header */}
-            <div className="relative mb-8 flex flex-col items-center text-center sm:flex-row sm:text-left pt-4">
-                <div className="mb-4 flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-green-100 text-5xl shadow-lg ring-4 ring-white sm:mb-0 sm:mr-6">
+            {/* Profile Header Premium Card */}
+            <div className="w-full bg-white rounded-3xl border-2 border-slate-200 p-6 flex flex-col md:flex-row items-center gap-6 relative shadow-sm mb-6 z-10">
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-green-100 text-5xl shadow-sm ring-4 ring-emerald-100">
                     {user.imageUrl ? (
                         <img
                             src={user.imageUrl}
@@ -71,19 +74,19 @@ export default async function ProfilePage() {
                     )}
                 </div>
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-center md:text-left">
                     <h1 className="text-2xl font-bold text-slate-700 truncate">
                         {user.firstName || user.username || "Estudante"}
                     </h1>
-                    <p className="text-slate-500">@{user.username || "estudante"}</p>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-slate-500 font-medium">@{user.username || "estudante"}</p>
+                    <p className="text-sm text-slate-400 mt-1">
                         Membro desde {new Date(user.createdAt).toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}
                     </p>
                 </div>
 
-                {/* Settings icon — top-right corner of header */}
-                <Link href="/settings" className="absolute top-4 right-0">
-                    <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl">
+                {/* Settings icon */}
+                <Link href="/settings" className="absolute top-4 right-4 md:relative md:top-0 md:right-0">
+                    <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
                         <Settings className="h-6 w-6" />
                     </Button>
                 </Link>
@@ -117,32 +120,8 @@ export default async function ProfilePage() {
                 </Link>
             </div>
 
-            {/* Achievements */}
-            <div className="mb-10">
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-slate-600">🏆 Conquistas</h2>
-                    <span className="rounded-full bg-slate-100 px-3 py-0.5 text-sm font-semibold text-slate-500">
-                        {unlockedCount}/{achievements.length}
-                    </span>
-                </div>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {achievements.map((achievement, i) => (
-                        <div
-                            key={i}
-                            className={cn(
-                                "flex flex-col items-center rounded-2xl border-2 p-3 text-center transition-all",
-                                achievement.unlocked
-                                    ? "border-amber-200 bg-amber-50"
-                                    : "border-slate-200 bg-slate-100 opacity-40"
-                            )}
-                        >
-                            <span className={cn("text-3xl", !achievement.unlocked && "grayscale")}>{achievement.icon}</span>
-                            <p className="mt-1 text-sm font-bold text-slate-700">{achievement.title}</p>
-                            <p className="text-xs text-slate-400">{achievement.description}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
+            {/* Achievements Expandable List */}
+            <AchievementsList achievements={achievements} />
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-3">

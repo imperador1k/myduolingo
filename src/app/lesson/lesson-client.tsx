@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { onChallengeComplete, onChallengeWrong, onLessonComplete, onClinicComplete } from "@/actions/user-progress";
 import { StreakModal } from "@/components/modals/streak-modal";
 import { useTTS } from "@/hooks/use-tts";
+import { useUISounds } from "@/hooks/use-ui-sounds";
 import { BearDanceLottie, StarAngryLottie, HappyStarLottie, DuoAnimationLottie, LaughingCatLottie } from "@/components/lottie-animation";
 
 // Types
@@ -285,7 +286,10 @@ export const LessonClient = ({
        I need to delete the old `handleContinue` at line 188.
     */
 
+    const { playWhoosh } = useUISounds();
+
     const handleExit = () => {
+        playWhoosh();
         setShowExitModal(true);
     };
 

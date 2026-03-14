@@ -12,6 +12,7 @@ import {
     onBuyHeartShield,
     onBuyStreakFreeze
 } from "@/actions/user-progress";
+import { useUISounds } from "@/hooks/use-ui-sounds";
 
 type Props = {
     hearts: number;
@@ -44,6 +45,8 @@ export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streak
         itemName: string;
     } | null>(null);
 
+    const { playWhoosh, playReward } = useUISounds();
+
     const showPurchasePopup = (icon: string, title: string, description: string, color: string) => {
         setPopup({ show: true, icon, title, description, color });
     };
@@ -60,6 +63,7 @@ export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streak
         cost: number,
         itemName: string
     ) => {
+        playWhoosh();
         setConfirmModal({
             show: true,
             action,
@@ -82,6 +86,7 @@ export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streak
                     if ('error' in result) {
                         setError(errorMapping[result.error] || "Erro desconhecido");
                     } else {
+                        playReward();
                         showPurchasePopup(popupData.icon, popupData.title, popupData.description, popupData.color);
                     }
                 })

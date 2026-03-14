@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { useUISounds } from "@/hooks/use-ui-sounds";
+
 type MobileItemProps = {
     href: string;
     icon: React.ReactNode;
@@ -31,10 +33,14 @@ type MobileItemProps = {
 };
 
 const MobileItem = ({ href, icon, label, isActive, onClick, badgeCount }: MobileItemProps) => {
+    const { playClick } = useUISounds();
     return (
         <Link
             href={href}
-            onClick={onClick}
+            onClick={(e) => {
+                playClick();
+                if (onClick) onClick();
+            }}
             className={cn(
                 "relative flex flex-col items-center gap-1 text-slate-500 hover:text-slate-600 transition",
                 isActive && "text-sky-500"
