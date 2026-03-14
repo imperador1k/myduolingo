@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getWeakVocabulary } from "@/db/queries";
+import { getWeakVocabulary, getUserProgress } from "@/db/queries";
 import { VocabularySprint } from "@/components/vocabulary-sprint";
 import { Archive } from "lucide-react";
 import Link from "next/link";
@@ -10,6 +10,13 @@ export const metadata = {
 };
 
 const VocabularyPracticePage = async () => {
+    const userProgressData = await getUserProgress();
+
+    if (!userProgressData?.activeCourseId) {
+        return redirect("/courses");
+    }
+
+    const activeLanguage = userProgressData.activeLanguage || "Idioma";
     const weakWords = await getWeakVocabulary();
 
     if (weakWords.length === 0) {
@@ -19,7 +26,7 @@ const VocabularyPracticePage = async () => {
                     <Archive className="h-16 w-16 text-slate-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-slate-700 mb-2">
-                    Não tens palavras fracas!
+                    Sem palavras fracas em {activeLanguage}!
                 </h2>
                 <p className="text-slate-500 max-w-sm mx-auto font-medium mb-6">
                     Volta ao modo aprender para caçares mais palavras e depois volta aqui para as treinares.
@@ -34,7 +41,7 @@ const VocabularyPracticePage = async () => {
         );
     }
 
-    return <VocabularySprint words={weakWords} />;
+    return <VocabularySprint words={weakWords} language={activeLanguage} />;
 };
 
 export default VocabularyPracticePage;

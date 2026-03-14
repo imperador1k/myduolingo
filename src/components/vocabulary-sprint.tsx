@@ -29,9 +29,10 @@ interface WordEntry {
 
 interface VocabularySprintProps {
     words: WordEntry[];
+    language?: string;
 }
 
-export const VocabularySprint = ({ words }: VocabularySprintProps) => {
+export const VocabularySprint = ({ words, language }: VocabularySprintProps) => {
     const [deck, setDeck] = useState<WordEntry[]>([...words]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isRevealed, setIsRevealed] = useState(false);
@@ -194,7 +195,7 @@ export const VocabularySprint = ({ words }: VocabularySprintProps) => {
                 </Link>
                 <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
                     <Dumbbell className="h-4 w-4 text-indigo-500" />
-                    <span>Sprint de Vocabulário</span>
+                    <span>Sprint{language ? `: ${language}` : ""}</span>
                 </div>
                 <span className="text-sm font-bold text-slate-400 tabular-nums">
                     {currentIndex + 1} / {deck.length}

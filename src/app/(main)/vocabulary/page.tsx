@@ -1,8 +1,16 @@
-import { getUserVocabulary } from "@/db/queries";
+import { redirect } from "next/navigation";
+import { getUserVocabulary, getUserProgress } from "@/db/queries";
 import { Archive } from "lucide-react";
 import { VocabularyDashboard } from "./dashboard";
 
 export default async function VocabularyPage() {
+    const userProgressData = await getUserProgress();
+
+    if (!userProgressData?.activeCourseId) {
+        return redirect("/courses");
+    }
+
+    const activeLanguage = userProgressData.activeLanguage || "Idioma";
     const vocabularyList = await getUserVocabulary();
 
     return (
@@ -13,7 +21,7 @@ export default async function VocabularyPage() {
                 </div>
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-800">
-                        O Meu Cofre
+                        Cofre de {activeLanguage}
                     </h1>
                     <p className="text-slate-500 font-medium">
                         Dá a volta aos cartões para veres a resposta!

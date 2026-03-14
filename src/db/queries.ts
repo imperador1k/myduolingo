@@ -31,8 +31,18 @@ export const getUserVocabulary = cache(async () => {
         return [];
     }
 
+    const progress = await getUserProgress();
+    const activeLanguage = progress?.activeLanguage;
+
+    if (!activeLanguage) {
+        return [];
+    }
+
     const data = await db.query.userVocabulary.findMany({
-        where: eq(userVocabulary.userId, userId),
+        where: and(
+            eq(userVocabulary.userId, userId),
+            eq(userVocabulary.language, activeLanguage)
+        ),
         orderBy: [desc(userVocabulary.createdAt)],
     });
 
@@ -1285,8 +1295,18 @@ export const getWeakVocabulary = cache(async () => {
         return [];
     }
 
+    const progress = await getUserProgress();
+    const activeLanguage = progress?.activeLanguage;
+
+    if (!activeLanguage) {
+        return [];
+    }
+
     const data = await db.query.userVocabulary.findMany({
-        where: eq(userVocabulary.userId, userId),
+        where: and(
+            eq(userVocabulary.userId, userId),
+            eq(userVocabulary.language, activeLanguage)
+        ),
         orderBy: [asc(userVocabulary.strength), desc(userVocabulary.createdAt)],
         limit: 10,
     });
