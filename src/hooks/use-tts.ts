@@ -50,10 +50,25 @@ function findVoice(bcp47Code: string): SpeechSynthesisVoice | undefined {
 
 export const useTTS = (languageCode: string = "en") => {
     const [isPlaying, setIsPlaying] = useState(false);
+    const [playingText, setPlayingText] = useState<string | null>(null);
+
+    const stopAudio = useCallback(() => {
+        if (typeof window !== "undefined" && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+            setIsPlaying(false);
+            setPlayingText(null);
+        }
+    }, []);
 
     const playAudio = useCallback(
         (text: string, speed: number = 0.9, overrideLanguageCode?: string) => {
             if (!text || typeof window === "undefined" || !window.speechSynthesis) return;
+
+            // Toggle functionality: if already playing the same text, stop it.
+            if (isPlaying && playingText === text) {
+                stopAudio();
+                return;
+            }
 
             window.speechSynthesis.cancel();
 
@@ -65,13 +80,22 @@ export const useTTS = (languageCode: string = "en") => {
             const bestVoice = findVoice(bcp47Code);
             if (bestVoice) utterance.voice = bestVoice;
 
-            utterance.onstart = () => setIsPlaying(true);
-            utterance.onend = () => setIsPlaying(false);
-            utterance.onerror = () => setIsPlaying(false);
+            utterance.onstart = () => {
+                setIsPlaying(true);
+                setPlayingText(text);
+            };
+            utterance.onend = () => {
+                setIsPlaying(false);
+                setPlayingText(null);
+            };
+            utterance.onerror = () => {
+                setIsPlaying(false);
+                setPlayingText(null);
+            };
 
             window.speechSynthesis.speak(utterance);
         },
-        [languageCode]
+        [languageCode, isPlaying, playingText, stopAudio]
     );
 
     /**
@@ -86,6 +110,12 @@ export const useTTS = (languageCode: string = "en") => {
     const playMixedSpeech = useCallback(
         (text: string, baseLang: string, targetLang: string, speed: number = 0.9) => {
             if (!text || typeof window === "undefined" || !window.speechSynthesis) return;
+
+            // Toggle functionality
+            if (isPlaying && playingText === text) {
+                stopAudio();
+                return;
+            }
 
             window.speechSynthesis.cancel();
 
@@ -114,17 +144,26 @@ export const useTTS = (languageCode: string = "en") => {
 
                 // Only track isPlaying on first/last chunk
                 if (i === 0) {
-                    utterance.onstart = () => setIsPlaying(true);
+                    utterance.onstart = () => {
+                        setIsPlaying(true);
+                        setPlayingText(text);
+                    };
                 }
                 if (i === chunks.length - 1) {
-                    utterance.onend = () => setIsPlaying(false);
-                    utterance.onerror = () => setIsPlaying(false);
+                    utterance.onend = () => {
+                        setIsPlaying(false);
+                        setPlayingText(null);
+                    };
+                    utterance.onerror = () => {
+                        setIsPlaying(false);
+                        setPlayingText(null);
+                    };
                 }
 
                 window.speechSynthesis.speak(utterance);
             });
         },
-        []
+        [isPlaying, playingText, stopAudio]
     );
 
     useEffect(() => {
@@ -135,5 +174,5 @@ export const useTTS = (languageCode: string = "en") => {
         };
     }, []);
 
-    return { playAudio, playMixedSpeech, isPlaying };
+    return { playAudio, playMixedSpeech, stopAudio, isPlaying, playingText };
 };

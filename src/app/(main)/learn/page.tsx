@@ -119,36 +119,7 @@ const DesktopSidebar = ({
     </div>
 );
 
-// ─── Mobile sticky stats bar ──────────────────────────────────────────────────
-const MobileStatsBar = ({ points, hearts, streak }: { points: number; hearts: number; streak: number }) => (
-    <div className="lg:hidden fixed bottom-[68px] left-0 right-0 z-20 px-4 pointer-events-none">
-        <div className="mx-auto max-w-md bg-white/90 backdrop-blur-md border border-slate-200 rounded-2xl shadow-lg px-5 py-2.5 flex items-center justify-around pointer-events-auto">
-            <div className="flex items-center gap-1.5">
-                <span className="text-lg">⚡</span>
-                <div>
-                    <p className="text-[10px] text-amber-500 font-bold uppercase">XP</p>
-                    <p className="text-sm font-black text-amber-600">{points}</p>
-                </div>
-            </div>
-            <div className="w-px h-8 bg-slate-200" />
-            <div className="flex items-center gap-1.5">
-                <span className="text-lg">❤️</span>
-                <div>
-                    <p className="text-[10px] text-rose-400 font-bold uppercase">Vida</p>
-                    <p className="text-sm font-black text-rose-500">{hearts}</p>
-                </div>
-            </div>
-            <div className="w-px h-8 bg-slate-200" />
-            <div className="flex items-center gap-1.5">
-                <span className="text-lg">🔥</span>
-                <div>
-                    <p className="text-[10px] text-orange-400 font-bold uppercase">Streak</p>
-                    <p className="text-sm font-black text-orange-500">{streak}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-);
+
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export const dynamic = "force-dynamic";
@@ -175,8 +146,7 @@ export default async function LearnPage() {
 
     return (
         <>
-            {/* Mobile floating stats bar */}
-            <MobileStatsBar points={userProgress.points} hearts={userProgress.hearts} streak={streak} />
+
 
             <div className="flex gap-6 xl:gap-8 pb-28 lg:pb-8">
                 {/* ── Main Column ── */}

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { onChallengeComplete, onChallengeWrong, onLessonComplete, onClinicComplete } from "@/actions/user-progress";
 import { StreakModal } from "@/components/modals/streak-modal";
 import { useTTS } from "@/hooks/use-tts";
-import { BearDanceLottie, StarAngryLottie, HappyStarLottie } from "@/components/lottie-animation";
+import { BearDanceLottie, StarAngryLottie, HappyStarLottie, DuoAnimationLottie, LaughingCatLottie } from "@/components/lottie-animation";
 
 // Types
 type ChallengeOption = {
@@ -84,6 +84,7 @@ type ChallengeOptionProps = {
     selected: boolean;
     disabled: boolean;
     status: "none" | "correct" | "wrong";
+    isCorrect: boolean;
     onClick: () => void;
 };
 
@@ -93,6 +94,7 @@ const ChallengeOptionCard = ({
     selected,
     disabled,
     status,
+    isCorrect,
     onClick,
 }: ChallengeOptionProps) => {
     return (
@@ -100,22 +102,40 @@ const ChallengeOptionCard = ({
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                "flex w-full cursor-pointer items-center gap-4 rounded-xl border-2 border-b-4 p-4 transition-all hover:bg-slate-100 active:border-b-2",
-                selected && "border-sky-300 bg-sky-100 hover:bg-sky-100",
-                status === "correct" &&
-                "border-green-300 bg-green-100 hover:bg-green-100",
-                status === "wrong" && "border-rose-300 bg-rose-100 hover:bg-rose-100",
-                disabled && "pointer-events-none"
+                "flex w-full cursor-pointer items-center gap-5 rounded-2xl border-2 border-b-[5px] p-5 transition-all outline-none",
+                // Base state (Idle)
+                !selected && status === "none" && !disabled && "border-slate-200 bg-white hover:bg-slate-50 hover:-translate-y-1 hover:border-b-[6px] active:translate-y-1 active:border-b-2 hover:shadow-sm",
+                
+                // Selected state (Before check)
+                selected && status === "none" && "border-sky-400 bg-sky-50 shadow-md shadow-sky-100/50 scale-[1.02]",
+                
+                // Correct state
+                status === "correct" && selected && "border-green-400 bg-green-50 scale-[1.02] shadow-md shadow-green-100/50",
+                status === "correct" && !selected && "border-slate-200 bg-white opacity-50 grayscale",
+                
+                // Wrong state
+                status === "wrong" && selected && "border-rose-400 bg-rose-50 scale-[1.02] shadow-md shadow-rose-100/50",
+                status === "wrong" && !selected && !isCorrect && "border-slate-200 bg-white opacity-50 grayscale",
+                status === "wrong" && !selected && isCorrect && "border-green-400 bg-green-50 scale-[1.02] shadow-md shadow-green-100/50", // Highlight correct option if missed
+
+                // Disabled state
+                disabled && status === "none" && "pointer-events-none opacity-50"
             )}
         >
             {imageSrc && (
-                <div className="relative h-16 w-16 rounded-lg bg-slate-100">
-                    <div className="flex h-full w-full items-center justify-center text-2xl">
-                        🖼️
-                    </div>
+                <div className="relative h-20 w-20 shrink-0 rounded-xl bg-slate-100 overflow-hidden border-2 border-slate-200/50">
+                    <img src={imageSrc} alt={text} className="w-full h-full object-cover" />
                 </div>
             )}
-            <span className="font-bold">{text}</span>
+            <span className={cn(
+                "text-lg font-bold w-full text-left",
+                selected && status === "none" && "text-sky-600",
+                status === "correct" && (selected || isCorrect) && "text-green-600",
+                status === "wrong" && selected && "text-rose-600",
+                !selected && status === "none" && "text-slate-700"
+            )}>
+                {text}
+            </span>
         </button>
     );
 };
@@ -144,6 +164,7 @@ export const LessonClient = ({
     const [status, setStatus] = useState<"none" | "correct" | "wrong">("none");
     const [showExitModal, setShowExitModal] = useState(false);
     const [lessonComplete, setLessonComplete] = useState(false);
+    const [showTransition, setShowTransition] = useState(false);
 
     // Streak State
     const [showStreakModal, setShowStreakModal] = useState(false);
@@ -160,7 +181,7 @@ export const LessonClient = ({
     const progress = ((activeIndex) / challenges.length) * 100;
 
     // Audio Logic (using Smart TTS Hook)
-    const { playAudio, playMixedSpeech, isPlaying } = useTTS(languageCode);
+    const { playAudio, playMixedSpeech, stopAudio, isPlaying, playingText } = useTTS(languageCode);
 
     // Audio is now user-triggered only (no autoplay)
 
@@ -301,15 +322,20 @@ export const LessonClient = ({
             return;
         }
 
-        // If it's the last challenge
-        if (activeIndex >= challenges.length - 1) {
-            handleLessonComplete();
-        } else {
-            // Move to next challenge
-            setActiveIndex((prev) => prev + 1);
-            setSelectedOption(null);
-            setStatus("none");
+        // Trigger transition animation if moving to the next question
+        if (activeIndex < challenges.length - 1) {
+            setShowTransition(true);
+            setTimeout(() => {
+                setShowTransition(false);
+                setActiveIndex((prev) => prev + 1);
+                setSelectedOption(null);
+                setStatus("none");
+            }, 1200);
+            return;
         }
+
+        // If it's the last challenge
+        handleLessonComplete();
     };
 
     // Lesson Complete Screen
@@ -477,40 +503,49 @@ export const LessonClient = ({
 
             {/* Exit Confirmation Modal */}
             {showExitModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-                        <div className="mb-4 text-center">
-                            <span className="text-5xl">😢</span>
-                            <h2 className="mt-4 text-xl font-bold text-slate-700">
-                                Tens a certeza que queres sair?
-                            </h2>
-                            <p className="mt-2 text-slate-500">
-                                O teu progresso nesta lição será guardado.
-                            </p>
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
+                    <div className="w-full max-w-md rounded-[2.5rem] bg-white p-8 shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-500 border-4 border-slate-100 relative overflow-hidden">
+                        {/* Decorative background element */}
+                        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-rose-50 to-white -z-10" />
+                        
+                        <div className="w-56 h-56 -mt-4 relative animate-bounce">
+                            <LaughingCatLottie className="w-full h-full drop-shadow-xl" />
                         </div>
-                        <div className="flex gap-3">
+                        
+                        <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight -mt-4">
+                            Vais mesmo <span className="text-rose-500">desistir</span> agora?! 😭
+                        </h2>
+                        
+                        <p className="mt-4 mb-8 text-lg font-medium text-slate-500 px-2 leading-relaxed">
+                            O gatinho está a rir-se da tua fraqueza... Fica e prova o teu valor! 
+                            <span className="block mt-2 text-sm text-slate-400 font-normal">(Relaxa, o progresso fica guardado de qualquer forma).</span>
+                        </p>
+                        
+                        <div className="flex flex-col w-full gap-3">
                             <Button
-                                variant="ghost"
-                                className="flex-1"
+                                variant="primary"
+                                size="lg"
+                                className="w-full h-14 text-lg rounded-2xl tracking-wide uppercase active:border-b-0 active:translate-y-1 transition-all"
                                 onClick={cancelExit}
                             >
-                                Continuar
+                                CONTINUAR A APRENDER
                             </Button>
                             <Button
                                 variant="danger"
-                                className="flex-1"
+                                size="lg"
+                                className="w-full h-14 text-lg rounded-2xl bg-white text-rose-500 border-2 border-slate-200 hover:bg-rose-50 hover:text-rose-600 active:border-b-0 active:translate-y-1 transition-all"
                                 onClick={confirmExit}
                             >
-                                Sair
+                                Sair porque sou fraco
                             </Button>
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="flex min-h-screen flex-col">
+            <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-white">
                 {/* Header */}
-                <header className="mx-auto flex w-full max-w-[1140px] items-center justify-between gap-x-4 px-6 pt-6 lg:pt-12">
+                <header className="mx-auto flex w-full max-w-[1140px] shrink-0 items-center justify-between gap-x-4 px-6 pt-6 lg:pt-12">
                     <button onClick={handleExit} className="text-slate-500 hover:text-slate-700">
                         <X className="h-6 w-6" />
                     </button>
@@ -539,18 +574,31 @@ export const LessonClient = ({
                     </div>
                 </header>
 
+                {/* Transition Animation Overlay */}
+                {showTransition && (
+                    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white animate-in fade-in duration-300">
+                        <div className="w-80 h-80 animate-in zoom-in duration-500">
+                            <DuoAnimationLottie className="w-full h-full drop-shadow-2xl" />
+                        </div>
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-400 mt-4 animate-pulse">
+                            A carregar a próxima...
+                        </h2>
+                    </div>
+                )}
+
                 {/* Main content */}
-                <main className="mx-auto flex w-full max-w-[1140px] flex-1 flex-col items-center justify-center gap-y-8 px-6 py-12">
+                <main className="flex-1 overflow-y-auto min-h-0 w-full px-6 py-6 no-scrollbar">
+                    <div className="mx-auto flex w-full max-w-[1140px] min-h-full flex-col items-center justify-center gap-y-6">
 
                     {/* CONTEXT (Scenario) - Shows up if present */}
                     {currentChallenge.context && (
-                        <div className="w-full max-w-[600px] bg-slate-100 p-4 rounded-xl border-2 border-slate-200 text-center mb-[-20px] relative transition-colors duration-300">
-                            <span className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1 block">Contexto</span>
+                        <div className="w-full max-w-[600px] bg-sky-50/80 backdrop-blur-sm p-5 rounded-3xl border-2 border-sky-100/50 shadow-sm text-center mb-[-10px] relative transition-all duration-300">
+                            <span className="text-[11px] font-black text-sky-400 uppercase tracking-[0.2em] mb-2 block">Contexto</span>
                             <Button 
                                 variant="ghost" 
                                 className={cn(
-                                    "absolute top-2 right-2 rounded-full w-10 h-10 p-0 text-sky-500 bg-white border border-slate-200 shadow-sm transition-all hover:bg-slate-50",
-                                    isPlaying && "border-sky-300 bg-sky-50"
+                                    "absolute top-3 right-3 rounded-xl w-10 h-10 p-0 text-sky-500 bg-white border-2 border-slate-100 shadow-sm transition-all hover:bg-sky-50 hover:border-sky-200 hover:scale-105 active:scale-95",
+                                    isPlaying && playingText === currentChallenge.context && "border-sky-300 bg-sky-100 scale-105"
                                 )}
                                 onClick={() => playAudio(
                                     currentChallenge.context as string, 
@@ -558,22 +606,28 @@ export const LessonClient = ({
                                     currentChallenge.contextAudioLang || languageCode
                                 )}
                             >
-                                <Volume2 className={cn("h-5 w-5", isPlaying && "animate-pulse fill-sky-500/20")} />
+                                {isPlaying && playingText === currentChallenge.context ? (
+                                    <div className="w-4 h-4 bg-sky-500 rounded-sm animate-pulse" />
+                                ) : (
+                                    <Volume2 className="h-5 w-5" />
+                                )}
                             </Button>
-                            <p className="text-lg font-medium text-slate-700 italic mt-2">
+                            <p className="text-xl font-medium text-slate-700 mt-2 px-8 leading-relaxed">
                                 "{currentChallenge.context}"
                             </p>
+                            {/* Decorative tail for speech bubble effect */}
+                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-sky-50/80 border-r-2 border-b-2 border-sky-100/50 rotate-45 backdrop-blur-sm" />
                         </div>
                     )}
 
                     {/* Question */}
-                    <div className="flex flex-col gap-4 mb-4 items-center justify-center">
+                    <div className="flex flex-col gap-6 mb-6 items-center justify-center mt-4">
                         <div className="flex items-center gap-4">
                             <Button
                                 variant="ghost"
                                 className={cn(
-                                    "bg-white border-2 border-slate-200 w-24 h-24 rounded-full shadow-sm transition-all active:scale-95 hover:bg-slate-50",
-                                    isPlaying && "border-sky-400 bg-sky-50"
+                                    "bg-white border-2 border-slate-200 w-28 h-28 rounded-full shadow-md transition-all active:scale-95 hover:bg-slate-50 hover:border-sky-200 hover:shadow-lg",
+                                    isPlaying && playingText === currentChallenge.question && "border-sky-400 bg-sky-50 scale-105 shadow-sky-200"
                                 )}
                                 onClick={() => playAudio(
                                     currentChallenge.question, 
@@ -581,12 +635,16 @@ export const LessonClient = ({
                                     currentChallenge.questionAudioLang || languageCode
                                 )}
                             >
-                                <Volume2 className={cn("h-12 w-12 text-sky-500 fill-sky-500/20", isPlaying && "animate-pulse")} />
+                                {isPlaying && playingText === currentChallenge.question ? (
+                                    <div className="w-10 h-10 bg-sky-500 rounded-md animate-pulse" />
+                                ) : (
+                                    <Volume2 className="h-14 w-14 text-sky-500" />
+                                )}
                             </Button>
 
                             <Button
                                 variant="ghost"
-                                className="bg-white border-2 border-slate-200 w-12 h-12 rounded-xl shadow-sm hover:bg-slate-50 transition-transform active:scale-95"
+                                className="bg-white border-2 border-slate-200 w-14 h-14 rounded-2xl shadow-sm hover:bg-slate-50 hover:border-sky-200 transition-all active:scale-95"
                                 onClick={() => playAudio(
                                     currentChallenge.question, 
                                     0.5, 
@@ -596,7 +654,7 @@ export const LessonClient = ({
                                 <span className="text-2xl">🐢</span>
                             </Button>
                         </div>
-                        <h1 className="text-center text-2xl font-bold lg:text-3xl">
+                        <h1 className="text-center text-3xl font-extrabold lg:text-4xl text-slate-800 tracking-tight">
                             {currentChallenge.question}
                         </h1>
                     </div>
@@ -611,6 +669,7 @@ export const LessonClient = ({
                                 imageSrc={option.imageSrc}
                                 selected={selectedOption === option.id}
                                 disabled={status !== "none" || isPending}
+                                isCorrect={option.correct}
                                 status={
                                     status !== "none" && selectedOption === option.id
                                         ? status
@@ -622,12 +681,13 @@ export const LessonClient = ({
                             />
                         ))}
                     </div>
+                    </div>
                 </main>
 
                 {/* Footer */}
                 <footer
                     className={cn(
-                        "border-t-2 p-4 lg:p-8",
+                        "shrink-0 border-t-2 p-4 lg:p-8",
                         status === "correct" && "border-transparent bg-green-100",
                         status === "wrong" && "border-transparent bg-rose-100"
                     )}
