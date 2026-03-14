@@ -11,6 +11,7 @@ import { getLocaleForLanguage } from "@/lib/constants";
 
 import { PracticeSetup } from "@/components/practice-setup";
 import { AILoadingScreen } from "@/components/ui/ai-loading-screen";
+import { InteractiveText } from "@/components/ui/interactive-text";
 
 // Add support for Web Speech API types
 interface IWindow extends Window {
@@ -289,7 +290,9 @@ export default function SpeakingPracticePage() {
                     )}
                 </div>
                 <div>
-                    <p className="text-xl font-medium text-slate-800">{promptData?.scenario}</p>
+                    <div className="text-xl font-medium text-slate-800">
+                        <InteractiveText text={promptData?.scenario} language={config?.language} />
+                    </div>
                     <p className="mt-1 text-sm text-slate-500">{promptData?.translation}</p>
 
                     {promptData?.rules && promptData.rules.length > 0 && (

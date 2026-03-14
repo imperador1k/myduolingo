@@ -10,6 +10,7 @@ import { StreakModal } from "@/components/modals/streak-modal";
 import { useTTS } from "@/hooks/use-tts";
 import { useUISounds } from "@/hooks/use-ui-sounds";
 import { BearDanceLottie, StarAngryLottie, HappyStarLottie, DuoAnimationLottie, LaughingCatLottie } from "@/components/lottie-animation";
+import { InteractiveText } from "@/components/ui/interactive-text";
 
 // Types
 type ChallengeOption = {
@@ -47,6 +48,7 @@ type Props = {
     xpBoostLessons: number;
     heartShields: number;
     languageCode: string;
+    language: string;
     isClinic?: boolean;
 };
 
@@ -148,6 +150,7 @@ export const LessonClient = ({
     xpBoostLessons,
     heartShields,
     languageCode,
+    language,
     isClinic
 }: Props) => {
     const router = useRouter();
@@ -616,9 +619,9 @@ export const LessonClient = ({
                                     <Volume2 className="h-5 w-5" />
                                 )}
                             </Button>
-                            <p className="text-xl font-medium text-slate-700 mt-2 px-8 leading-relaxed">
-                                "{currentChallenge.context}"
-                            </p>
+                            <div className="text-xl font-medium text-slate-700 mt-2 px-8 leading-relaxed">
+                                &quot;<InteractiveText text={currentChallenge.context} language={language} />&quot;
+                            </div>
                             {/* Decorative tail for speech bubble effect */}
                             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-sky-50/80 border-r-2 border-b-2 border-sky-100/50 rotate-45 backdrop-blur-sm" />
                         </div>
@@ -658,9 +661,9 @@ export const LessonClient = ({
                                 <span className="text-2xl">🐢</span>
                             </Button>
                         </div>
-                        <h1 className="text-center text-3xl font-extrabold lg:text-4xl text-slate-800 tracking-tight">
-                            {currentChallenge.question}
-                        </h1>
+                        <div className="text-center text-3xl font-extrabold lg:text-4xl text-slate-800 tracking-tight">
+                            <InteractiveText text={currentChallenge.question} language={language} />
+                        </div>
                     </div>
 
                     {/* Options */}

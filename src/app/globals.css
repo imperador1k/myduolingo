@@ -118,6 +118,20 @@ body,
   .pulse-heart {
     animation: pulse-heart 0.3s ease-in-out;
   }
+
+  /* 3D Flip Effects */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
 }
 
 @keyframes shake {

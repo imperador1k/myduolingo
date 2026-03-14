@@ -263,3 +263,23 @@ export const challengeMistakesRelations = relations(challengeMistakes, ({ one })
         references: [challenges.id],
     }),
 }));
+
+// ===== USER VOCABULARY (Vault/Cofre) =====
+export const userVocabulary = pgTable("user_vocabulary", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    word: text("word").notNull(),
+    translation: text("translation").notNull(),
+    explanation: text("explanation").notNull().default(""),
+    contextSentence: text("context_sentence").notNull(),
+    language: text("language").notNull().default("English"),
+    strength: integer("strength").notNull().default(1), // Gamification: 1=Seed, 4=Mastered
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userVocabularyRelations = relations(userVocabulary, ({ one }) => ({
+    user: one(userProgress, {
+        fields: [userVocabulary.userId],
+        references: [userProgress.userId],
+    }),
+}));

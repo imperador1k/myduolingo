@@ -15,11 +15,29 @@ import {
     follows,
     notifications,
     messages,
-    challengeMistakes
+    challengeMistakes,
+    userVocabulary
 } from "./schema";
 
 
 // ============ USER PROGRESS ============
+
+// ============ USER PROGRESS ============
+
+export const getUserVocabulary = cache(async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        return [];
+    }
+
+    const data = await db.query.userVocabulary.findMany({
+        where: eq(userVocabulary.userId, userId),
+        orderBy: [desc(userVocabulary.createdAt)],
+    });
+
+    return data;
+});
 
 export const getUserProgress = cache(async () => {
     const { userId } = await auth();
@@ -1257,3 +1275,21 @@ export const completeClinicLesson = async () => {
 
     return { hearts: newHearts };
 };
+
+// ============ VOCABULARY SPRINT ============
+
+export const getWeakVocabulary = cache(async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        return [];
+    }
+
+    const data = await db.query.userVocabulary.findMany({
+        where: eq(userVocabulary.userId, userId),
+        orderBy: [asc(userVocabulary.strength), desc(userVocabulary.createdAt)],
+        limit: 10,
+    });
+
+    return data;
+});

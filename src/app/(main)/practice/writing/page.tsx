@@ -10,6 +10,7 @@ import { Loader2, RefreshCw, Send, Sparkles, Shuffle, Target, CheckCircle2 } fro
 import { cn } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
 import { PracticeSetup } from "@/components/practice-setup";
+import { InteractiveText } from "@/components/ui/interactive-text";
 
 export default function WritingPracticePage() {
     const [promptData, setPromptData] = useState<{ scenario: string; translation: string; rules: string[]; hints?: string[]; languageCode?: string } | null>(null);
@@ -198,7 +199,9 @@ export default function WritingPracticePage() {
                     <h2 className="font-bold uppercase tracking-wide">Tópico Sugerido</h2>
                 </div>
                 <div>
-                    <p className="text-xl font-medium text-slate-800">{promptData?.scenario}</p>
+                    <div className="text-xl font-medium text-slate-800">
+                        <InteractiveText text={promptData?.scenario} language={config?.language} />
+                    </div>
                     <p className="mt-1 text-sm text-slate-500">{promptData?.translation}</p>
 
                     {promptData?.rules && promptData.rules.length > 0 && (

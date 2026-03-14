@@ -34,6 +34,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SUPPORTED_LANGUAGES, getLocaleForLanguage } from "@/lib/constants";
 import Link from "next/link";
+import { InteractiveText } from "@/components/ui/interactive-text";
 
 // ============================================================
 // TYPES
@@ -461,7 +462,7 @@ export default function EvaluationPage() {
                         )}
                         {phase === "welcome" && (
                             <div className="flex-1 flex justify-center sm:justify-start">
-                                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest sm:hidden opacity-0">Back</span>
+                                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest sm:hidden opacity-0">Voltar</span>
                             </div>
                         )}
                     </div>
@@ -477,13 +478,13 @@ export default function EvaluationPage() {
                             <Sparkles className="h-5 w-5 text-amber-400 absolute -top-1 -right-1 animate-bounce" />
                         </div>
                         <p className="text-lg font-bold text-slate-600">
-                            {phase === "welcome" && "Generating your test..."}
-                            {phase === "grammar" && "Preparing reading exercises..."}
-                            {phase === "reading" && "Preparing listening exercises..."}
-                            {phase === "listening" && "Creating writing prompt..."}
-                            {phase === "writing" && "AI is evaluating your writing..."}
+                            {phase === "welcome" && "A gerar o teu teste..."}
+                            {phase === "grammar" && "A preparar exercícios de leitura..."}
+                            {phase === "reading" && "A preparar exercícios de audição..."}
+                            {phase === "listening" && "A criar tema de escrita..."}
+                            {phase === "writing" && "A IA está a avaliar a tua redação..."}
                         </p>
-                        <p className="text-sm text-slate-400">Powered by AI ✨</p>
+                        <p className="text-sm text-slate-400">Desenvolvido por IA ✨</p>
                     </div>
                 </div>
             )}
@@ -500,10 +501,10 @@ export default function EvaluationPage() {
                                     <GraduationCap className="h-12 w-12 text-white" />
                                 </div>
                                 <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-3">
-                                    CEFR Placement Test
+                                    Teste de Nível CEFR
                                 </h1>
                                 <p className="text-slate-500 text-lg max-w-md mx-auto">
-                                    Discover your language level in 4 phases. The test adapts to your skills in real-time.
+                                    Descobre o teu nível de idioma em 4 fases. O teste adapta-se às tuas capacidades em tempo real.
                                 </p>
                             </div>
 
@@ -511,7 +512,7 @@ export default function EvaluationPage() {
                             <div className="bg-white rounded-2xl border-2 border-slate-100 p-6 mb-6">
                                 <div className="flex items-center gap-2 mb-3 text-sky-500">
                                     <Globe className="h-4 w-4" />
-                                    <span className="text-xs font-bold uppercase tracking-wider">Target Language</span>
+                                    <span className="text-xs font-bold uppercase tracking-wider">Idioma Alvo</span>
                                 </div>
                                 {languageLoaded ? (
                                     <select
@@ -529,16 +530,16 @@ export default function EvaluationPage() {
                                     <div className="w-full h-12 rounded-xl bg-slate-100 animate-pulse" />
                                 )}
                                 <p className="text-xs text-slate-400 mt-2">
-                                    Auto-detected from your active course. You can change it.
+                                    Detetado automaticamente do teu curso ativo. Podes alterá-lo.
                                 </p>
                             </div>
 
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                                 {[
-                                    { icon: GraduationCap, label: "Grammar", desc: "15 questions", color: "bg-emerald-100 text-emerald-600" },
-                                    { icon: BookOpen, label: "Reading", desc: "3 passages", color: "bg-sky-100 text-sky-600" },
-                                    { icon: Headphones, label: "Listening", desc: "3 audio", color: "bg-indigo-100 text-indigo-600" },
-                                    { icon: PenTool, label: "Writing", desc: "1 essay", color: "bg-amber-100 text-amber-600" },
+                                    { icon: GraduationCap, label: "Gramática", desc: "15 questões", color: "bg-emerald-100 text-emerald-600" },
+                                    { icon: BookOpen, label: "Leitura", desc: "3 textos", color: "bg-sky-100 text-sky-600" },
+                                    { icon: Headphones, label: "Audição", desc: "3 áudios", color: "bg-indigo-100 text-indigo-600" },
+                                    { icon: PenTool, label: "Escrita", desc: "1 redação", color: "bg-amber-100 text-amber-600" },
                                 ].map(({ icon: Icon, label, desc, color }) => (
                                     <div
                                         key={label}
@@ -560,11 +561,11 @@ export default function EvaluationPage() {
                             >
                                 {isLoading ? (
                                     <span className="flex items-center justify-center gap-2">
-                                        <Loader2 className="h-5 w-5 animate-spin" /> Generating test...
+                                        <Loader2 className="h-5 w-5 animate-spin" /> A gerar o teste...
                                     </span>
                                 ) : (
                                     <span className="flex items-center justify-center gap-2">
-                                        Start Test <ArrowRight className="h-5 w-5" />
+                                        Começar Teste <ArrowRight className="h-5 w-5" />
                                     </span>
                                 )}
                             </button>
@@ -580,9 +581,9 @@ export default function EvaluationPage() {
                                         <GraduationCap className="h-5 w-5 text-emerald-600" />
                                     </div>
                                     <div>
-                                        <h2 className="font-bold text-slate-700">Phase 1: Grammar & Vocabulary</h2>
+                                        <h2 className="font-bold text-slate-700">Fase 1: Gramática e Vocabulário</h2>
                                         <p className="text-xs text-slate-400">
-                                            Question {questionsAnswered + 1} of {GRAMMAR_QUESTION_COUNT}
+                                            Questão {questionsAnswered + 1} de {GRAMMAR_QUESTION_COUNT}
                                         </p>
                                     </div>
                                 </div>
@@ -607,9 +608,9 @@ export default function EvaluationPage() {
                             </div>
 
                             <div className="bg-white rounded-2xl border-2 border-slate-100 p-6 shadow-sm mb-6">
-                                <p className="text-xl font-bold text-slate-800 text-center leading-relaxed">
-                                    {activeQuestion.question}
-                                </p>
+                                <div className="text-xl font-bold text-slate-800 text-center leading-relaxed">
+                                    <InteractiveText text={activeQuestion.question} language={targetLanguage} />
+                                </div>
                             </div>
 
                             <div className="grid gap-3">
@@ -655,9 +656,9 @@ export default function EvaluationPage() {
                                         <BookOpen className="h-5 w-5 text-sky-600" />
                                     </div>
                                     <div>
-                                        <h2 className="font-bold text-slate-700">Phase 2: Reading</h2>
+                                        <h2 className="font-bold text-slate-700">Fase 2: Leitura</h2>
                                         <p className="text-xs text-slate-400">
-                                            Passage {readingExIdx + 1} of {readingExercises.length} · Q{readingQIdx + 1}
+                                            Texto {readingExIdx + 1} de {readingExercises.length} · Q{readingQIdx + 1}
                                         </p>
                                     </div>
                                 </div>
@@ -667,10 +668,14 @@ export default function EvaluationPage() {
                             </div>
 
                             <div className="bg-white rounded-2xl border-2 border-slate-100 p-5 shadow-sm mb-6 max-h-[250px] overflow-y-auto">
-                                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap text-sm">{currentReadingEx.text}</p>
+                                <div className="text-slate-700 leading-relaxed whitespace-pre-wrap text-sm">
+                                    <InteractiveText text={currentReadingEx.text} language={targetLanguage} />
+                                </div>
                             </div>
 
-                            <p className="text-lg font-bold text-slate-800 mb-4">{currentReadingQ.question}</p>
+                            <div className="text-lg font-bold text-slate-800 mb-4">
+                                <InteractiveText text={currentReadingQ.question} language={targetLanguage} />
+                            </div>
 
                             <div className="grid gap-3">
                                 {currentReadingQ.options.map((option, idx) => {
@@ -714,9 +719,9 @@ export default function EvaluationPage() {
                                         <Headphones className="h-5 w-5 text-indigo-600" />
                                     </div>
                                     <div>
-                                        <h2 className="font-bold text-slate-700">Phase 3: Listening</h2>
+                                        <h2 className="font-bold text-slate-700">Fase 3: Audição</h2>
                                         <p className="text-xs text-slate-400">
-                                            Audio {listeningExIdx + 1} of {listeningExercises.length} · Q{listeningQIdx + 1}
+                                            Áudio {listeningExIdx + 1} de {listeningExercises.length} · Q{listeningQIdx + 1}
                                         </p>
                                     </div>
                                 </div>
@@ -729,8 +734,8 @@ export default function EvaluationPage() {
                             <div className="bg-gradient-to-r from-indigo-500 to-violet-500 rounded-2xl p-6 mb-6 text-white shadow-lg shadow-indigo-200">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-indigo-100 text-sm font-medium">Audio Passage {listeningExIdx + 1}</p>
-                                        <p className="text-xs text-indigo-200 mt-1">Tap to play. You can replay.</p>
+                                        <p className="text-indigo-100 text-sm font-medium">Passagem de Áudio {listeningExIdx + 1}</p>
+                                        <p className="text-xs text-indigo-200 mt-1">Toca para ouvir. Podes repetir.</p>
                                     </div>
                                     <button
                                         onClick={handlePlayTTS}
@@ -751,7 +756,9 @@ export default function EvaluationPage() {
                                 )}
                             </div>
 
-                            <p className="text-lg font-bold text-slate-800 mb-4">{currentListeningQ.question}</p>
+                            <div className="text-lg font-bold text-slate-800 mb-4">
+                                <InteractiveText text={currentListeningQ.question} language={targetLanguage} />
+                            </div>
 
                             <div className="grid gap-3">
                                 {currentListeningQ.options.map((option, idx) => {
@@ -792,31 +799,35 @@ export default function EvaluationPage() {
                                     <PenTool className="h-5 w-5 text-amber-600" />
                                 </div>
                                 <div>
-                                    <h2 className="font-bold text-slate-700">Phase 4: Writing</h2>
-                                    <p className="text-xs text-slate-400">Write approximately 50 words in {targetLanguage}</p>
+                                    <h2 className="font-bold text-slate-700">Fase 4: Escrita</h2>
+                                    <p className="text-xs text-slate-400">Escreve aproximadamente 50 palavras em {targetLanguage}</p>
                                 </div>
                             </div>
 
                             <div className="bg-white rounded-2xl border-2 border-slate-100 p-6 shadow-sm mb-6">
                                 <div className="flex items-center gap-2 mb-3 text-amber-500">
                                     <Sparkles className="h-4 w-4" />
-                                    <span className="text-xs font-bold uppercase tracking-wider">Topic</span>
+                                    <span className="text-xs font-bold uppercase tracking-wider">Tema</span>
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-800 mb-2">{writingTopic.topic}</h3>
-                                <p className="text-slate-500">{writingTopic.instruction}</p>
+                                <div className="text-xl font-bold text-slate-800 mb-2">
+                                    <InteractiveText text={writingTopic.topic} language={targetLanguage} />
+                                </div>
+                                <div className="text-slate-500">
+                                    <InteractiveText text={writingTopic.instruction} language={targetLanguage} />
+                                </div>
                             </div>
 
                             <div className="mb-4">
                                 <textarea
                                     value={writingText}
                                     onChange={(e) => setWritingText(e.target.value)}
-                                    placeholder={`Write your response here in ${targetLanguage}...`}
+                                    placeholder={`Escreve a tua resposta aqui em ${targetLanguage}...`}
                                     className="w-full min-h-[200px] p-4 rounded-xl border-2 border-slate-200 bg-slate-50 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
                                     disabled={isLoading}
                                 />
                                 <div className="flex justify-between mt-2">
-                                    <p className="text-xs text-slate-400">{writingText.trim().split(/\s+/).filter(Boolean).length} words</p>
-                                    <p className="text-xs text-slate-400">Target: ~50 words</p>
+                                    <p className="text-xs text-slate-400">{writingText.trim().split(/\s+/).filter(Boolean).length} palavras</p>
+                                    <p className="text-xs text-slate-400">Objetivo: ~50 palavras</p>
                                 </div>
                             </div>
 
@@ -826,9 +837,9 @@ export default function EvaluationPage() {
                                 className="w-full py-4 px-6 bg-gradient-to-r from-amber-400 to-orange-500 text-white font-extrabold text-lg rounded-2xl shadow-lg shadow-amber-200 hover:shadow-xl hover:scale-[1.02] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed border-b-4 border-amber-600 active:border-b-2"
                             >
                                 {isLoading ? (
-                                    <span className="flex items-center justify-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Evaluating...</span>
+                                    <span className="flex items-center justify-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> A avaliar...</span>
                                 ) : (
-                                    <span className="flex items-center justify-center gap-2">Submit & Get Results <ArrowRight className="h-5 w-5" /></span>
+                                    <span className="flex items-center justify-center gap-2">Submeter e Obter Resultados <ArrowRight className="h-5 w-5" /></span>
                                 )}
                             </button>
                         </div>
@@ -860,22 +871,22 @@ export default function EvaluationPage() {
                                         <Star className="h-8 w-8 text-amber-400 fill-amber-400 drop-shadow-md" />
                                     </div>
                                 </div>
-                                <h1 className="text-3xl font-extrabold text-slate-800 mb-2">🎉 Congratulations!</h1>
+                                <h1 className="text-3xl font-extrabold text-slate-800 mb-2">🎉 Parabéns!</h1>
                                 <p className="text-slate-500 text-lg">
-                                    Your {targetLanguage} level is <span className="font-extrabold text-slate-800">{finalLevel}</span>
+                                    O teu nível de {targetLanguage} é <span className="font-extrabold text-slate-800">{finalLevel}</span>
                                 </p>
                             </div>
 
                             <div className="bg-white rounded-2xl border-2 border-slate-100 p-6 shadow-sm mb-6">
                                 <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                                    <Trophy className="h-5 w-5 text-amber-500" /> Performance Breakdown
+                                    <Trophy className="h-5 w-5 text-amber-500" /> Análise de Desempenho
                                 </h3>
                                 <div className="space-y-4">
                                     {[
-                                        { icon: GraduationCap, label: "Grammar & Vocabulary", detail: `${grammarAnswers.filter((a) => a.correct).length}/${GRAMMAR_QUESTION_COUNT} correct`, score: `${phaseResults.grammar.score}%`, color: "bg-emerald-100 text-emerald-600" },
-                                        { icon: BookOpen, label: "Reading", detail: `${phaseResults.reading.correctCount}/${phaseResults.reading.totalCount} correct`, score: `${phaseResults.reading.score}%`, color: "bg-sky-100 text-sky-600" },
-                                        { icon: Headphones, label: "Listening", detail: `${phaseResults.listening.correctCount}/${phaseResults.listening.totalCount} correct`, score: `${phaseResults.listening.score}%`, color: "bg-indigo-100 text-indigo-600" },
-                                        { icon: PenTool, label: "Writing", detail: "AI evaluated", score: "✓", color: "bg-amber-100 text-amber-600" },
+                                        { icon: GraduationCap, label: "Gramática e Vocabulário", detail: `${grammarAnswers.filter((a) => a.correct).length}/${GRAMMAR_QUESTION_COUNT} corretas`, score: `${phaseResults.grammar.score}%`, color: "bg-emerald-100 text-emerald-600" },
+                                        { icon: BookOpen, label: "Leitura", detail: `${phaseResults.reading.correctCount}/${phaseResults.reading.totalCount} corretas`, score: `${phaseResults.reading.score}%`, color: "bg-sky-100 text-sky-600" },
+                                        { icon: Headphones, label: "Audição", detail: `${phaseResults.listening.correctCount}/${phaseResults.listening.totalCount} corretas`, score: `${phaseResults.listening.score}%`, color: "bg-indigo-100 text-indigo-600" },
+                                        { icon: PenTool, label: "Escrita", detail: "Avaliado pela IA", score: "✓", color: "bg-amber-100 text-amber-600" },
                                     ].map(({ icon: Icon, label, detail, score, color }) => (
                                         <div key={label} className="flex items-center gap-3">
                                             <div className={cn("p-2 rounded-lg", color)}><Icon className="h-4 w-4" /></div>
@@ -892,7 +903,7 @@ export default function EvaluationPage() {
                             {gradeResult?.feedback && (
                                 <div className="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-2xl border-2 border-violet-100 p-6 mb-6">
                                     <h3 className="font-bold text-violet-700 mb-2 flex items-center gap-2">
-                                        <Sparkles className="h-4 w-4" /> AI Feedback
+                                        <Sparkles className="h-4 w-4" /> Feedback da IA
                                     </h3>
                                     <p className="text-slate-600 leading-relaxed">{gradeResult.feedback}</p>
                                 </div>
@@ -900,10 +911,10 @@ export default function EvaluationPage() {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <Link href="/learn" className="flex items-center justify-center gap-2 py-4 px-6 bg-white border-2 border-slate-200 border-b-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-all active:border-b-2">
-                                    <Home className="h-5 w-5" /> Home
+                                    <Home className="h-5 w-5" /> Início
                                 </Link>
                                 <Link href="/practice" className="flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-green-400 to-emerald-500 text-white font-bold rounded-2xl border-b-4 border-green-600 hover:shadow-lg transition-all active:border-b-2">
-                                    Practice <ArrowRight className="h-5 w-5" />
+                                    Praticar <ArrowRight className="h-5 w-5" />
                                 </Link>
                             </div>
                         </div>
@@ -921,10 +932,10 @@ export default function EvaluationPage() {
                             </div>
                             <div className="min-w-0">
                                 <p className={cn("font-extrabold text-lg", feedbackIsCorrect ? "text-green-700" : "text-red-700")}>
-                                    {feedbackIsCorrect ? "Correct! 🎉" : "Incorrect 😔"}
+                                    {feedbackIsCorrect ? "Correto! 🎉" : "Incorreto 😔"}
                                 </p>
                                 <p className={cn("text-sm truncate", feedbackIsCorrect ? "text-green-600" : "text-red-600")}>
-                                    {feedbackIsCorrect ? "Great job! Keep going!" : "Don't worry, keep going!"}
+                                    {feedbackIsCorrect ? "Bom trabalho! Continua!" : "Não te preocupes, continua!"}
                                 </p>
                             </div>
                         </div>
@@ -932,7 +943,7 @@ export default function EvaluationPage() {
                             onClick={handleContinue}
                             className={cn("shrink-0 px-6 py-3 rounded-2xl font-extrabold text-white shadow-md border-b-4 transition-all hover:scale-[1.03] active:scale-[0.97] active:border-b-2", feedbackIsCorrect ? "bg-green-500 border-green-700 hover:bg-green-600" : "bg-red-500 border-red-700 hover:bg-red-600")}
                         >
-                            Continue <span className="hidden sm:inline text-xs ml-1 opacity-70">↵</span>
+                            Continuar <span className="hidden sm:inline text-xs ml-1 opacity-70">↵</span>
                         </button>
                     </div>
                 </div>

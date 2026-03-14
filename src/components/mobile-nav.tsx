@@ -18,6 +18,7 @@ import {
     MessageSquare,
     Dumbbell,
     GraduationCap,
+    Archive,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -140,6 +141,13 @@ export const MobileNav = ({ notificationCount, unreadMessageCount }: MobileNavPr
                                 icon={<Settings className="h-6 w-6" />}
                                 label="Defin."
                                 isActive={pathname === "/settings"}
+                                onClick={closeMenu}
+                            />
+                            <MobileItem
+                                href="/vocabulary"
+                                icon={<Archive className="h-6 w-6" />}
+                                label="Cofre"
+                                isActive={pathname === "/vocabulary"}
                                 onClick={closeMenu}
                             />
                             <MobileItem

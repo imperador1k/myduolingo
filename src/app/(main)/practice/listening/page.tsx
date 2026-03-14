@@ -12,6 +12,7 @@ import { getLocaleForLanguage } from "@/lib/constants";
 
 import { PracticeSetup } from "@/components/practice-setup";
 import { AILoadingScreen } from "@/components/ui/ai-loading-screen";
+import { InteractiveText } from "@/components/ui/interactive-text";
 
 export default function ListeningPracticePage() {
     const [scriptData, setScriptData] = useState<{ script: string; topic: string; questions?: string[] } | null>(null);
@@ -416,9 +417,9 @@ export default function ListeningPracticePage() {
                             : "bg-slate-100 border-slate-200 flex items-center justify-center"
                     )}>
                         {showScript && scriptData ? (
-                            <p className="text-lg leading-relaxed text-slate-700 whitespace-pre-wrap">
-                                {scriptData.script}
-                            </p>
+                            <div className="text-lg leading-relaxed text-slate-700 whitespace-pre-wrap">
+                                <InteractiveText text={scriptData.script} language={config?.language} />
+                            </div>
                         ) : (
                             <div className="text-center text-slate-400">
                                 <EyeOff className="h-12 w-12 mx-auto mb-2 opacity-50" />

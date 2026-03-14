@@ -16,6 +16,7 @@ import {
     Dumbbell,
     GraduationCap,
     Settings,
+    Archive,
 } from "lucide-react";
 import { useUISounds } from "@/hooks/use-ui-sounds";
 
@@ -36,7 +37,7 @@ const SidebarItem = ({ label, iconSrc, href, notificationCount }: SidebarItemPro
             <div
                 onClick={() => playClick()}
                 className={cn(
-                    "flex items-center gap-x-3 rounded-xl px-4 py-3 text-slate-500 transition-all hover:bg-slate-100",
+                    "flex items-center gap-x-3 rounded-xl px-3 py-2.5 text-slate-500 transition-all hover:bg-slate-100",
                     isActive && "bg-sky-500/15 text-sky-500 border-2 border-sky-300"
                 )}
             >
@@ -62,10 +63,10 @@ type Props = {
 
 export const Sidebar = ({ className, notificationCount, unreadMessageCount }: Props) => {
     return (
-        <div className={cn("fixed left-0 top-0 hidden h-full w-[256px] flex-col border-r-2 px-4 lg:flex", className)}>
+        <div className={cn("fixed left-0 top-0 hidden h-full w-[256px] flex-col border-r-2 px-4 lg:flex overflow-y-auto custom-scrollbar pb-4", className)}>
             {/* Logo */}
             <Link href="/learn">
-                <div className="flex items-center gap-x-3 pb-7 pl-4 pt-8">
+                <div className="flex items-center gap-x-3 pb-5 pl-4 pt-6">
                     <Image src="/mascot.svg" height={40} width={40} alt="Mascot" />
                     <h1 className="text-2xl font-extrabold tracking-wide text-green-600">
                         Duolingo
@@ -74,7 +75,7 @@ export const Sidebar = ({ className, notificationCount, unreadMessageCount }: Pr
             </Link>
 
             {/* Navigation */}
-            <div className="flex flex-1 flex-col gap-y-2">
+            <div className="flex flex-1 flex-col gap-y-1">
                 <SidebarItem
                     label="Aprender"
                     href="/learn"
@@ -89,6 +90,11 @@ export const Sidebar = ({ className, notificationCount, unreadMessageCount }: Pr
                     label="Praticar AI"
                     href="/practice"
                     iconSrc={<Dumbbell className="h-6 w-6" />}
+                />
+                <SidebarItem
+                    label="Cofre"
+                    href="/vocabulary"
+                    iconSrc={<Archive className="h-6 w-6" />}
                 />
                 <SidebarItem
                     label="Avaliação"
