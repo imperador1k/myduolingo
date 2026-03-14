@@ -2,6 +2,7 @@ import { getCourses, getUserProgress } from "@/db/queries";
 import { CoursesList } from "./courses-list";
 import { BookOpen, Flame, Target, Trophy, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { BroomLottie } from "@/components/lottie-animation";
 
 export const dynamic = "force-dynamic";
 
@@ -99,7 +100,7 @@ export default async function CoursesPage() {
             <div className="flex flex-col gap-3">
                 <h2 className="text-sm font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-2 px-2">
                     <BookOpen className="h-4 w-4" />
-                    {courses.length > 0 ? "Catálogo Completo" : "Nenhum curso disponível"}
+                    {courses.length > 0 ? "Catálogo" : "Nenhum curso disponível"}
                 </h2>
 
                 <CoursesList
@@ -108,21 +109,21 @@ export default async function CoursesPage() {
                 />
             </div>
 
-            {/* Coming Soon */}
-            <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-gradient-to-br from-slate-50 to-slate-100 p-8 text-center">
-                <div className="absolute -right-4 -top-4 text-8xl opacity-10">🚀</div>
-                <div className="relative">
-                    <p className="text-xl font-bold text-slate-500 mb-2">🚀 Mais idiomas em breve!</p>
-                    <p className="text-sm text-slate-400">
-                        Espanhol, Francês, Italiano, Alemão, Japonês...
-                    </p>
-                    <div className="flex justify-center gap-3 mt-4 text-2xl">
-                        <span className="opacity-50 hover:opacity-100 transition-opacity cursor-pointer">🇪🇸</span>
-                        <span className="opacity-50 hover:opacity-100 transition-opacity cursor-pointer">🇫🇷</span>
-                        <span className="opacity-50 hover:opacity-100 transition-opacity cursor-pointer">🇮🇹</span>
-                        <span className="opacity-50 hover:opacity-100 transition-opacity cursor-pointer">🇩🇪</span>
-                        <span className="opacity-50 hover:opacity-100 transition-opacity cursor-pointer">🇯🇵</span>
-                    </div>
+            {/* Coming Soon Section */}
+            <div className="w-full flex flex-col items-center justify-center mt-16 pb-12 opacity-80">
+                <div className="w-32 h-32 mb-2 relative">
+                    <BroomLottie className="w-full h-full drop-shadow-sm" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-500 mt-4">Estamos a preparar mais idiomas!</h3>
+                <p className="text-sm text-slate-400 mt-2 text-center max-w-md">
+                    Espanhol, Francês, Italiano, Alemão, Japonês e muitos mais estão a ser limados nos nossos estúdios.
+                </p>
+                <div className="flex justify-center gap-3 mt-4 text-2xl">
+                    <span className="opacity-50 transition-opacity">🇪🇸</span>
+                    <span className="opacity-50 transition-opacity">🇫🇷</span>
+                    <span className="opacity-50 transition-opacity">🇮🇹</span>
+                    <span className="opacity-50 transition-opacity">🇩🇪</span>
+                    <span className="opacity-50 transition-opacity">🇯🇵</span>
                 </div>
             </div>
         </div>

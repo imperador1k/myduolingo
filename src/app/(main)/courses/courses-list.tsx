@@ -112,14 +112,14 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
                 const data = getLanguageData(langCourses[0]?.title || languageLabel, languageLabel);
 
                 return (
-                    <div key={languageLabel} className="space-y-4">
-                        <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100">
-                            <span className="text-3xl">{data.flag}</span>
-                            <h2 className="text-xl font-bold text-slate-700">
+                    <div key={languageLabel} className="space-y-6">
+                        <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100">
+                            <span className="text-3xl drop-shadow-sm">{data.flag}</span>
+                            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
                                 Aprender {languageLabel}
                             </h2>
                         </div>
-                        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
                             {langCourses.map((course) => {
                                 const isSelected = selectedCourse === course.id;
                                 const isActive = activeCourseId === course.id;
@@ -130,74 +130,76 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
                                         onClick={() => handleSelect(course.id)}
                                         disabled={isPending}
                                         className={cn(
-                                            "group relative overflow-hidden rounded-2xl border-2 p-5 transition-all duration-300",
-                                            "hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]",
-                                            isSelected
-                                                ? "border-green-500 bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg shadow-green-500/20"
-                                                : "border-slate-200 bg-white hover:border-slate-300",
-                                            isPending && "opacity-50 cursor-not-allowed"
+                                            "group relative overflow-hidden bg-white border-2 border-slate-200 rounded-2xl p-5 text-left transition-all duration-300 cursor-pointer",
+                                            "hover:border-sky-400 hover:shadow-md hover:-translate-y-1 active:scale-[0.98]",
+                                            isSelected && "border-green-500 bg-green-50/50 shadow-md shadow-green-500/10 hover:border-green-500",
+                                            isPending && "opacity-50 cursor-not-allowed transform-none hover:shadow-none hover:border-slate-200"
                                         )}
                                     >
-                                        {/* Gradient background decoration */}
+                                        {/* Background gradient hint */}
                                         <div
                                             className={cn(
-                                                "absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-20 blur-2xl transition-opacity",
-                                                `bg-gradient-to-br ${data.gradient}`,
-                                                isSelected ? "opacity-40" : "group-hover:opacity-30"
+                                                "absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-20",
+                                                `bg-gradient-to-br ${data.gradient}`
                                             )}
                                         />
 
-                                        <div className="relative flex items-center gap-4">
-                                            {/* Flag or Image */}
-                                            <div 
-                                                className={cn(
-                                                    "relative flex h-16 w-16 items-center justify-center rounded-xl text-4xl transition-transform overflow-hidden",
-                                                    "bg-gradient-to-br from-slate-50 to-slate-100 shadow-inner",
-                                                    "group-hover:scale-110 group-hover:rotate-3"
-                                                )}
-                                            >
-                                                {course.imageSrc && course.imageSrc.startsWith("http") ? (
-                                                    <img src={course.imageSrc} alt={course.title} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    data.flag
-                                                )}
-                                            </div>
-
-                                            {/* Course info */}
-                                            <div className="flex-1 text-left">
-                                                <h3 className="font-bold text-slate-700 text-lg">{course.title}</h3>
-                                                <p className="text-sm text-slate-400 italic">{data.nativeName}</p>
-                                                <p className={cn(
-                                                    "mt-1 text-xs font-medium",
-                                                    isSelected ? "text-green-600" : "text-slate-500"
-                                                )}>
-                                                    {data.greeting}
-                                                </p>
-                                            </div>
-
-                                            {/* Status indicator */}
-                                            {isSelected && (
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 shadow-lg shadow-green-500/30">
-                                                    <Check className="h-5 w-5 text-white" />
+                                        <div className="relative flex flex-col items-start gap-4">
+                                            {/* Top Row: Icon/Flag + Status Icons */}
+                                            <div className="flex w-full items-start justify-between">
+                                                <div 
+                                                    className={cn(
+                                                        "relative flex h-14 w-14 items-center justify-center rounded-xl text-3xl transition-transform duration-300 overflow-hidden",
+                                                        "bg-slate-50 border border-slate-100 shadow-sm",
+                                                        "group-hover:scale-110 group-hover:-rotate-3"
+                                                    )}
+                                                >
+                                                    {course.imageSrc && course.imageSrc.startsWith("http") ? (
+                                                        <img src={course.imageSrc} alt={course.title} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span className="drop-shadow-sm">{data.flag}</span>
+                                                    )}
                                                 </div>
-                                            )}
+
+                                                <div className="flex flex-col items-end gap-2">
+                                                    {isActive && (
+                                                        <div className="flex items-center gap-1 rounded-full bg-amber-100 text-amber-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wider">
+                                                            <Sparkles className="h-3 w-3" />
+                                                            Ativo
+                                                        </div>
+                                                    )}
+                                                    {isSelected && !isActive && (
+                                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500 shadow-sm">
+                                                            <Check className="h-4 w-4 text-white" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Bottom Row: Text Info */}
+                                            <div className="flex flex-col gap-1 z-10">
+                                                <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-sky-600 transition-colors">
+                                                    {course.title}
+                                                </h3>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-sm font-medium text-slate-500">
+                                                        {data.nativeName}
+                                                    </p>
+                                                    <span className="text-slate-300 text-xs">•</span>
+                                                    <p className="text-xs font-bold text-sky-500 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 transform duration-300">
+                                                        {data.greeting}
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        {/* Active course badge */}
-                                        {isActive && (
-                                            <div className="absolute -right-1 -top-1 flex items-center gap-1 rounded-bl-xl rounded-tr-xl bg-gradient-to-r from-amber-400 to-orange-400 px-3 py-1 text-xs font-bold text-white shadow-lg">
-                                                <Sparkles className="h-3 w-3" />
-                                                ATIVO
-                                            </div>
-                                        )}
-
-                                        {/* Course Settings Button (Top Right) */}
-                                        <div className="absolute top-2 right-2">
+                                        {/* Edit Button overlay */}
+                                        <div className="absolute bottom-4 right-4 z-20">
                                             <Dialog open={editingCourseId === course.id} onOpenChange={(open) => setEditingCourseId(open ? course.id : null)}>
                                                 <DialogTrigger asChild>
                                                     <button 
                                                         onClick={(e) => e.stopPropagation()}
-                                                        className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors opacity-0 group-hover:opacity-100"
+                                                        className="p-2 rounded-full bg-white border border-slate-200 shadow-sm hover:border-indigo-300 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100"
                                                     >
                                                         <Settings className="h-4 w-4" />
                                                     </button>

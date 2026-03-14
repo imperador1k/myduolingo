@@ -158,7 +158,7 @@ export const LessonClient = ({
 
     const [hearts, setHearts] = useState(initialHearts);
     const [points, setPoints] = useState(initialPoints);
-    const [challenges] = useState(initialLesson.challenges);
+    const [challenges, setChallenges] = useState(initialLesson.challenges);
     const [activeIndex, setActiveIndex] = useState(() => {
         // Start from first incomplete challenge
         const incompleteIndex = initialLesson.challenges.findIndex(c => !c.completed);
@@ -246,6 +246,9 @@ export const LessonClient = ({
             setStatus("wrong");
             playSound("wrong");
             setWrongCount((prev) => prev + 1);
+
+            // Re-append the failed challenge to the end of the lesson so the user MUST get it right later
+            setChallenges((prev) => [...prev, { ...currentChallenge, id: currentChallenge.id + Math.random() }]); // using slight random id variation for mapping keys internally if needed, or structured cloning
 
             if (!isClinic) {
                 onChallengeWrong().then((result) => {

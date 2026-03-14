@@ -10,12 +10,14 @@ import {
     ThumbsUp,
     Sparkles,
     Loader2,
-    Trophy,
     ArrowLeft,
     Wand2,
     Dumbbell,
+    Keyboard,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useUISounds } from "@/hooks/use-ui-sounds";
+import { HappyStarLottie } from "@/components/lottie-animation";
 
 interface WordEntry {
     id: number;
@@ -43,6 +45,14 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
     const [stats, setStats] = useState({ remembered: 0, forgot: 0 });
     const [isPending, startTransition] = useTransition();
 
+    // Typing Mode State
+    const [mode, setMode] = useState<'swipe' | 'type'>('swipe');
+    const [userInput, setUserInput] = useState('');
+    const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong'>('idle');
+
+    // UI Sounds
+    const { playReward, playWhoosh, playClick } = useUISounds();
+
     const currentCard = deck[currentIndex];
     const progress = deck.length > 0 ? ((currentIndex) / deck.length) * 100 : 0;
 
@@ -53,6 +63,8 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
                 setSlideDirection(null);
                 setIsRevealed(false);
                 setHint(null);
+                setUserInput('');
+                setFeedback('idle');
             }, 300);
         },
         []
@@ -62,6 +74,7 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
         if (!currentCard || isPending) return;
 
         setStats((prev) => ({ ...prev, remembered: prev.remembered + 1 }));
+        playReward();
         animateAndNext("right");
 
         startTransition(async () => {
@@ -80,12 +93,13 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
                 setCurrentIndex(nextIndex);
             }
         }, 300);
-    }, [currentCard, currentIndex, deck.length, animateAndNext, isPending, startTransition]);
+    }, [currentCard, currentIndex, deck.length, animateAndNext, isPending, startTransition, playReward]);
 
     const handleForgot = useCallback(() => {
         if (!currentCard || isPending) return;
 
         setStats((prev) => ({ ...prev, forgot: prev.forgot + 1 }));
+        playWhoosh();
         animateAndNext("left");
 
         startTransition(async () => {
@@ -106,7 +120,61 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
             });
             setCurrentIndex((prev) => prev + 1);
         }, 300);
-    }, [currentCard, currentIndex, animateAndNext, isPending, startTransition]);
+    }, [currentCard, currentIndex, animateAndNext, isPending, startTransition, playWhoosh]);
+
+    const handleVerifyTyping = useCallback(() => {
+        if (!currentCard || feedback !== 'idle' || !userInput.trim() || isPending) return;
+
+        const cleanString = (str: string) => str.trim().toLowerCase().replace(/[.,!?;:]/g, "");
+        const actual = cleanString(userInput);
+        const expected = cleanString(currentCard.translation);
+
+        if (actual === expected) {
+            // Correct
+            setFeedback('correct');
+            playReward();
+            setStats((prev) => ({ ...prev, remembered: prev.remembered + 1 }));
+
+            startTransition(async () => {
+                try { await updateWordStrength(currentCard.id, true); } catch {}
+            });
+
+            setTimeout(() => {
+                animateAndNext("right");
+                setTimeout(() => {
+                    const nextIndex = currentIndex + 1;
+                    if (nextIndex >= deck.length) setIsFinished(true);
+                    else setCurrentIndex(nextIndex);
+                }, 300);
+            }, 1000);
+        } else {
+            // Wrong
+            setFeedback('wrong');
+            playWhoosh();
+            setStats((prev) => ({ ...prev, forgot: prev.forgot + 1 }));
+
+            startTransition(async () => {
+                try { await updateWordStrength(currentCard.id, false); } catch {}
+            });
+
+            setTimeout(() => {
+                animateAndNext("left");
+                setTimeout(() => {
+                    setDeck((prev) => {
+                        const newDeck = [...prev];
+                        const card = newDeck[currentIndex];
+                        newDeck.push(card);
+                        return newDeck;
+                    });
+                    setCurrentIndex((prev) => prev + 1);
+                }, 300);
+            }, 2000);
+        }
+    }, [currentCard, currentIndex, deck.length, feedback, userInput, playReward, playWhoosh, startTransition, animateAndNext]);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') handleVerifyTyping();
+    };
 
     const handleGetHint = async () => {
         if (!currentCard || isLoadingHint) return;
@@ -128,12 +196,9 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
 
         return (
             <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 animate-in fade-in zoom-in-95 duration-500">
-                {/* Trophy */}
-                <div className="relative mb-8">
-                    <div className="absolute inset-0 bg-amber-400/20 rounded-full blur-3xl scale-150" />
-                    <div className="relative bg-gradient-to-br from-amber-400 to-orange-500 p-8 rounded-full shadow-lg">
-                        <Trophy className="h-16 w-16 text-white" />
-                    </div>
+                {/* Lottie Animation */}
+                <div className="mb-6 w-48 h-48 relative">
+                    <HappyStarLottie className="w-full h-full drop-shadow-2xl" />
                 </div>
 
                 <h1 className="text-3xl md:text-4xl font-black text-slate-800 mb-2">
@@ -222,6 +287,28 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
                 </div>
             )}
 
+            {/* ── Mode Toggle ── */}
+            <div className="flex bg-slate-100 p-1 rounded-xl mb-6 font-bold text-sm w-full max-w-sm">
+                <button
+                    onClick={() => setMode('swipe')}
+                    className={cn(
+                        "flex-1 py-2.5 rounded-lg transition-all flex items-center justify-center gap-2",
+                        mode === 'swipe' ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                    )}
+                >
+                    <Eye className="h-4 w-4" /> Rápido
+                </button>
+                <button
+                    onClick={() => setMode('type')}
+                    className={cn(
+                        "flex-1 py-2.5 rounded-lg transition-all flex items-center justify-center gap-2",
+                        mode === 'type' ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                    )}
+                >
+                    <Keyboard className="h-4 w-4" /> Escrita
+                </button>
+            </div>
+
             {/* ── The Card ── */}
             <div
                 className={cn(
@@ -245,13 +332,13 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
                 <div className="flex flex-col items-center justify-center text-center h-full p-8 md:p-12">
                     {!isRevealed ? (
                         /* ── QUESTION VIEW ── */
-                        <div className="flex flex-col items-center gap-6 w-full animate-in fade-in duration-200">
-                            <h2 className="text-4xl md:text-5xl font-black text-slate-800 break-words hyphens-auto leading-tight">
+                        <div className="flex flex-col items-center w-full animate-in fade-in duration-200">
+                            <h2 className="text-4xl md:text-5xl font-black text-slate-800 break-words hyphens-auto leading-tight mb-4">
                                 {currentCard.word}
                             </h2>
 
                             {currentCard.contextSentence && (
-                                <p className="text-base md:text-lg text-slate-400 italic leading-relaxed max-w-lg break-words">
+                                <p className="text-base md:text-lg text-slate-400 italic leading-relaxed max-w-lg break-words mb-2">
                                     &quot;{currentCard.contextSentence.replace(
                                         new RegExp(`\\b${currentCard.word}\\b`, "gi"),
                                         "_______"
@@ -259,34 +346,89 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
                                 </p>
                             )}
 
-                            <div className="flex flex-col sm:flex-row items-center gap-3 mt-4 w-full max-w-sm">
-                                <button
-                                    onClick={() => setIsRevealed(true)}
-                                    className="flex-1 w-full flex items-center justify-center gap-2 font-bold text-lg px-6 py-4 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white shadow-md transition-all active:scale-95"
-                                >
-                                    <Eye className="h-5 w-5" />
-                                    Revelar Resposta
-                                </button>
-                                <button
-                                    onClick={handleGetHint}
-                                    disabled={isLoadingHint || !!hint}
-                                    className={cn(
-                                        "w-full sm:w-auto flex items-center justify-center gap-2 font-bold px-5 py-4 rounded-xl border-2 transition-all active:scale-95",
-                                        hint
-                                            ? "bg-violet-50 border-violet-200 text-violet-400 cursor-default"
-                                            : "bg-white hover:bg-violet-50 border-violet-300 text-violet-600 hover:border-violet-400"
+                            {mode === "swipe" ? (
+                                <div className="flex flex-col sm:flex-row items-center gap-3 mt-6 w-full max-w-sm">
+                                    <button
+                                        onClick={() => setIsRevealed(true)}
+                                        className="flex-1 w-full flex items-center justify-center gap-2 font-bold text-lg px-6 py-4 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white shadow-md transition-all active:scale-95"
+                                    >
+                                        <Eye className="h-5 w-5" />
+                                        Revelar Resposta
+                                    </button>
+                                    <button
+                                        onClick={handleGetHint}
+                                        disabled={isLoadingHint || !!hint}
+                                        className={cn(
+                                            "w-full sm:w-auto flex items-center justify-center gap-2 font-bold px-5 py-4 rounded-xl border-2 transition-all active:scale-95",
+                                            hint
+                                                ? "bg-violet-50 border-violet-200 text-violet-400 cursor-default"
+                                                : "bg-white hover:bg-violet-50 border-violet-300 text-violet-600 hover:border-violet-400"
+                                        )}
+                                    >
+                                        {isLoadingHint ? (
+                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Wand2 className="h-4 w-4" />
+                                                <span className="text-sm">Dica</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            ) : (
+                                /* TYPE MODE INPUT */
+                                <div className="flex flex-col gap-4 mt-6 w-full max-w-sm">
+                                    <input
+                                        type="text"
+                                        value={userInput}
+                                        onChange={(e) => setUserInput(e.target.value)}
+                                        onKeyDown={handleKeyDown}
+                                        disabled={feedback !== 'idle' || isPending}
+                                        placeholder="Traduzir..."
+                                        className={cn(
+                                            "w-full text-center text-xl font-bold rounded-2xl border-4 p-5 transition-all outline-none md:text-2xl",
+                                            feedback === 'idle' && "border-slate-200 focus:border-indigo-400 bg-slate-50 text-slate-700",
+                                            feedback === 'correct' && "border-emerald-400 bg-emerald-50 text-emerald-600 shadow-inner",
+                                            feedback === 'wrong' && "border-red-400 bg-red-50 text-red-600 shadow-inner"
+                                        )}
+                                        autoFocus
+                                    />
+                                    {feedback === 'wrong' && (
+                                        <div className="text-center animate-in slide-in-from-top-2">
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">A resposta certa é:</p>
+                                            <p className="text-2xl font-black text-emerald-500 mt-1">{currentCard.translation}</p>
+                                        </div>
                                     )}
-                                >
-                                    {isLoadingHint ? (
-                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                    ) : (
-                                        <>
-                                            <Wand2 className="h-4 w-4" />
-                                            <span className="text-sm">Dica</span>
-                                        </>
+                                    {feedback === 'idle' && (
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={handleVerifyTyping}
+                                                disabled={!userInput.trim()}
+                                                className="flex-1 flex items-center justify-center gap-2 font-bold text-lg px-6 py-4 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                                            >
+                                                Verificar
+                                            </button>
+                                            <button
+                                                onClick={handleGetHint}
+                                                disabled={isLoadingHint || !!hint}
+                                                className={cn(
+                                                    "flex flex-col items-center justify-center font-bold px-4 rounded-xl border-2 transition-all active:scale-95",
+                                                    hint
+                                                        ? "bg-violet-50 border-violet-200 text-violet-400 cursor-default"
+                                                        : "bg-white hover:bg-violet-50 border-violet-300 text-violet-600 hover:border-violet-400"
+                                                )}
+                                            >
+                                                {isLoadingHint ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wand2 className="h-5 w-5" />}
+                                            </button>
+                                        </div>
                                     )}
-                                </button>
-                            </div>
+                                    {feedback === 'correct' && (
+                                        <div className="w-full flex items-center justify-center gap-2 font-black text-lg px-6 py-4 rounded-xl bg-emerald-100 text-emerald-700 animate-in zoom-in-95">
+                                            <Sparkles className="h-5 w-5" /> Excelente!
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     ) : (
                         /* ── ANSWER VIEW ── */
