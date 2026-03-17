@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
@@ -9,8 +9,15 @@ import "./globals.css";
 const nunito = Nunito({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MyDuolingo - Aprende como um Guerreiro",
-  description: "Melhor jeito de tornar poliglota",
+  title: "MyDuolingo — Aprende Idiomas com IA",
+  description: "Plataforma gamificada para aprender idiomas com feedback instantâneo de Inteligência Artificial, lições adaptativas e um sistema de vocabulário com repetição espaçada.",
+  openGraph: {
+    title: "MyDuolingo — Aprende Idiomas com IA",
+    description: "Aprende novos idiomas com IA contextual, flashcards dinâmicos e lições gamificadas que se adaptam ao teu nível.",
+    type: "website",
+    locale: "pt_PT",
+    siteName: "MyDuolingo",
+  },
 };
 
 export const dynamic = "force-dynamic";

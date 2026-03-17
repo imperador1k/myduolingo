@@ -2,6 +2,12 @@
   "name": "myduolingo",
   "version": "0.1.0",
   "private": true,
+  "description": "Uma plataforma de aprendizagem de idiomas gamificada com Inteligência Artificial.",
+  "author": "Miguel Pereira Santos",
+  "keywords": ["nextjs", "drizzle", "language-learning", "ai", "gemini", "gamification", "react"],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
