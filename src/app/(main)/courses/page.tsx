@@ -1,99 +1,132 @@
-"use client";
+﻿import { getCourses, getUserProgress } from "@/db/queries";
+import { CoursesList } from "./courses-list";
+import { BookOpen, Flame, Target, Trophy, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { BroomLottie } from "@/components/ui/lottie-animation";
 
-import { useState } from "react";
-import { Check } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+export const dynamic = "force-dynamic";
 
-type Course = {
-    id: number;
-    title: string;
-    flag: string;
-    learners: string;
-    isActive?: boolean;
-};
+export default async function CoursesPage() {
+    const courses = await getCourses();
+    const userProgress = await getUserProgress();
 
-const courses: Course[] = [
-    { id: 1, title: "Português", flag: "🇵🇹", learners: "45M", isActive: true },
-    { id: 2, title: "Espanhol", flag: "🇪🇸", learners: "120M" },
-    { id: 3, title: "Francês", flag: "🇫🇷", learners: "80M" },
-    { id: 4, title: "Italiano", flag: "🇮🇹", learners: "35M" },
-    { id: 5, title: "Alemão", flag: "🇩🇪", learners: "50M" },
-    { id: 6, title: "Japonês", flag: "🇯🇵", learners: "25M" },
-    { id: 7, title: "Coreano", flag: "🇰🇷", learners: "20M" },
-    { id: 8, title: "Chinês", flag: "🇨🇳", learners: "30M" },
-    { id: 9, title: "Russo", flag: "🇷🇺", learners: "15M" },
-    { id: 10, title: "Árabe", flag: "🇸🇦", learners: "10M" },
-    { id: 11, title: "Holandês", flag: "🇳🇱", learners: "8M" },
-    { id: 12, title: "Sueco", flag: "🇸🇪", learners: "6M" },
-];
-
-const CourseCard = ({ course, onSelect }: { course: Course; onSelect: () => void }) => (
-    <button
-        onClick={onSelect}
-        className={cn(
-            "flex items-center gap-4 rounded-xl border-2 p-4 transition-all hover:bg-slate-50",
-            course.isActive
-                ? "border-green-500 bg-green-50"
-                : "border-slate-200 hover:border-green-300"
-        )}
-    >
-        <span className="text-4xl">{course.flag}</span>
-        <div className="flex-1 text-left">
-            <h3 className="font-bold text-slate-700">{course.title}</h3>
-            <p className="text-sm text-slate-500">{course.learners} aprendizes</p>
-        </div>
-        {course.isActive && (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
-                <Check className="h-5 w-5 text-white" />
-            </div>
-        )}
-    </button>
-);
-
-export default function CoursesPage() {
-    const [selectedCourse, setSelectedCourse] = useState<number>(1);
+    const activeCourse = courses.find(c => c.id === userProgress?.activeCourseId);
 
     return (
-        <div className="pb-12">
-            {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-700">Cursos de Idiomas</h1>
-                <p className="text-slate-500">Escolhe o idioma que queres aprender</p>
-            </div>
+        <div className="pb-12 px-4 lg:px-0 max-w-[1056px] mx-auto pt-6 space-y-10">
+            {/* Hero Header */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8 lg:p-12 text-white shadow-xl shadow-purple-500/30 ring-1 ring-white/20">
+                {/* Decorative Elements */}
+                <div className="absolute -right-8 -top-8 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+                <div className="absolute -left-12 bottom-0 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+                <div className="absolute right-12 bottom-4 text-7xl opacity-20 transform rotate-12 drop-shadow-lg">
+                    ðŸŒ
+                </div>
 
-            {/* Active Course */}
-            <div className="mb-8 rounded-xl border-2 border-green-500 bg-green-50 p-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <span className="text-5xl">🇵🇹</span>
-                        <div>
-                            <p className="text-sm font-bold text-green-600">CURSO ATIVO</p>
-                            <h2 className="text-xl font-bold text-slate-700">Português</h2>
-                            <p className="text-sm text-slate-500">Nível 5 • 1,250 XP</p>
+                <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                            <BookOpen className="h-8 w-8 text-white drop-shadow-md" />
                         </div>
+                        <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight drop-shadow-sm"> Cursos de Idiomas </h1>
                     </div>
-                    <Button variant="primary">Continuar</Button>
+                    <p className="text-white/90 text-sm lg:text-base max-w-lg font-medium leading-relaxed">
+                        Escolhe o idioma que queres dominar. Uma jornada inteiramente gamificada e adaptativa espera por ti.
+                    </p>
                 </div>
             </div>
 
+            {/* Active Course Card (if any) */}
+            {userProgress?.activeCourseId && activeCourse && (
+                <div className="flex flex-col gap-3">
+                    <h2 className="text-sm font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-2 px-2">
+                        <Flame className="h-4 w-4 text-orange-500" />
+                        O Teu Percurso
+                    </h2>
+                    <Link href="/learn" className="block w-full">
+                        <div className="group relative overflow-hidden rounded-2xl border-none ring-4 ring-green-400/50 bg-gradient-to-br from-green-50 to-emerald-100 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(34,197,94,0.3)] cursor-pointer">
+                            
+                            {/* Animated Background Mesh */}
+                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-green-300/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                            {/* Active Pulse Badge */}
+                            <div className="absolute -right-12 top-6 rotate-45 bg-amber-400 text-white font-black text-[10px] uppercase tracking-widest py-1 px-12 shadow-md flex items-center gap-1">
+                                <span className="animate-pulse flex items-center gap-1 shadow-amber-400">
+                                    <Sparkles className="h-3 w-3" />Em Foco
+                                </span>
+                            </div>
+
+                            <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-5 z-10">
+                                {/* Course Image or Flag */}
+                                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-xl text-5xl shrink-0 border-2 border-white overflow-hidden transform group-hover:scale-105 transition-transform duration-300">
+                                    {activeCourse.imageSrc && activeCourse.imageSrc.startsWith("http") ? (
+                                        <img src={activeCourse.imageSrc} alt={activeCourse.title} className="w-full h-full object-cover" />
+                                    ) : (
+                                        "ðŸŒŸ" // Generic active star or flag
+                                    )}
+                                </div>
+                                
+                                <div className="flex-1">
+                                    <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                                        Continuar a Aprender
+                                    </p>
+                                    <h2 className="text-2xl font-extrabold text-slate-800 drop-shadow-sm">
+                                        {activeCourse.title}
+                                    </h2>
+                                    <div className="flex flex-wrap items-center gap-4 mt-3">
+                                        <div className="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-lg border border-white/40 shadow-sm text-amber-500">
+                                            <Trophy className="h-4 w-4 fill-amber-500" />
+                                            <span className="text-sm font-bold tracking-tight">{userProgress.points} XP Totais</span>
+                                        </div>
+                                        {userProgress.streak && userProgress.streak > 0 && (
+                                            <div className="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-lg border border-white/40 shadow-sm text-orange-500">
+                                                <Flame className="h-4 w-4 fill-orange-500" />
+                                                <span className="text-sm font-bold tracking-tight">{userProgress.streak} Dias de Ofensiva</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                <div className="mt-4 sm:mt-0 ml-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-500 text-white shadow-lg shadow-green-500/40 group-hover:scale-110 transition-transform">
+                                    <Target className="h-6 w-6" />
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+                </div>
+            )}
+
             {/* All Courses Grid */}
-            <h2 className="mb-4 text-lg font-bold text-slate-600">Todos os Cursos</h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {courses.map((course) => (
-                    <CourseCard
-                        key={course.id}
-                        course={{ ...course, isActive: course.id === selectedCourse }}
-                        onSelect={() => setSelectedCourse(course.id)}
-                    />
-                ))}
+            <div className="flex flex-col gap-3">
+                <h2 className="text-sm font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-2 px-2">
+                    <BookOpen className="h-4 w-4" />
+                    {courses.length > 0 ? "Catálogo" : "Nenhum curso disponível"}
+                </h2>
+
+                <CoursesList
+                    courses={courses}
+                    activeCourseId={userProgress?.activeCourseId || undefined}
+                />
             </div>
 
-            {/* Coming Soon */}
-            <div className="mt-8 rounded-xl border-2 border-dashed border-slate-300 p-6 text-center">
-                <p className="text-lg font-bold text-slate-400">🚀 Mais idiomas em breve!</p>
-                <p className="text-sm text-slate-400">Hindi, Turco, Polaco, Grego...</p>
+            {/* Coming Soon Section */}
+            <div className="w-full flex flex-col items-center justify-center mt-16 pb-12 opacity-80">
+                <div className="w-32 h-32 mb-2 relative">
+                    <BroomLottie className="w-full h-full drop-shadow-sm" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-500 mt-4">Estamos a preparar mais idiomas!</h3>
+                <p className="text-sm text-slate-400 mt-2 text-center max-w-md">
+                    Espanhol, Francês, Italiano, Alemão, Japonês e muitos mais estão a ser limados nos nossos estúdios.
+                </p>
+                <div className="flex justify-center gap-3 mt-4 text-2xl">
+                    <span className="opacity-50 transition-opacity">ðŸ‡ªðŸ‡¸</span>
+                    <span className="opacity-50 transition-opacity">ðŸ‡«ðŸ‡·</span>
+                    <span className="opacity-50 transition-opacity">ðŸ‡®ðŸ‡¹</span>
+                    <span className="opacity-50 transition-opacity">ðŸ‡©ðŸ‡ª</span>
+                    <span className="opacity-50 transition-opacity">ðŸ‡¯ðŸ‡µ</span>
+                </div>
             </div>
         </div>
     );
 }
+

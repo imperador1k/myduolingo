@@ -27,6 +27,10 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env 
+
+firebase-adminsdk*.json
+myduolingo-449c1-firebase-adminsdk-fbsvc-035fdac656.json
 
 # vercel
 .vercel

@@ -1,0 +1,1315 @@
+import { cache } from "react";
+import { revalidatePath } from "next/cache";
+import { auth } from "@clerk/nextjs/server";
+import { createNotification } from "@/lib/notifications";
+import { eq, desc, and, count, ilike, ne, or, asc, sql, inArray } from "drizzle-orm";
+import { db } from "./drizzle";
+import {
+    courses,
+    userProgress,
+    units,
+    lessons,
+    challenges,
+    challengeOptions,
+    challengeProgress,
+    follows,
+    notifications,
+    messages,
+    challengeMistakes,
+    userVocabulary
+} from "./schema";
+
+
+// ============ USER PROGRESS ============
+
+// ============ USER PROGRESS ============
+
+export const getUserVocabulary = cache(async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        return [];
+    }
+
+    const progress = await getUserProgress();
+    const activeLanguage = progress?.activeLanguage;
+
+    if (!activeLanguage) {
+        return [];
+    }
+
+    const data = await db.query.userVocabulary.findMany({
+        where: and(
+            eq(userVocabulary.userId, userId),
+            eq(userVocabulary.language, activeLanguage)
+        ),
+        orderBy: [desc(userVocabulary.createdAt)],
+    });
+
+    return data;
+});
+
+export const getUserProgress = cache(async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        return null;
+    }
+
+    const data = await db.query.userProgress.findFirst({
+        where: eq(userProgress.userId, userId),
+        with: {
+            activeCourse: true,
+        },
+    });
+
+    if (!data) return null;
+
+    // ── Passive Heart Regeneration ──
+    // If hearts < 5 and at least 5 hours have passed since last heart change,
+    // automatically restore hearts to 5.
+    const REGEN_MS = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
+
+    if (data.hearts < 5 && data.lastHeartChange) {
+        const elapsed = Date.now() - new Date(data.lastHeartChange).getTime();
+
+        if (elapsed >= REGEN_MS) {
+            await db
+                .update(userProgress)
+                .set({ hearts: 5, lastHeartChange: new Date() })
+                .where(eq(userProgress.userId, userId));
+
+            // Mutate in-memory so UI reflects immediately
+            (data as any).hearts = 5;
+            (data as any).lastHeartChange = new Date();
+        }
+    }
+
+    return data;
+});
+
+export const getUserProgressById = cache(async (userId: string) => {
+    const data = await db.query.userProgress.findFirst({
+        where: eq(userProgress.userId, userId),
+        with: {
+            activeCourse: true,
+        },
+    });
+
+    return data;
+});
+
+export const createUserProgress = async (courseId: number) => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    // Check if user already has progress
+    const [existingProgress, course] = await Promise.all([
+        db.query.userProgress.findFirst({
+            where: eq(userProgress.userId, userId),
+        }),
+        db.query.courses.findFirst({
+            where: eq(courses.id, courseId),
+        }),
+    ]);
+
+    if (!course) {
+        throw new Error("Course not found");
+    }
+
+    if (existingProgress) {
+        // Update active course and active language
+        await db
+            .update(userProgress)
+            .set({
+                activeCourseId: courseId,
+                activeLanguage: course.language
+            })
+            .where(eq(userProgress.userId, userId));
+        return { ...existingProgress, activeCourseId: courseId, activeLanguage: course.language };
+    }
+
+    // For new users, we'll use default values
+    // The actual name/image comes from Clerk, shown via currentUser() in components
+    const [newProgress] = await db
+        .insert(userProgress)
+        .values({
+            userId,
+            userName: "Estudante",
+            userImageSrc: "/mascot.svg",
+            activeCourseId: courseId,
+            activeLanguage: course.language,
+            hearts: 5,
+            points: 0,
+        })
+        .returning();
+
+    return newProgress;
+};
+
+// Update user info from Clerk (call after sign-in)
+export const updateUserInfo = async (name: string, imageUrl: string) => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    await db
+        .update(userProgress)
+        .set({
+            userName: name || "Estudante",
+            userImageSrc: imageUrl || "/mascot.svg"
+        })
+        .where(eq(userProgress.userId, userId));
+};
+
+// ============ COURSES ============
+
+export const getCourses = cache(async () => {
+    const data = await db.query.courses.findMany();
+    return data;
+});
+
+export const getCourseById = cache(async (courseId: number) => {
+    const data = await db.query.courses.findFirst({
+        where: eq(courses.id, courseId),
+        with: {
+            units: {
+                orderBy: (units, { asc }) => [asc(units.order)],
+                with: {
+                    lessons: {
+                        orderBy: (lessons, { asc }) => [asc(lessons.order)],
+                    },
+                },
+            },
+        },
+    });
+    return data;
+});
+
+// ============ UNITS & LESSONS ============
+
+export const getUnits = cache(async () => {
+    const { userId } = await auth();
+    const userProgressData = await getUserProgress();
+
+    if (!userId || !userProgressData?.activeCourseId) {
+        return [];
+    }
+
+    const data = await db.query.units.findMany({
+        where: eq(units.courseId, userProgressData.activeCourseId),
+        orderBy: (units, { asc }) => [asc(units.order)],
+        with: {
+            lessons: {
+                orderBy: (lessons, { asc }) => [asc(lessons.order)],
+                with: {
+                    challenges: {
+                        orderBy: (challenges, { asc }) => [asc(challenges.order)],
+                        with: {
+                            challengeProgress: {
+                                where: eq(challengeProgress.userId, userId),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    // Calculate completion status for each lesson
+    const normalizedData = data.map((unit) => {
+        const lessonsWithCompletion = unit.lessons.map((lesson) => {
+            // A lesson is only complete if it has challenges AND all are completed
+            const hasChallenges = lesson.challenges && lesson.challenges.length > 0;
+
+            const allChallengesCompleted = hasChallenges && lesson.challenges.every((challenge) => {
+                return (
+                    challenge.challengeProgress &&
+                    challenge.challengeProgress.length > 0 &&
+                    challenge.challengeProgress.every((progress) => progress.completed)
+                );
+            });
+
+            return { ...lesson, completed: allChallengesCompleted };
+        });
+
+        return { ...unit, lessons: lessonsWithCompletion };
+    });
+
+    return normalizedData;
+});
+
+export const getUnitsForUser = cache(async (userId: string) => {
+    const userProgressData = await getUserProgressById(userId);
+
+    if (!userProgressData?.activeCourseId) {
+        return [];
+    }
+
+    const data = await db.query.units.findMany({
+        where: eq(units.courseId, userProgressData.activeCourseId),
+        orderBy: (units, { asc }) => [asc(units.order)],
+        with: {
+            lessons: {
+                orderBy: (lessons, { asc }) => [asc(lessons.order)],
+                with: {
+                    challenges: {
+                        orderBy: (challenges, { asc }) => [asc(challenges.order)],
+                        with: {
+                            challengeProgress: {
+                                where: eq(challengeProgress.userId, userId),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    const normalizedData = data.map((unit) => {
+        const lessonsWithCompletion = unit.lessons.map((lesson) => {
+            const hasChallenges = lesson.challenges && lesson.challenges.length > 0;
+
+            const allChallengesCompleted = hasChallenges && lesson.challenges.every((challenge) => {
+                return (
+                    challenge.challengeProgress &&
+                    challenge.challengeProgress.length > 0 &&
+                    challenge.challengeProgress.every((progress) => progress.completed)
+                );
+            });
+
+            return { ...lesson, completed: allChallengesCompleted };
+        });
+
+        return { ...unit, lessons: lessonsWithCompletion };
+    });
+
+    return normalizedData;
+});
+
+export const getCurrentUnit = cache(async () => {
+    const units = await getUnits();
+
+    // Find the first unit that has at least one incomplete lesson
+    const activeUnit = units.find((unit) => {
+        return unit.lessons.some((lesson) => !lesson.completed);
+    });
+
+    // If all units are completed, return the last one (maintenance mode)
+    if (!activeUnit && units.length > 0) {
+        return units[units.length - 1];
+    }
+
+    return activeUnit;
+});
+
+export const getLesson = cache(async (id?: number) => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        return null;
+    }
+
+    const userProgressData = await getUserProgress();
+
+    // If no id provided, get the first incomplete lesson
+    let lessonId = id;
+
+    if (!lessonId) {
+        const unitsData = await getUnits();
+
+        for (const unit of unitsData) {
+            for (const lesson of unit.lessons) {
+                if (!lesson.completed) {
+                    lessonId = lesson.id;
+                    break;
+                }
+            }
+            if (lessonId) break;
+        }
+    }
+
+    if (!lessonId) {
+        return null;
+    }
+
+    const data = await db.query.lessons.findFirst({
+        where: eq(lessons.id, lessonId),
+        with: {
+            challenges: {
+                orderBy: (challenges, { asc }) => [asc(challenges.order)],
+                with: {
+                    challengeOptions: true,
+                    challengeProgress: {
+                        where: eq(challengeProgress.userId, userId),
+                    },
+                },
+            },
+        },
+    });
+
+    if (!data || !data.challenges) {
+        return null;
+    }
+
+    // Normalize challenges with completion status
+    const normalizedChallenges = data.challenges.map((challenge) => {
+        const completed =
+            challenge.challengeProgress &&
+            challenge.challengeProgress.length > 0 &&
+            challenge.challengeProgress.every((progress) => progress.completed);
+
+        return { ...challenge, completed };
+    });
+
+    return { ...data, challenges: normalizedChallenges };
+});
+
+// ============ CHALLENGE PROGRESS ============
+
+export const getLessonPercentage = cache(async () => {
+    const lesson = await getLesson();
+
+    if (!lesson) {
+        return 0;
+    }
+
+    const completedChallenges = lesson.challenges.filter(
+        (challenge) => challenge.completed
+    );
+    const percentage = Math.round(
+        (completedChallenges.length / lesson.challenges.length) * 100
+    );
+
+    return percentage;
+});
+
+export const upsertChallengeProgress = async (challengeId: number) => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const existingProgress = await db.query.challengeProgress.findFirst({
+        where: eq(challengeProgress.challengeId, challengeId),
+    });
+
+    if (existingProgress) {
+        await db
+            .update(challengeProgress)
+            .set({ completed: true })
+            .where(eq(challengeProgress.id, existingProgress.id));
+        return;
+    }
+
+    await db.insert(challengeProgress).values({
+        challengeId,
+        userId,
+        completed: true,
+    });
+};
+
+export const reduceHearts = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const currentProgress = await getUserProgress();
+
+    if (!currentProgress) {
+        throw new Error("User progress not found");
+    }
+
+    if (currentProgress.hearts <= 0) {
+        return { error: "hearts" };
+    }
+
+    await db
+        .update(userProgress)
+        .set({
+            hearts: currentProgress.hearts - 1,
+            lastHeartChange: new Date(),
+        })
+        .where(eq(userProgress.userId, userId));
+
+    return { hearts: currentProgress.hearts - 1 };
+};
+
+export const addPoints = async (amount: number) => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const currentProgress = await getUserProgress();
+
+    if (!currentProgress) {
+        throw new Error("User progress not found");
+    }
+
+    const currentTotalXp = currentProgress.totalXpEarned || 0;
+
+    await db
+        .update(userProgress)
+        .set({
+            points: currentProgress.points + amount,
+            totalXpEarned: currentTotalXp + amount
+        })
+        .where(eq(userProgress.userId, userId));
+
+    return { points: currentProgress.points + amount, totalXpEarned: currentTotalXp + amount };
+};
+
+export const refillHearts = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const currentProgress = await getUserProgress();
+
+    if (!currentProgress) {
+        throw new Error("User progress not found");
+    }
+
+    // Only allow full refill if hearts = 0
+    if (currentProgress.hearts > 0) {
+        return { error: "has_hearts", hearts: currentProgress.hearts };
+    }
+
+    // Cost: 100 XP for full refill (5 hearts)
+    const cost = 100;
+
+    if (currentProgress.points < cost) {
+        return { error: "not_enough_xp", required: cost, current: currentProgress.points };
+    }
+
+    await db
+        .update(userProgress)
+        .set({
+            hearts: 5,
+            points: currentProgress.points - cost
+        })
+        .where(eq(userProgress.userId, userId));
+
+    createNotification(userId, "system", "Corações restaurados! Estás pronto para aprender. ❤️", "/learn").catch(console.error);
+
+    return { hearts: 5, points: currentProgress.points - cost };
+};
+
+export const buyOneHeart = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const currentProgress = await getUserProgress();
+
+    if (!currentProgress) {
+        throw new Error("User progress not found");
+    }
+
+    // Already at max hearts
+    if (currentProgress.hearts >= 5) {
+        return { error: "hearts_full", hearts: currentProgress.hearts };
+    }
+
+    // Cost: 20 XP for 1 heart
+    const cost = 20;
+
+    if (currentProgress.points < cost) {
+        return { error: "not_enough_xp", required: cost, current: currentProgress.points };
+    }
+
+    await db
+        .update(userProgress)
+        .set({
+            hearts: currentProgress.hearts + 1,
+            points: currentProgress.points - cost
+        })
+        .where(eq(userProgress.userId, userId));
+
+    return { hearts: currentProgress.hearts + 1, points: currentProgress.points - cost };
+};
+
+// ============ LEADERBOARD ============
+
+export const getTopUsers = cache(async (limit: number = 10) => {
+    const data = await db.query.userProgress.findMany({
+        orderBy: (userProgress, { desc }) => [desc(userProgress.points)],
+        limit,
+    });
+    return data;
+});
+
+// ============ STREAK SYSTEM ============
+
+export const updateStreak = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const currentProgress = await getUserProgress();
+
+    if (!currentProgress) {
+        throw new Error("User progress not found");
+    }
+
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const lastStreakDate = currentProgress.lastStreakDate;
+
+    let newStreak = currentProgress.streak || 0;
+    let newLongestStreak = currentProgress.longestStreak || 0;
+    let streakBroken = false;
+
+    if (lastStreakDate === today) {
+        // Already updated today, no change
+        return {
+            streak: newStreak,
+            longestStreak: newLongestStreak,
+            updated: false,
+            streakExtended: newStreak > 0
+        };
+    }
+
+    if (lastStreakDate) {
+        const lastDate = new Date(lastStreakDate);
+        const todayDate = new Date(today);
+        const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+            // Consecutive day - increase streak
+            newStreak += 1;
+        } else if (diffDays > 1) {
+            // Missed days - check for streak freeze
+            const freezes = currentProgress.streakFreezes || 0;
+
+            if (diffDays === 2 && freezes > 0) {
+                // Use streak freeze (only protects 1 missed day)
+                newStreak += 1; // Continue streak
+                await db
+                    .update(userProgress)
+                    .set({ streakFreezes: freezes - 1 })
+                    .where(eq(userProgress.userId, userId));
+            } else {
+                streakBroken = true;
+                newStreak = 1;
+            }
+        }
+    } else {
+        // First time or fresh streak
+        streakBroken = true;
+        newStreak = 1;
+    }
+
+    await db.update(userProgress).set({
+        streak: newStreak,
+        longestStreak: Math.max(newStreak, newLongestStreak),
+        lastStreakDate: today,
+    }).where(eq(userProgress.userId, userId));
+
+    return {
+        streak: newStreak,
+        longestStreak: Math.max(newStreak, newLongestStreak),
+        updated: true,
+        streakExtended: newStreak > 0 // True if user has a streak (even day 1)
+    };
+};
+
+export const checkStreakReset = async () => {
+    const { userId } = await auth();
+    if (!userId) return { streakLost: false };
+
+    const currentProgress = await getUserProgress();
+    if (!currentProgress) return { streakLost: false };
+
+    // If streak is already 0, nothing to lose
+    if (currentProgress.streak === 0) return { streakLost: false };
+
+    const lastStreakDate = currentProgress.lastStreakDate;
+    if (!lastStreakDate) return { streakLost: false };
+
+    const today = new Date().toISOString().split('T')[0];
+    const lastDate = new Date(lastStreakDate);
+    const todayDate = new Date(today);
+    const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    // If diffDays > 1, user missed yesterday (and potentially more)
+    // AND we haven't reset it yet (streak > 0)
+    if (diffDays > 1) {
+        // Check freezing logic? 
+        // Usually freeze applies when you miss a day, automatically. 
+        // But if we are just "viewing", we might want to consume freeze?
+        // Simplicity: If they missed yesterday and opened app today, they lost it unless freeze logic ran.
+        // But freeze logic is typically "on update". 
+        // User asked "if I miss 1 day... it's lost". 
+        // Let's assume strict loss for now to match request.
+
+        const lostStreak = currentProgress.streak;
+
+        // Reset to 0
+        await db.update(userProgress).set({
+            streak: 0,
+        }).where(eq(userProgress.userId, userId));
+
+        return { streakLost: true, days: lostStreak };
+    }
+
+    return { streakLost: false };
+};
+
+// ============ POWER-UPS ============
+
+// XP Boost: 150 XP for 5 lessons with double XP
+export const buyXpBoost = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const currentProgress = await getUserProgress();
+
+    if (!currentProgress) {
+        throw new Error("User progress not found");
+    }
+
+    const cost = 150;
+
+    if (currentProgress.points < cost) {
+        return { error: "not_enough_xp", required: cost, current: currentProgress.points };
+    }
+
+    const currentBoost = currentProgress.xpBoostLessons || 0;
+
+    await db
+        .update(userProgress)
+        .set({
+            xpBoostLessons: currentBoost + 5,
+            points: currentProgress.points - cost
+        })
+        .where(eq(userProgress.userId, userId));
+
+    return { xpBoostLessons: currentBoost + 5, points: currentProgress.points - cost };
+};
+
+// Heart Shield: 100 XP for 1 shield
+export const buyHeartShield = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const currentProgress = await getUserProgress();
+
+    if (!currentProgress) {
+        throw new Error("User progress not found");
+    }
+
+    const cost = 100;
+
+    if (currentProgress.points < cost) {
+        return { error: "not_enough_xp", required: cost, current: currentProgress.points };
+    }
+
+    const currentShields = currentProgress.heartShields || 0;
+
+    await db
+        .update(userProgress)
+        .set({
+            heartShields: currentShields + 1,
+            points: currentProgress.points - cost
+        })
+        .where(eq(userProgress.userId, userId));
+
+    return { heartShields: currentShields + 1, points: currentProgress.points - cost };
+};
+
+// Streak Freeze: 40 XP for 1 freeze
+export const buyStreakFreeze = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const currentProgress = await getUserProgress();
+
+    if (!currentProgress) {
+        throw new Error("User progress not found");
+    }
+
+    const cost = 300;
+
+    if (currentProgress.points < cost) {
+        return { error: "not_enough_xp", required: cost, current: currentProgress.points };
+    }
+
+    const currentFreezes = currentProgress.streakFreezes || 0;
+
+    await db
+        .update(userProgress)
+        .set({
+            streakFreezes: currentFreezes + 1,
+            points: currentProgress.points - cost
+        })
+        .where(eq(userProgress.userId, userId));
+
+    return { streakFreezes: currentFreezes + 1, points: currentProgress.points - cost };
+};
+
+// Use heart shield (called when wrong answer)
+export const consumeHeartShield = async () => {
+    // ... existing implementation ... (wait, I should not delete content if I can't match exact block easily, but here I am appending at end mostly)
+    // Actually I'll append the new queries at the very end of file.
+
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const currentProgress = await getUserProgress();
+
+    if (!currentProgress) {
+        throw new Error("User progress not found");
+    }
+
+    const shields = currentProgress.heartShields || 0;
+
+    if (shields > 0) {
+        await db
+            .update(userProgress)
+            .set({ heartShields: shields - 1 })
+            .where(eq(userProgress.userId, userId));
+
+        return { shieldUsed: true, shieldsRemaining: shields - 1 };
+    }
+
+    return { shieldUsed: false, shieldsRemaining: 0 };
+};
+
+// Consume XP boost lesson (called when lesson completed)
+export const consumeXpBoost = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    const currentProgress = await getUserProgress();
+
+    if (!currentProgress) {
+        throw new Error("User progress not found");
+    }
+
+    const boostLessons = currentProgress.xpBoostLessons || 0;
+
+    if (boostLessons > 0) {
+        await db
+            .update(userProgress)
+            .set({ xpBoostLessons: boostLessons - 1 })
+            .where(eq(userProgress.userId, userId));
+
+        return { boostActive: true, boostRemaining: boostLessons - 1 };
+    }
+
+    return { boostActive: false, boostRemaining: 0 };
+};
+
+// ============ SOCIAL ============
+
+export const getFollowers = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const data = await db.query.follows.findMany({
+        where: eq(follows.followingId, userId),
+        with: {
+            follower: true
+        }
+    });
+
+    return data;
+});
+
+export const getFollowing = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const data = await db.query.follows.findMany({
+        where: eq(follows.followerId, userId),
+        with: {
+            following: true
+        }
+    });
+
+    return data;
+});
+
+export const isFollowingUser = cache(async (targetUserId: string) => {
+    const { userId: currentUserId } = await auth();
+    if (!currentUserId) return false;
+
+    const data = await db.query.follows.findFirst({
+        where: and(
+            eq(follows.followerId, currentUserId),
+            eq(follows.followingId, targetUserId)
+        ),
+    });
+
+    return !!data;
+});
+
+export const followUser = async (targetUserId: string) => {
+    const { userId: currentUserId } = await auth();
+    if (!currentUserId) throw new Error("Unauthorized");
+
+    if (currentUserId === targetUserId) throw new Error("Cannot follow self");
+
+    const existing = await db.query.follows.findFirst({
+        where: and(
+            eq(follows.followerId, currentUserId),
+            eq(follows.followingId, targetUserId)
+        ),
+    });
+
+    if (existing) return;
+
+    await db.insert(follows).values({
+        followerId: currentUserId,
+        followingId: targetUserId,
+    });
+
+    const currentUser = await db.query.userProgress.findFirst({
+        where: eq(userProgress.userId, currentUserId),
+    });
+    const userName = currentUser?.userName || "Alguém";
+
+    await createNotification(
+        targetUserId,
+        "follow",
+        `${userName} começou a seguir-te! 👀`,
+        `/profile/${currentUserId}`
+    );
+
+    revalidatePath(`/profile/${targetUserId}`);
+    revalidatePath("/friends");
+    revalidatePath("/leaderboard");
+};
+
+export const unfollowUser = async (targetUserId: string) => {
+    const { userId: currentUserId } = await auth();
+    if (!currentUserId) throw new Error("Unauthorized");
+
+    await db.delete(follows).where(
+        and(
+            eq(follows.followerId, currentUserId),
+            eq(follows.followingId, targetUserId)
+        )
+    );
+
+    revalidatePath(`/profile/${targetUserId}`);
+    revalidatePath("/friends");
+    revalidatePath("/leaderboard");
+};
+
+export const getNotifications = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const data = await db.query.notifications.findMany({
+        where: eq(notifications.userId, userId),
+        orderBy: (notifications, { desc }) => [desc(notifications.createdAt)],
+    });
+
+    return data;
+});
+
+export const getMessages = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const data = await db.query.messages.findMany({
+        where: eq(messages.receiverId, userId),
+        orderBy: (messages, { desc }) => [desc(messages.createdAt)],
+        with: {
+            sender: true
+        }
+    });
+
+    return data;
+});
+
+export const sendMessage = async (receiverId: string, content: string, type: "text" | "image" | "file" = "text", fileName?: string) => {
+    const { userId: senderId } = await auth();
+    if (!senderId) throw new Error("Unauthorized");
+
+    await db.insert(messages).values({
+        senderId,
+        receiverId,
+        content,
+        type,
+        fileName,
+    });
+
+    const currentUser = await db.query.userProgress.findFirst({
+        where: eq(userProgress.userId, senderId),
+    });
+    const userName = currentUser?.userName || "Alguém";
+
+    await createNotification(
+        receiverId,
+        "message",
+        `Nova mensagem de ${userName} 💬`,
+        `/messages`
+    );
+
+    revalidatePath("/messages");
+};
+
+export const getUnreadNotificationCount = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return 0;
+
+    const [result] = await db
+        .select({ count: count() })
+        .from(notifications)
+        .where(
+            and(
+                eq(notifications.userId, userId),
+                eq(notifications.read, false)
+            )
+        );
+
+    return result.count;
+});
+
+export const getUnreadMessageCount = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return 0;
+
+    const [result] = await db
+        .select({ count: count() })
+        .from(messages)
+        .where(
+            and(
+                eq(messages.receiverId, userId),
+                eq(messages.read, false)
+            )
+        );
+
+    return result.count;
+});
+
+export const searchUsers = async (query: string) => {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const data = await db.query.userProgress.findMany({
+        where: and(
+            ilike(userProgress.userName, `%${query}%`),
+            ne(userProgress.userId, userId)
+        ),
+        limit: 10,
+    }); // Needs userProgress imported in queries.ts - it is.
+
+    return data;
+};
+
+export const getConversations = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const allMessages = await db.query.messages.findMany({
+        where: or(
+            eq(messages.senderId, userId),
+            eq(messages.receiverId, userId)
+        ),
+        with: {
+            sender: true,
+            receiver: true,
+        },
+        orderBy: [desc(messages.createdAt)],
+    });
+
+    const conversations = new Map();
+
+    // 1. Add existing conversations
+    for (const msg of allMessages) {
+        const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
+        if (!conversations.has(partnerId)) {
+            conversations.set(partnerId, {
+                partner: msg.senderId === userId ? msg.receiver : msg.sender,
+                lastMessage: {
+                    ...msg,
+                    senderId: msg.senderId === userId ? "me" : msg.senderId,
+                },
+                unreadCount: 0,
+            });
+        }
+
+        // Count unread messages (received by current user, not read)
+        if (msg.receiverId === userId && !msg.read) {
+            const conv = conversations.get(partnerId);
+            conv.unreadCount += 1;
+        }
+    }
+
+    // 2. Add friends (following) who are not in conversations
+    const following = await db.query.follows.findMany({
+        where: eq(follows.followerId, userId),
+        with: {
+            following: true
+        }
+    });
+
+    for (const follow of following) {
+        if (!conversations.has(follow.followingId)) {
+            conversations.set(follow.followingId, {
+                partner: follow.following,
+                lastMessage: {
+                    id: -1,
+                    content: "Começa uma conversa!",
+                    senderId: "system", // distinct from 'me' or valid ID
+                    read: true,
+                    createdAt: new Date(),
+                },
+                unreadCount: 0,
+            });
+        }
+    }
+
+    return Array.from(conversations.values());
+});
+
+export const getMessagesForThread = cache(async (otherUserId: string) => {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const thread = await db.query.messages.findMany({
+        where: or(
+            and(eq(messages.senderId, userId), eq(messages.receiverId, otherUserId)),
+            and(eq(messages.senderId, otherUserId), eq(messages.receiverId, userId))
+        ),
+        orderBy: [asc(messages.createdAt)],
+    });
+
+    return thread;
+});
+
+export const markMessagesAsRead = async (partnerId: string) => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    await db
+        .update(messages)
+        .set({ read: true })
+        .where(
+            and(
+                eq(messages.receiverId, userId),
+                eq(messages.senderId, partnerId),
+                eq(messages.read, false)
+            )
+        );
+};
+
+export const markNotificationAsRead = async (id: number) => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    await db
+        .update(notifications)
+        .set({ read: true })
+        .where(
+            and(
+                eq(notifications.id, id),
+                eq(notifications.userId, userId)
+            )
+        );
+};
+
+// ============ HEART CLINIC (Mistake Tracking & Practice) ============
+
+export const logMistake = async (challengeId: number) => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    // Avoid duplicate entries for the same challenge
+    const existing = await db.query.challengeMistakes.findFirst({
+        where: and(
+            eq(challengeMistakes.userId, userId),
+            eq(challengeMistakes.challengeId, challengeId)
+        ),
+    });
+
+    if (!existing) {
+        await db.insert(challengeMistakes).values({
+            userId,
+            challengeId,
+        });
+    }
+};
+
+export const resolveMistake = async (challengeId: number) => {
+    const { userId } = await auth();
+    if (!userId) return;
+
+    await db
+        .delete(challengeMistakes)
+        .where(
+            and(
+                eq(challengeMistakes.userId, userId),
+                eq(challengeMistakes.challengeId, challengeId)
+            )
+        );
+};
+
+export const getHeartClinicLesson = cache(async () => {
+    const { userId } = await auth();
+    if (!userId) return null;
+
+    const userProgressData = await getUserProgress();
+    if (!userProgressData?.activeCourseId) return null;
+
+    // 1. Get up to 10 challenge IDs from mistakes exactly for this course
+    const mistakesQuery = await db
+        .select({
+            challengeId: challengeMistakes.challengeId,
+        })
+        .from(challengeMistakes)
+        .innerJoin(challenges, eq(challengeMistakes.challengeId, challenges.id))
+        .innerJoin(lessons, eq(challenges.lessonId, lessons.id))
+        .innerJoin(units, eq(lessons.unitId, units.id))
+        .where(
+            and(
+                eq(challengeMistakes.userId, userId),
+                eq(units.courseId, userProgressData.activeCourseId)
+            )
+        )
+        .orderBy(desc(challengeMistakes.createdAt))
+        .limit(10);
+
+    const mistakeIds = mistakesQuery.map(m => m.challengeId);
+
+    // 2. If fewer than 10, fill with random completed challenges FROM THIS COURSE
+    let fillerIds: number[] = [];
+    if (mistakeIds.length < 10) {
+        const needed = 10 - mistakeIds.length;
+        
+        const completedQuery = await db
+            .select({
+                challengeId: challengeProgress.challengeId,
+            })
+            .from(challengeProgress)
+            .innerJoin(challenges, eq(challengeProgress.challengeId, challenges.id))
+            .innerJoin(lessons, eq(challenges.lessonId, lessons.id))
+            .innerJoin(units, eq(lessons.unitId, units.id))
+            .where(
+                and(
+                    eq(challengeProgress.userId, userId),
+                    eq(challengeProgress.completed, true),
+                    eq(units.courseId, userProgressData.activeCourseId)
+                )
+            )
+            .limit(needed + 20);
+
+        fillerIds = completedQuery
+            .map(c => c.challengeId)
+            .filter(id => !mistakeIds.includes(id))
+            .slice(0, needed);
+    }
+
+    const allChallengeIds = [...mistakeIds, ...fillerIds];
+
+    if (allChallengeIds.length === 0) return null;
+
+    // 3. Fetch full challenge + options data
+    const clinicChallenges = await db.query.challenges.findMany({
+        where: inArray(challenges.id, allChallengeIds),
+        with: {
+            challengeOptions: true,
+            challengeProgress: {
+                where: eq(challengeProgress.userId, userId),
+            },
+        },
+    });
+
+    // 4. Normalize like getLesson does
+    const normalizedChallenges = clinicChallenges.map(challenge => ({
+        ...challenge,
+        completed: false, // Force all to "not completed" so the user must redo them
+    }));
+
+    // 5. Wrap in a mock lesson object
+    return {
+        id: -1,
+        title: "Cl\u00ednica de Erros",
+        order: 0,
+        unitId: 0,
+        challenges: normalizedChallenges,
+    };
+});
+
+export const completeClinicLesson = async () => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    const progress = await getUserProgress();
+    if (!progress) throw new Error("User progress not found");
+
+    const newHearts = Math.min((progress.hearts || 0) + 1, 5);
+
+    await db
+        .update(userProgress)
+        .set({ hearts: newHearts })
+        .where(eq(userProgress.userId, userId));
+
+    revalidatePath("/learn");
+    revalidatePath("/lesson");
+    revalidatePath("/shop");
+
+    return { hearts: newHearts };
+};
+
+// ============ VOCABULARY SPRINT ============
+
+export const getWeakVocabulary = cache(async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        return [];
+    }
+
+    const progress = await getUserProgress();
+    const activeLanguage = progress?.activeLanguage;
+
+    if (!activeLanguage) {
+        return [];
+    }
+
+    const data = await db.query.userVocabulary.findMany({
+        where: and(
+            eq(userVocabulary.userId, userId),
+            eq(userVocabulary.language, activeLanguage)
+        ),
+        orderBy: [asc(userVocabulary.strength), desc(userVocabulary.createdAt)],
+        limit: 10,
+    });
+
+    return data;
+});

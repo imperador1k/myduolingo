@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, boolean, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, pgEnum, date, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // Enum for challenge types
@@ -9,6 +9,8 @@ export const courses = pgTable("courses", {
     id: serial("id").primaryKey(),
     title: text("title").notNull(),
     imageSrc: text("image_src").notNull(),
+    languageCode: text("language_code").notNull().default("en"),
+    language: text("language").notNull().default("English"),
 });
 
 export const coursesRelations = relations(courses, ({ many }) => ({
@@ -62,6 +64,10 @@ export const challenges = pgTable("challenges", {
     lessonId: integer("lesson_id")
         .references(() => lessons.id, { onDelete: "cascade" })
         .notNull(),
+    context: text("context"), // Scenario or dialogue snippet
+    explanation: text("explanation"), // Reasoning for the answer
+    questionAudioLang: text("question_audio_lang"),
+    contextAudioLang: text("context_audio_lang"),
 });
 
 export const challengesRelations = relations(challenges, ({ one, many }) => ({
@@ -80,6 +86,7 @@ export const challengeOptions = pgTable("challenge_options", {
     correct: boolean("correct").notNull(),
     imageSrc: text("image_src"),
     audioSrc: text("audio_src"),
+    audioLang: text("audio_lang"),
     challengeId: integer("challenge_id")
         .references(() => challenges.id, { onDelete: "cascade" })
         .notNull(),
@@ -117,14 +124,162 @@ export const userProgress = pgTable("user_progress", {
     userImageSrc: text("user_image_src").notNull().default("/mascot.svg"),
     hearts: integer("hearts").notNull().default(5),
     points: integer("points").notNull().default(0),
+    totalXpEarned: integer("total_xp_earned").notNull().default(0),
     activeCourseId: integer("active_course_id").references(() => courses.id, {
         onDelete: "cascade",
     }),
+    activeLanguage: text("active_language").notNull().default("English"),
+    // Streak system
+    streak: integer("streak").notNull().default(0),
+    longestStreak: integer("longest_streak").notNull().default(0),
+    lastStreakDate: date("last_streak_date"),
+    // Power-ups
+    xpBoostLessons: integer("xp_boost_lessons").notNull().default(0),
+    heartShields: integer("heart_shields").notNull().default(0),
+    streakFreezes: integer("streak_freezes").notNull().default(0),
+    // CEFR Placement — per-language levels: { "English": "B2", "Japanese": "A1" }
+    cefrLevels: jsonb("cefr_levels").notNull().default({}),
+    // Heart regeneration — timestamp of last heart loss
+    lastHeartChange: timestamp("last_heart_change").defaultNow(),
 });
 
-export const userProgressRelations = relations(userProgress, ({ one }) => ({
+export const userProgressRelations = relations(userProgress, ({ one, many }) => ({
     activeCourse: one(courses, {
         fields: [userProgress.activeCourseId],
         references: [courses.id],
+    }),
+    placementTests: many(placementTestHistory),
+}));
+
+// ===== PLACEMENT TEST HISTORY =====
+export const placementTestHistory = pgTable("placement_test_history", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    languageTested: text("language_tested").notNull(),
+    finalLevel: text("final_level").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const placementTestHistoryRelations = relations(placementTestHistory, ({ one }) => ({
+    user: one(userProgress, {
+        fields: [placementTestHistory.userId],
+        references: [userProgress.userId],
+    }),
+}));
+
+// ===== SOCIAL =====
+
+export const follows = pgTable("follows", {
+    id: serial("id").primaryKey(),
+    followerId: text("follower_id").notNull(),
+    followingId: text("following_id").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const followsRelations = relations(follows, ({ one }) => ({
+    follower: one(userProgress, {
+        fields: [follows.followerId],
+        references: [userProgress.userId],
+        relationName: "follower"
+    }),
+    following: one(userProgress, {
+        fields: [follows.followingId],
+        references: [userProgress.userId],
+        relationName: "following"
+    }),
+}));
+
+export const notifications = pgTable("notifications", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    type: text("type").notNull(),
+    message: text("message").notNull(),
+    link: text("link"),
+    read: boolean("read").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const messages = pgTable("messages", {
+    id: serial("id").primaryKey(),
+    senderId: text("sender_id").notNull(),
+    receiverId: text("receiver_id").notNull(),
+    content: text("content").notNull(),
+    type: text("type", { enum: ["text", "image", "file"] }).default("text").notNull(),
+    fileName: text("file_name"),
+    read: boolean("read").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+    sender: one(userProgress, {
+        fields: [messages.senderId],
+        references: [userProgress.userId],
+        relationName: "sender"
+    }),
+    receiver: one(userProgress, {
+        fields: [messages.receiverId],
+        references: [userProgress.userId],
+        relationName: "receiver"
+    }),
+}));
+
+// ===== PRACTICE SESSIONS =====
+export const practiceSessions = pgTable("practice_sessions", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    type: text("type", { enum: ["writing", "speaking", "reading", "listening"] }).notNull(),
+    language: text("language").notNull().default("English"),
+    cefrLevel: text("cefr_level").notNull().default("B1"),
+    prompt: text("prompt").notNull(),
+    // Store JSON data as text for simplicity in this setup
+    promptData: text("prompt_data"),
+    userInput: text("user_input"),
+    audioUrl: text("audio_url"),
+    feedback: text("feedback"), // JSON string
+    score: integer("score"),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const practiceSessionsRelations = relations(practiceSessions, ({ one }) => ({
+    user: one(userProgress, {
+        fields: [practiceSessions.userId],
+        references: [userProgress.userId],
+    }),
+}));
+
+// ===== CHALLENGE MISTAKES (Heart Clinic) =====
+export const challengeMistakes = pgTable("challenge_mistakes", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    challengeId: integer("challenge_id")
+        .references(() => challenges.id, { onDelete: "cascade" })
+        .notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const challengeMistakesRelations = relations(challengeMistakes, ({ one }) => ({
+    challenge: one(challenges, {
+        fields: [challengeMistakes.challengeId],
+        references: [challenges.id],
+    }),
+}));
+
+// ===== USER VOCABULARY (Vault/Cofre) =====
+export const userVocabulary = pgTable("user_vocabulary", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    word: text("word").notNull(),
+    translation: text("translation").notNull(),
+    explanation: text("explanation").notNull().default(""),
+    contextSentence: text("context_sentence").notNull(),
+    language: text("language").notNull().default("English"),
+    strength: integer("strength").notNull().default(1), // Gamification: 1=Seed, 4=Mastered
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userVocabularyRelations = relations(userVocabulary, ({ one }) => ({
+    user: one(userProgress, {
+        fields: [userVocabulary.userId],
+        references: [userProgress.userId],
     }),
 }));

@@ -1,13 +1,19 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
+import { ptBR } from "@clerk/localizations";
+import { Toaster } from "sonner";
+import { OneSignalProvider } from "@/components/shared/OneSignalProvider";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MyDuolingo - Aprende línguas de graça",
-  description: "Clone do Duolingo para aprendizagem de línguas",
+  title: "MyDuolingo - Aprende como um Guerreiro",
+  description: "Melhor jeito de tornar poliglota",
 };
+
+export const dynamic = "force-dynamic";
 
 export default function RootLayout({
   children,
@@ -15,8 +21,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt">
-      <body className={nunito.className}>{children}</body>
-    </html>
+    <ClerkProvider localization={ptBR}>
+      <html lang="pt">
+        <body className={nunito.className}>
+          <Toaster />
+          <OneSignalProvider />
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
+
