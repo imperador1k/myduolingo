@@ -15,6 +15,7 @@ import {
 } from "@/actions/evaluation";
 import {
     Loader2,
+    ArrowLeft,
     ArrowRight,
     ChevronLeft,
     GraduationCap,
@@ -30,11 +31,13 @@ import {
     Home,
     Star,
     Globe,
+    Rocket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SUPPORTED_LANGUAGES, getLocaleForLanguage } from "@/lib/constants";
 import Link from "next/link";
 import { InteractiveText } from "@/components/ui/interactive-text";
+import { LottieAnimation } from "@/components/ui/lottie-animation";
 
 // ============================================================
 // TYPES
@@ -440,10 +443,13 @@ export default function EvaluationPage() {
         <div className="min-h-screen bg-slate-50 flex flex-col">
             {/* Top Bar */}
             {phase !== "results" && (
-                <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-3">
-                    <div className="max-w-2xl mx-auto flex items-center gap-4">
-                        <Link href="/learn" className="text-slate-400 hover:text-slate-600 transition-colors">
-                            <ChevronLeft className="h-8 w-8 sm:h-6 sm:w-6" />
+                <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/60 h-16 flex items-center px-4 md:px-8">
+                    <div className="max-w-2xl mx-auto w-full flex items-center gap-4">
+                        <Link
+                            href="/learn"
+                            className="p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+                        >
+                            <ArrowLeft className="h-5 w-5" />
                         </Link>
                         {phase !== "welcome" && (
                             <>
@@ -461,9 +467,7 @@ export default function EvaluationPage() {
                             </>
                         )}
                         {phase === "welcome" && (
-                            <div className="flex-1 flex justify-center sm:justify-start">
-                                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest sm:hidden opacity-0">Voltar</span>
-                            </div>
+                            <div className="flex-1" />
                         )}
                     </div>
                 </div>
@@ -496,20 +500,21 @@ export default function EvaluationPage() {
                     {/* ====================== WELCOME ====================== */}
                     {phase === "welcome" && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="text-center mb-8">
-                                <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 mb-6 shadow-lg shadow-sky-200">
-                                    <GraduationCap className="h-12 w-12 text-white" />
+                            {/* Hero Section with Lottie */}
+                            <div className="text-center mb-10">
+                                <div className="w-40 h-40 mx-auto mb-4 drop-shadow-md">
+                                    <LottieAnimation className="w-full h-full" />
                                 </div>
-                                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-3">
+                                <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight mb-3">
                                     Teste de Nível CEFR
                                 </h1>
-                                <p className="text-slate-500 text-lg max-w-md mx-auto">
+                                <p className="text-slate-500 text-lg max-w-md mx-auto leading-relaxed">
                                     Descobre o teu nível de idioma em 4 fases. O teste adapta-se às tuas capacidades em tempo real.
                                 </p>
                             </div>
 
                             {/* Language Selector */}
-                            <div className="bg-white rounded-2xl border-2 border-slate-100 p-6 mb-6">
+                            <div className="bg-white rounded-2xl border-2 border-slate-100 p-6 mb-6 shadow-sm">
                                 <div className="flex items-center gap-2 mb-3 text-sky-500">
                                     <Globe className="h-4 w-4" />
                                     <span className="text-xs font-bold uppercase tracking-wider">Idioma Alvo</span>
@@ -534,39 +539,42 @@ export default function EvaluationPage() {
                                 </p>
                             </div>
 
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                            {/* Gamified Skill Cards Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                                 {[
-                                    { icon: GraduationCap, label: "Gramática", desc: "15 questões", color: "bg-emerald-100 text-emerald-600" },
-                                    { icon: BookOpen, label: "Leitura", desc: "3 textos", color: "bg-sky-100 text-sky-600" },
-                                    { icon: Headphones, label: "Audição", desc: "3 áudios", color: "bg-indigo-100 text-indigo-600" },
-                                    { icon: PenTool, label: "Escrita", desc: "1 redação", color: "bg-amber-100 text-amber-600" },
-                                ].map(({ icon: Icon, label, desc, color }) => (
+                                    { icon: GraduationCap, label: "Gramática", desc: "15 questões", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", iconColor: "text-emerald-600" },
+                                    { icon: BookOpen, label: "Leitura", desc: "3 textos", bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-700", iconColor: "text-blue-600" },
+                                    { icon: Headphones, label: "Audição", desc: "3 áudios", bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-700", iconColor: "text-purple-600" },
+                                    { icon: PenTool, label: "Escrita", desc: "1 redação", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", iconColor: "text-amber-600" },
+                                ].map(({ icon: Icon, label, desc, bg, border, text, iconColor }) => (
                                     <div
                                         key={label}
-                                        className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-100 bg-white"
+                                        className={cn(
+                                            "flex flex-col items-center justify-center text-center gap-2.5 p-5 rounded-2xl border transition-transform hover:-translate-y-1 cursor-default",
+                                            bg, border, text
+                                        )}
                                     >
-                                        <div className={cn("p-2 rounded-lg", color)}>
-                                            <Icon className="h-5 w-5" />
-                                        </div>
-                                        <span className="text-xs font-bold text-slate-600">{label}</span>
-                                        <span className="text-[10px] text-slate-400">{desc}</span>
+                                        <Icon className={cn("h-7 w-7 stroke-[2.5]", iconColor)} />
+                                        <span className="text-sm font-bold">{label}</span>
+                                        <span className="text-[10px] font-semibold uppercase tracking-wider opacity-60">{desc}</span>
                                     </div>
                                 ))}
                             </div>
 
+                            {/* 3D Gamified CTA Button */}
                             <button
                                 onClick={handleStartTest}
                                 disabled={isLoading || !languageLoaded}
-                                className="w-full py-4 px-6 bg-gradient-to-r from-green-400 to-emerald-500 text-white font-extrabold text-lg rounded-2xl shadow-lg shadow-green-200 hover:shadow-xl hover:scale-[1.02] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed border-b-4 border-green-600 active:border-b-2"
+                                className="w-full py-4 text-lg font-bold bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl border-b-4 border-emerald-600 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? (
-                                    <span className="flex items-center justify-center gap-2">
+                                    <>
                                         <Loader2 className="h-5 w-5 animate-spin" /> A gerar o teste...
-                                    </span>
+                                    </>
                                 ) : (
-                                    <span className="flex items-center justify-center gap-2">
-                                        Começar Teste <ArrowRight className="h-5 w-5" />
-                                    </span>
+                                    <>
+                                        <Rocket className="h-5 w-5" /> Começar Teste
+                                    </>
                                 )}
                             </button>
                         </div>
