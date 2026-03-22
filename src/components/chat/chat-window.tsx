@@ -24,11 +24,22 @@ type Props = {
 };
 
 export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
-    const messages = useRealtimeMessages(initialMessages, userId, partner.userId);
+    const { messages, addOptimisticMessage, isPartnerOnline, isPartnerTyping, trackTyping } = useRealtimeMessages(initialMessages, userId, partner.userId);
     const bottomRef = useRef<HTMLDivElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
     const [showGifPicker, setShowGifPicker] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (trackTyping) {
+            trackTyping(true);
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => {
+                trackTyping(false);
+            }, 2000);
+        }
+    };
 
     const scrollToBottom = () => {
         if (bottomRef.current) {
@@ -54,13 +65,41 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
     const handleSubmit = async (formData: FormData) => {
         const content = formData.get("content")?.toString();
         if (!content) return;
+        
+        const optimisticId = `temp-${Date.now()}`;
+        addOptimisticMessage({
+            id: optimisticId,
+            senderId: userId,
+            receiverId: partner.userId,
+            content: content,
+            type: "text",
+            createdAt: new Date(),
+            read: false,
+        });
+
         formRef.current?.reset();
+        if (trackTyping) trackTyping(false);
+        setTimeout(scrollToBottom, 50); // delay to ensure render
+        
         await onSendMessage(partner.userId, formData);
     };
 
     const handleSendGif = async (gif: any) => {
         const gifUrl = gif.images.fixed_height.url;
         setShowGifPicker(false);
+        
+        const optimisticId = `temp-${Date.now()}`;
+        addOptimisticMessage({
+            id: optimisticId,
+            senderId: userId,
+            receiverId: partner.userId,
+            content: gifUrl,
+            type: "image",
+            createdAt: new Date(),
+            read: false,
+        });
+        setTimeout(scrollToBottom, 50);
+
         const formData = new FormData();
         formData.set("content", gifUrl);
         formData.set("type", "image");
@@ -68,6 +107,19 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
     };
 
     const handleUploadComplete = async (url: string, type: "image" | "file", fileName: string) => {
+        const optimisticId = `temp-${Date.now()}`;
+        addOptimisticMessage({
+            id: optimisticId,
+            senderId: userId,
+            receiverId: partner.userId,
+            content: url,
+            type: type,
+            fileName: fileName,
+            createdAt: new Date(),
+            read: false,
+        });
+        setTimeout(scrollToBottom, 50);
+
         const formData = new FormData();
         formData.set("content", url);
         formData.set("type", type);
@@ -112,13 +164,18 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
                     </Button>
                 </Link>
 
-                <div className="h-10 w-10 rounded-full border-2 border-slate-200 overflow-hidden shrink-0">
-                    {partner.userImageSrc ? (
-                        <img src={partner.userImageSrc} alt={partner.userName} className="h-full w-full object-cover" />
-                    ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl">
-                            {partner.userName[0]?.toUpperCase()}
-                        </div>
+                <div className="relative h-10 w-10 shrink-0">
+                    <div className="h-full w-full rounded-full border-2 border-slate-200 overflow-hidden">
+                        {partner.userImageSrc ? (
+                            <img src={partner.userImageSrc} alt={partner.userName} className="h-full w-full object-cover" />
+                        ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl font-bold">
+                                {partner.userName[0]?.toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    {isPartnerOnline && (
+                        <span className="w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white absolute bottom-0 right-0 z-10 shadow-sm animate-in zoom-in duration-300"></span>
                     )}
                 </div>
                 <h2 className="font-bold text-slate-700 text-lg">{partner.userName}</h2>
@@ -185,6 +242,19 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
                         </div>
                     );
                 })}
+                
+                {isPartnerTyping && (
+                    <div className="flex w-full flex-col items-start fade-in-0 animate-in slide-in-from-bottom-2 duration-300">
+                        <div className="flex items-center px-4 py-3.5 bg-white border-2 border-slate-200 rounded-2xl rounded-bl-none shadow-sm overflow-hidden w-fit">
+                            <div className="flex gap-1.5 items-center justify-center">
+                                <span className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                <span className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                <span className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
                 <div ref={bottomRef} />
             </div>
 
@@ -218,6 +288,7 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
                     <input
                         name="content"
                         placeholder="Escreve uma mensagem..."
+                        onChange={handleInputChange}
                         className="flex-1 bg-slate-100 border-2 border-transparent focus:bg-white focus:border-sky-500 rounded-xl px-4 py-3 outline-none transition mb-1"
                         autoComplete="off"
                     />

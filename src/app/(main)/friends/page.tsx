@@ -1,4 +1,4 @@
-﻿
+
 import { getFollowers, getFollowing, searchUsers } from "@/db/queries";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -17,8 +17,16 @@ export default async function FriendsPage({ searchParams }: Props) {
     const query = searchParams.q;
     const searchResults = query ? await searchUsers(query) : [];
 
-    const followingSet = new Set(following.map(f => f.following.userId));
-    const followerSet = new Set(followers.map(f => f.follower.userId));
+    const followingSet = new Set(
+        following
+            .filter((f: any) => f.following !== null && f.following !== undefined)
+            .map((f: any) => f.following.userId)
+    );
+    const followerSet = new Set(
+        followers
+            .filter((f: any) => f.follower !== null && f.follower !== undefined)
+            .map((f: any) => f.follower.userId)
+    );
 
     const isMutual = (id: string) => followingSet.has(id) && followerSet.has(id);
     const amIFollowing = (id: string) => followingSet.has(id);
@@ -77,14 +85,14 @@ export default async function FriendsPage({ searchParams }: Props) {
                         </div>
                     ) : (
                         <div className="flex flex-col gap-3">
-                            {following.map((f: any) => (
+                            {following.filter((f: any) => f.following).map((f: any) => (
                                 <div key={f.following.userId} className="flex items-center justify-between gap-3">
                                     <Link href={`/profile/${f.following.userId}`} className="flex items-center gap-3 hover:opacity-75 transition">
                                         <div className="h-10 w-10 rounded-full border-2 border-slate-200 overflow-hidden">
                                             {f.following.userImageSrc ? (
                                                 <img src={f.following.userImageSrc} alt={f.following.userName} className="h-full w-full object-cover" />
                                             ) : (
-                                                <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl">ðŸ§‘â€ðŸŽ“</div>
+                                                <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl">ðŸ§‘â€ ðŸŽ“</div>
                                             )}
                                         </div>
                                         <div>
@@ -114,14 +122,14 @@ export default async function FriendsPage({ searchParams }: Props) {
                         </div>
                     ) : (
                         <div className="flex flex-col gap-3">
-                            {followers.map((f: any) => (
+                            {followers.filter((f: any) => f.follower).map((f: any) => (
                                 <div key={f.follower.userId} className="flex items-center justify-between gap-3">
                                     <Link href={`/profile/${f.follower.userId}`} className="flex items-center gap-3 hover:opacity-75 transition">
                                         <div className="h-10 w-10 rounded-full border-2 border-slate-200 overflow-hidden">
                                             {f.follower.userImageSrc ? (
                                                 <img src={f.follower.userImageSrc} alt={f.follower.userName} className="h-full w-full object-cover" />
                                             ) : (
-                                                <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl">ðŸ§‘â€ðŸŽ“</div>
+                                                <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl">ðŸ§‘â€ ðŸŽ“</div>
                                             )}
                                         </div>
                                         <div>

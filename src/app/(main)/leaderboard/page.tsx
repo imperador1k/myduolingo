@@ -1,196 +1,87 @@
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { getTopUsers, getUserProgress } from "@/db/queries";
+import { db } from "@/db/drizzle";
+import { userProgress } from "@/db/schema";
+import { desc } from "drizzle-orm";
+import { Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { LottieBlock } from "@/components/ui/lottie-block";
 
 export const dynamic = "force-dynamic";
 
 export default async function LeaderboardPage() {
-    const userProgress = await getUserProgress();
-    const topUsers = await getTopUsers(20);
+    const { userId } = await auth();
 
-    if (!userProgress) {
-        redirect("/courses");
+    if (!userId) {
+        redirect("/");
     }
 
-    // Find current user rank
-    const currentUserRank = topUsers.findIndex(u => u.userId === userProgress.userId) + 1;
-
-    // Top 3 for podium
-    const podium = topUsers.slice(0, 3);
-    const rest = topUsers.slice(3);
+    const topUsers = await db.query.userProgress.findMany({
+        orderBy: [desc(userProgress.points)],
+        limit: 50,
+    });
 
     return (
-        <div className="pb-12">
-            {/* Trophy Lottie — swap JSON later */}
-            <LottieBlock className="w-24 h-24 md:w-36 md:h-36 mx-auto" />
-
+        <div className="flex flex-col gap-6 p-6 pb-20 max-w-[1000px] mx-auto w-full">
             {/* Header */}
-            <div className="mb-6 text-center">
-                <h1 className="text-2xl font-bold text-slate-700">🏆 Classificação</h1>
-                <p className="text-slate-500">Os melhores estudantes</p>
+            <div className="flex flex-col items-center justify-center gap-2 mb-8 mt-4">
+                <Trophy className="h-20 w-20 text-yellow-500 fill-yellow-500 animate-bounce" />
+                <h1 className="text-3xl font-extrabold text-slate-700">Classificação Global</h1>
+                <p className="text-slate-500 font-bold">Vê quem está a dominar a liga!</p>
             </div>
 
-            {/* Podium */}
-            <div className="mb-8 flex items-end justify-center gap-2">
-                {/* 2nd Place */}
-                {podium[1] && (
-                    <Link
-                        href={`/profile/${podium[1].userId}`}
-                        className="flex flex-col items-center hover:scale-105 transition-transform"
-                    >
-                        <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-full border-4 border-slate-300 bg-slate-100 shadow-lg">
-                            {podium[1].userImageSrc ? (
-                                <img
-                                    src={podium[1].userImageSrc}
-                                    alt=""
-                                    className="h-full w-full rounded-full object-cover"
-                                />
-                            ) : (
-                                <span className="text-2xl">🧑‍🎓</span>
-                            )}
-                        </div>
-                        <div className="flex h-20 w-20 flex-col items-center justify-center rounded-t-xl bg-gradient-to-b from-slate-300 to-slate-400 text-white">
-                            <span className="text-2xl font-bold">🥈</span>
-                            <span className="text-xs font-bold">{podium[1].points} XP</span>
-                        </div>
-                        <p className="mt-1 max-w-[80px] truncate text-xs font-bold text-slate-600">{podium[1].userName}</p>
-                    </Link>
-                )}
+            {/* List */}
+            <div className="flex flex-col gap-3">
+                {topUsers.map((user, index) => {
+                    const isCurrentUser = user.userId === userId;
+                    
+                    let RankIcon;
+                    if (index === 0) RankIcon = <span className="text-3xl drop-shadow-md" title="Grau Ouro">🥇</span>;
+                    else if (index === 1) RankIcon = <span className="text-3xl drop-shadow-md" title="Grau Prata">🥈</span>;
+                    else if (index === 2) RankIcon = <span className="text-3xl drop-shadow-md" title="Grau Bronze">🥉</span>;
+                    else RankIcon = <span className="font-extrabold text-slate-400 w-8 text-center text-lg">{index + 1}</span>;
 
-                {/* 1st Place */}
-                {podium[0] && (
-                    <Link
-                        href={`/profile/${podium[0].userId}`}
-                        className="flex flex-col items-center hover:scale-105 transition-transform"
-                    >
-                        <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-full border-4 border-amber-400 bg-amber-100 shadow-xl">
-                            {podium[0].userImageSrc ? (
-                                <img
-                                    src={podium[0].userImageSrc}
-                                    alt=""
-                                    className="h-full w-full rounded-full object-cover"
-                                />
-                            ) : (
-                                <span className="text-3xl">🧑‍🎓</span>
+                    return (
+                        <div
+                            key={user.userId}
+                            className={cn(
+                                "bg-white rounded-2xl p-4 flex items-center gap-4 border-2 border-slate-200 hover:bg-slate-50 transition-colors",
+                                isCurrentUser && "bg-sky-50/50 border-sky-300 hover:bg-sky-50"
                             )}
-                        </div>
-                        <div className="flex h-28 w-24 flex-col items-center justify-center rounded-t-xl bg-gradient-to-b from-amber-400 to-amber-500 text-white">
-                            <span className="text-3xl font-bold">🥇</span>
-                            <span className="text-sm font-bold">{podium[0].points} XP</span>
-                        </div>
-                        <p className="mt-1 max-w-[96px] truncate text-sm font-bold text-slate-700">{podium[0].userName}</p>
-                    </Link>
-                )}
-
-                {/* 3rd Place */}
-                {podium[2] && (
-                    <Link
-                        href={`/profile/${podium[2].userId}`}
-                        className="flex flex-col items-center hover:scale-105 transition-transform"
-                    >
-                        <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full border-4 border-orange-300 bg-orange-100 shadow-lg">
-                            {podium[2].userImageSrc ? (
-                                <img
-                                    src={podium[2].userImageSrc}
-                                    alt=""
-                                    className="h-full w-full rounded-full object-cover"
-                                />
-                            ) : (
-                                <span className="text-xl">🧑‍🎓</span>
-                            )}
-                        </div>
-                        <div className="flex h-16 w-16 flex-col items-center justify-center rounded-t-xl bg-gradient-to-b from-orange-400 to-orange-500 text-white">
-                            <span className="text-xl font-bold">🥉</span>
-                            <span className="text-xs font-bold">{podium[2].points} XP</span>
-                        </div>
-                        <p className="mt-1 max-w-[64px] truncate text-xs font-bold text-slate-600">{podium[2].userName}</p>
-                    </Link>
-                )}
-            </div>
-
-            {/* Your Rank */}
-            {currentUserRank > 0 && (
-                <Link
-                    href={`/profile/${userProgress.userId}`}
-                    className="mb-6 block rounded-xl border-2 border-green-200 bg-green-50 p-4 hover:bg-green-100 transition-colors"
-                >
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <span className="text-2xl font-bold text-green-600">#{currentUserRank}</span>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                                {userProgress.userImageSrc ? (
-                                    <img
-                                        src={userProgress.userImageSrc}
-                                        alt=""
-                                        className="h-full w-full rounded-full object-cover"
-                                    />
+                        >
+                            <div className="flex items-center justify-center min-w-[40px]">
+                                {RankIcon}
+                            </div>
+                            
+                            <div className="h-14 w-14 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 flex-shrink-0">
+                                {user.userImageSrc ? (
+                                    <img src={user.userImageSrc} alt={user.userName} className="h-full w-full object-cover" />
                                 ) : (
-                                    <span className="text-lg">🧑‍🎓</span>
+                                    <div className="flex justify-center items-center h-full w-full font-bold text-slate-400">
+                                        {user.userName[0]?.toUpperCase()}
+                                    </div>
                                 )}
                             </div>
-                            <div>
-                                <p className="font-bold text-slate-700">{userProgress.userName || "Tu"}</p>
-                                <p className="text-xs text-slate-500">A tua posição</p>
+
+                            <div className="flex-1 flex flex-col">
+                                <span className={cn("font-bold text-slate-700 text-lg", isCurrentUser && "text-sky-700")}>
+                                    {user.userName} {isCurrentUser && <span className="text-sm font-bold text-sky-500 ml-1">(Tu)</span>}
+                                </span>
+                            </div>
+
+                            <div className="font-black text-orange-500 flex items-center gap-1 text-xl drop-shadow-sm">
+                                {user.points} <span className="text-sm font-bold opacity-80">XP</span>
                             </div>
                         </div>
-                        <span className="font-bold text-amber-500">{userProgress.points} XP</span>
+                    );
+                })}
+
+                {topUsers.length === 0 && (
+                    <div className="rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center flex flex-col items-center justify-center gap-4 text-slate-500 mt-8">
+                        <Trophy className="h-12 w-12 text-slate-300" />
+                        <p className="font-bold">A classificação está vazia.</p>
                     </div>
-                </Link>
-            )}
-
-            {/* Rest of Rankings */}
-            {rest.length > 0 && (
-                <div className="space-y-2">
-                    {rest.map((user, index) => {
-                        const rank = index + 4;
-                        const isCurrentUser = user.userId === userProgress.userId;
-
-                        return (
-                            <Link
-                                href={`/profile/${user.userId}`}
-                                key={user.userId}
-                                className={cn(
-                                    "flex items-center justify-between rounded-xl border-2 p-3 hover:bg-slate-50 transition-colors",
-                                    isCurrentUser ? "border-green-200 bg-green-50" : "border-slate-100 bg-white"
-                                )}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <span className="w-8 text-center font-bold text-slate-400">#{rank}</span>
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-                                        {user.userImageSrc ? (
-                                            <img
-                                                src={user.userImageSrc}
-                                                alt=""
-                                                className="h-full w-full rounded-full object-cover"
-                                            />
-                                        ) : (
-                                            <span className="text-lg">🧑‍🎓</span>
-                                        )}
-                                    </div>
-                                    <span className={cn(
-                                        "font-bold",
-                                        isCurrentUser ? "text-green-600" : "text-slate-700"
-                                    )}>
-                                        {user.userName}
-                                    </span>
-                                </div>
-                                <span className="font-bold text-amber-500">{user.points} XP</span>
-                            </Link>
-                        );
-                    })}
-                </div>
-            )}
-
-            {/* Empty State */}
-            {topUsers.length === 0 && (
-                <div className="rounded-xl border-2 border-dashed border-slate-200 p-8 text-center">
-                    <span className="text-4xl">🏆</span>
-                    <p className="mt-2 font-bold text-slate-600">Ainda não há classificação</p>
-                    <p className="text-sm text-slate-500">Completa lições para aparecer aqui!</p>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }

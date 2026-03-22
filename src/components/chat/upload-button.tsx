@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Paperclip, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@supabase/supabase-js";
+import { useAuth } from "@clerk/nextjs";
 
 type Props = {
     onUploadComplete: (url: string, type: "image" | "file", fileName: string) => void;
@@ -11,6 +12,27 @@ type Props = {
 
 export const UploadButton = ({ onUploadComplete }: Props) => {
     const [uploading, setUploading] = useState(false);
+    const { getToken } = useAuth();
+
+    // Dynamically create the Supabase client to inject the Clerk JWT securely
+    const supabase = useMemo(() => {
+        return createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                global: {
+                    fetch: async (url, options = {}) => {
+                        const clerkToken = await getToken({ template: 'supabase' });
+                        const headers = new Headers(options?.headers);
+                        if (clerkToken) {
+                            headers.set('Authorization', `Bearer ${clerkToken}`);
+                        }
+                        return fetch(url, { ...options, headers });
+                    },
+                },
+            }
+        );
+    }, [getToken]);
 
     const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.[0]) return;

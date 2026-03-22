@@ -1004,16 +1004,18 @@ export const sendMessage = async (receiverId: string, content: string, type: "te
     const { userId: senderId } = await auth();
     if (!senderId) throw new Error("Unauthorized");
 
-    await db.insert(messages).values({
+    const [insertedMsg] = await db.insert(messages).values({
         senderId,
         receiverId,
         content,
         type,
         fileName,
-    });
+    }).returning();
+
+    const actualSenderId = (insertedMsg as any).sender_id || insertedMsg.senderId;
 
     const currentUser = await db.query.userProgress.findFirst({
-        where: eq(userProgress.userId, senderId),
+        where: eq(userProgress.userId, actualSenderId),
     });
     const userName = currentUser?.userName || "Alguém";
 
@@ -1080,57 +1082,87 @@ export const getConversations = cache(async () => {
     const { userId } = await auth();
     if (!userId) return [];
 
-    const allMessages = await db.query.messages.findMany({
+    // 1. Fetch ALL messages where the current user is involved
+    const userMessages = await db.query.messages.findMany({
         where: or(
             eq(messages.senderId, userId),
             eq(messages.receiverId, userId)
         ),
-        with: {
-            sender: true,
-            receiver: true,
-        },
         orderBy: [desc(messages.createdAt)],
     });
 
-    const conversations = new Map();
+    // 2. Extract UNIQUE partner IDs
+    const partnerIds = Array.from(new Set(
+        userMessages.map(msg => {
+            const mSenderId = (msg as any).sender_id || msg.senderId;
+            const mReceiverId = (msg as any).receiver_id || msg.receiverId;
+            return mSenderId === userId ? mReceiverId : mSenderId;
+        })
+    ));
 
-    // 1. Add existing conversations
-    for (const msg of allMessages) {
-        const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
-        if (!conversations.has(partnerId)) {
-            conversations.set(partnerId, {
-                partner: msg.senderId === userId ? msg.receiver : msg.sender,
-                lastMessage: {
-                    ...msg,
-                    senderId: msg.senderId === userId ? "me" : msg.senderId,
-                },
-                unreadCount: 0,
-            });
-        }
-
-        // Count unread messages (received by current user, not read)
-        if (msg.receiverId === userId && !msg.read) {
-            const conv = conversations.get(partnerId);
-            conv.unreadCount += 1;
-        }
+    // 3. Fetch Partner Profiles explicitly
+    let partners: any[] = [];
+    if (partnerIds.length > 0) {
+        partners = await db.query.userProgress.findMany({
+            where: inArray(userProgress.userId, partnerIds)
+        });
     }
 
-    // 2. Add friends (following) who are not in conversations
-    const following = await db.query.follows.findMany({
-        where: eq(follows.followerId, userId),
-        with: {
-            following: true
+    // 4. Map the latest message to each partner for the UI
+    const chatList = partners.map(partner => {
+        const lastMessage = userMessages.find(m => {
+            const mSenderId = (m as any).sender_id || m.senderId;
+            const mReceiverId = (m as any).receiver_id || m.receiverId;
+            return mSenderId === partner.userId || mReceiverId === partner.userId;
+        });
+
+        const unreadCount = userMessages.filter(m => {
+            const mSenderId = (m as any).sender_id || m.senderId;
+            const mReceiverId = (m as any).receiver_id || m.receiverId;
+            return mSenderId === partner.userId && mReceiverId === userId && !m.read;
+        }).length;
+
+        let mappedSenderId = "system";
+        if (lastMessage) {
+            const lSenderId = (lastMessage as any).sender_id || lastMessage.senderId;
+            mappedSenderId = lSenderId === userId ? "me" : lSenderId;
         }
+
+        const formattedLastMessage = lastMessage ? {
+            ...lastMessage,
+            senderId: mappedSenderId,
+            createdAt: lastMessage.createdAt || new Date()
+        } : {
+            id: -1,
+            content: "Nenhuma mensagem",
+            senderId: "system",
+            read: true,
+            createdAt: new Date(),
+        };
+
+        return {
+            partner,
+            lastMessage: formattedLastMessage,
+            unreadCount
+        };
     });
 
+    // 5. Add friends (following) who are not in conversations yet
+    const following = await db.query.follows.findMany({
+        where: eq(follows.followerId, userId),
+        with: { following: true }
+    });
+
+    const existingPartnerIds = new Set(partners.map(p => p.userId));
+
     for (const follow of following) {
-        if (!conversations.has(follow.followingId)) {
-            conversations.set(follow.followingId, {
+        if (!existingPartnerIds.has(follow.followingId) && follow.following) {
+            chatList.push({
                 partner: follow.following,
                 lastMessage: {
                     id: -1,
                     content: "Começa uma conversa!",
-                    senderId: "system", // distinct from 'me' or valid ID
+                    senderId: "system",
                     read: true,
                     createdAt: new Date(),
                 },
@@ -1139,7 +1171,14 @@ export const getConversations = cache(async () => {
         }
     }
 
-    return Array.from(conversations.values());
+    // 6. Sort by recent activity
+    chatList.sort((a, b) => {
+        const dateA = a.lastMessage.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;
+        const dateB = b.lastMessage.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0;
+        return dateB - dateA;
+    });
+
+    return chatList;
 });
 
 export const getMessagesForThread = cache(async (otherUserId: string) => {
