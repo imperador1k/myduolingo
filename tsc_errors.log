@@ -1,0 +1,2 @@
+src/app/lesson/lesson-client.tsx(294,17): error TS2322: Type 'boolean | undefined' is not assignable to type 'boolean'.
+  Type 'undefined' is not assignable to type 'boolean'.

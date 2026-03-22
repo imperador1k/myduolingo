@@ -1,19 +1,23 @@
 "use client";
 
-import { useState, useTransition, useEffect, useCallback } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, X, Zap, Shield, Volume2, VolumeX, Ear } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { onChallengeComplete, onChallengeWrong, onLessonComplete, onClinicComplete } from "@/actions/user-progress";
-import { StreakModal } from "@/components/modals/streak-modal";
 import { useTTS } from "@/hooks/use-tts";
 import { useUISounds } from "@/hooks/use-ui-sounds";
-import { BearDanceLottie, StarAngryLottie, HappyStarLottie, DuoAnimationLottie, LaughingCatLottie } from "@/components/ui/lottie-animation";
+import { DuoAnimationLottie, LaughingCatLottie } from "@/components/ui/lottie-animation";
 import { InteractiveText } from "@/components/ui/interactive-text";
 import { isAnswerAcceptable } from "@/lib/string-matching";
+import { Button } from "@/components/ui/button";
+import { Ear, Volume2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// Types
+import { LessonHeader } from "./_components/header";
+import { ChallengeOptionCard } from "./_components/challenge-card";
+import { MatchGrid } from "./_components/match-grid";
+import { ResultScreen } from "./_components/result-screen";
+import { LessonFooter } from "./_components/footer";
+
 type ChallengeOption = {
     id: number;
     text: string;
@@ -23,7 +27,7 @@ type ChallengeOption = {
     audioLang?: string | null;
 };
 
-type Challenge = {
+export type Challenge = {
     id: number;
     question: string;
     type: "SELECT" | "ASSIST" | "INSERT" | "MATCH" | "DICTATION";
@@ -53,167 +57,6 @@ type Props = {
     isClinic?: boolean;
 };
 
-// Progress Bar Component
-const ProgressBar = ({ value }: { value: number }) => {
-    return (
-        <div className="h-4 w-full rounded-full bg-slate-200">
-            <div
-                className="h-full rounded-full bg-green-500 transition-all duration-300"
-                style={{ width: `${value}%` }}
-            />
-        </div>
-    );
-};
-
-// Hearts Display Component
-const Hearts = ({ hearts }: { hearts: number }) => {
-    return (
-        <div className="flex items-center gap-x-1">
-            <Heart
-                className={cn(
-                    "h-6 w-6",
-                    hearts > 0 ? "fill-rose-500 text-rose-500" : "text-slate-300"
-                )}
-            />
-            <span className="font-bold text-rose-500">{hearts}</span>
-        </div>
-    );
-};
-
-// Challenge Option Card
-type ChallengeOptionProps = {
-    id: number;
-    text: string;
-    imageSrc?: string | null;
-    selected: boolean;
-    disabled: boolean;
-    status: "none" | "correct" | "wrong";
-    isCorrect: boolean;
-    onClick: () => void;
-};
-
-const ChallengeOptionCard = ({
-    text,
-    imageSrc,
-    selected,
-    disabled,
-    status,
-    isCorrect,
-    onClick,
-}: ChallengeOptionProps) => {
-    return (
-        <button
-            onClick={onClick}
-            disabled={disabled}
-            className={cn(
-                "flex w-full cursor-pointer items-center gap-5 rounded-2xl border-2 border-b-[5px] p-5 transition-all outline-none",
-                // Base state (Idle)
-                !selected && status === "none" && !disabled && "border-slate-200 bg-white hover:bg-slate-50 hover:-translate-y-1 hover:border-b-[6px] active:translate-y-1 active:border-b-2 hover:shadow-sm",
-                
-                // Selected state (Before check)
-                selected && status === "none" && "border-sky-400 bg-sky-50 shadow-md shadow-sky-100/50 scale-[1.02]",
-                
-                // Correct state
-                status === "correct" && selected && "border-green-400 bg-green-50 scale-[1.02] shadow-md shadow-green-100/50",
-                status === "correct" && !selected && "border-slate-200 bg-white opacity-50 grayscale",
-                
-                // Wrong state
-                status === "wrong" && selected && "border-rose-400 bg-rose-50 scale-[1.02] shadow-md shadow-rose-100/50",
-                status === "wrong" && !selected && !isCorrect && "border-slate-200 bg-white opacity-50 grayscale",
-                status === "wrong" && !selected && isCorrect && "border-green-400 bg-green-50 scale-[1.02] shadow-md shadow-green-100/50", // Highlight correct option if missed
-
-                // Disabled state
-                disabled && status === "none" && "pointer-events-none opacity-50"
-            )}
-        >
-            {imageSrc && (
-                <div className="relative h-20 w-20 shrink-0 rounded-xl bg-slate-100 overflow-hidden border-2 border-slate-200/50">
-                    <img src={imageSrc} alt={text} className="w-full h-full object-cover" />
-                </div>
-            )}
-            <span className={cn(
-                "text-lg font-bold w-full text-left",
-                selected && status === "none" && "text-sky-600",
-                status === "correct" && (selected || isCorrect) && "text-green-600",
-                status === "wrong" && selected && "text-rose-600",
-                !selected && status === "none" && "text-slate-700"
-            )}>
-                {text}
-            </span>
-        </button>
-    );
-};
-
-// MATCH Grid Component
-type MatchGridProps = {
-    leftColumn: ChallengeOption[]; // Portuguese (correct: true)
-    rightColumn: ChallengeOption[]; // Target Language (correct: false)
-    selectedMatchIds: number[];
-    matchedIds: number[];
-    wrongMatchFlash: number[];
-    onSelect: (optId: number) => void;
-};
-
-const MatchGrid = ({ leftColumn, rightColumn, selectedMatchIds, matchedIds, wrongMatchFlash, onSelect }: MatchGridProps) => {
-    return (
-        <div className="grid w-full max-w-[800px] grid-cols-2 gap-8">
-            {/* Left Column (Portuguese) */}
-            <div className="flex flex-col gap-4">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-2">Português</span>
-                {leftColumn.map((opt) => {
-                    const isSelected = selectedMatchIds.includes(opt.id);
-                    const isMatched = matchedIds.includes(opt.id);
-                    const isWrongFlash = wrongMatchFlash.includes(opt.id);
-
-                    return (
-                        <button
-                            key={opt.id}
-                            onClick={() => onSelect(opt.id)}
-                            disabled={isMatched}
-                            className={cn(
-                                "p-4 min-h-[70px] rounded-2xl border-2 border-b-[5px] text-lg font-bold text-center transition-all duration-200 outline-none cursor-pointer",
-                                !isSelected && !isMatched && !isWrongFlash && "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:-translate-y-0.5 hover:shadow-sm active:translate-y-1 active:border-b-2",
-                                isSelected && !isWrongFlash && "border-sky-400 bg-sky-50 text-sky-700 scale-[1.02] shadow-md shadow-sky-100/50",
-                                isMatched && "border-green-400 bg-green-50 text-green-600 opacity-40 cursor-default scale-95 border-b-2 translate-y-1",
-                                isWrongFlash && "border-rose-400 bg-rose-50 text-rose-600 animate-shake"
-                            )}
-                        >
-                            {opt.text}
-                        </button>
-                    );
-                })}
-            </div>
-
-            {/* Right Column (Target Language) */}
-            <div className="flex flex-col gap-4">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-2">Língua Alvo</span>
-                {rightColumn.map((opt) => {
-                    const isSelected = selectedMatchIds.includes(opt.id);
-                    const isMatched = matchedIds.includes(opt.id);
-                    const isWrongFlash = wrongMatchFlash.includes(opt.id);
-
-                    return (
-                        <button
-                            key={opt.id}
-                            onClick={() => onSelect(opt.id)}
-                            disabled={isMatched}
-                            className={cn(
-                                "p-4 min-h-[70px] rounded-2xl border-2 border-b-[5px] text-lg font-bold text-center transition-all duration-200 outline-none cursor-pointer",
-                                !isSelected && !isMatched && !isWrongFlash && "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:-translate-y-0.5 hover:shadow-sm active:translate-y-1 active:border-b-2",
-                                isSelected && !isWrongFlash && "border-sky-400 bg-sky-50 text-sky-700 scale-[1.02] shadow-md shadow-sky-100/50",
-                                isMatched && "border-green-400 bg-green-50 text-green-600 opacity-40 cursor-default scale-95 border-b-2 translate-y-1",
-                                isWrongFlash && "border-rose-400 bg-rose-50 text-rose-600 animate-shake"
-                            )}
-                        >
-                            {opt.text}
-                        </button>
-                    );
-                })}
-            </div>
-        </div>
-    );
-};
-
 export const LessonClient = ({
     initialLesson,
     initialHearts,
@@ -230,11 +73,12 @@ export const LessonClient = ({
     const [hearts, setHearts] = useState(initialHearts);
     const [points, setPoints] = useState(initialPoints);
     const [challenges, setChallenges] = useState(initialLesson.challenges);
+    
     const [activeIndex, setActiveIndex] = useState(() => {
-        // Start from first incomplete challenge
         const incompleteIndex = initialLesson.challenges.findIndex(c => !c.completed);
         return incompleteIndex === -1 ? 0 : incompleteIndex;
     });
+
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [status, setStatus] = useState<"none" | "correct" | "wrong">("none");
     const [showExitModal, setShowExitModal] = useState(false);
@@ -252,14 +96,14 @@ export const LessonClient = ({
     const [shuffledLeft, setShuffledLeft] = useState<ChallengeOption[]>([]);
     const [shuffledRight, setShuffledRight] = useState<ChallengeOption[]>([]);
 
-    // Mute toggle state
+    // Mute state
     const [isAudioMuted, setIsAudioMuted] = useState(false);
 
     // Streak State
     const [showStreakModal, setShowStreakModal] = useState(false);
     const [streakDays, setStreakDays] = useState(0);
 
-    // Stats tracking
+    // Stats
     const [correctCount, setCorrectCount] = useState(0);
     const [wrongCount, setWrongCount] = useState(0);
     const [heartsLost, setHeartsLost] = useState(0);
@@ -269,7 +113,6 @@ export const LessonClient = ({
     const options = currentChallenge?.challengeOptions || [];
     const progress = ((activeIndex) / challenges.length) * 100;
 
-    // Shuffle MATCH options when entering a new MATCH challenge
     useEffect(() => {
         if (currentChallenge?.type === "MATCH" && currentChallenge.challengeOptions.length > 0) {
             const left = currentChallenge.challengeOptions.filter(o => o.correct).sort(() => Math.random() - 0.5);
@@ -279,42 +122,23 @@ export const LessonClient = ({
         }
     }, [activeIndex, currentChallenge?.type, currentChallenge?.challengeOptions]);
 
-    // Audio Logic (using Smart TTS Hook)
-    const { playAudio, playMixedSpeech, stopAudio, isPlaying, playingText } = useTTS(languageCode);
+    const { playAudio, playMixedSpeech, isPlaying, playingText } = useTTS(languageCode);
+    const { playWhoosh } = useUISounds();
 
-    // Audio is now user-triggered only (no autoplay)
-
-    // Play sound feedback
     const playSound = (type: "correct" | "wrong" | "completed") => {
         try {
-            const audioSrc = type === "correct"
-                ? "/correct.mp3"
-                : type === "wrong"
-                    ? "/duolingo-wrong.mp3"
-                    : "/duolingo-completed-lesson.mp3";
-
+            const audioSrc = type === "correct" ? "/correct.mp3" : type === "wrong" ? "/duolingo-wrong.mp3" : "/duolingo-completed-lesson.mp3";
             const audio = new Audio(audioSrc);
-            audio.play().catch(e => console.error("Error playing audio:", e));
-        } catch (e) {
-            // Audio not supported
-        }
+            audio.play().catch(e => console.error(e));
+        } catch (e) {}
     };
 
     const handleSelect = (optionId: number) => {
         if (status !== "none") return;
-
         setSelectedOption(optionId);
-
-        // Find the selected option text and speak it (respects mute)
         if (!isAudioMuted) {
             const selectedOpt = options.find((opt) => opt.id === optionId);
-            if (selectedOpt?.text) {
-                playAudio(
-                    selectedOpt.text, 
-                    0.9, 
-                    selectedOpt.audioLang || languageCode
-                );
-            }
+            if (selectedOpt?.text) playAudio(selectedOpt.text, 0.9, selectedOpt.audioLang || languageCode);
         }
     };
 
@@ -323,22 +147,15 @@ export const LessonClient = ({
         const isDictation = currentChallenge.type === "DICTATION";
 
         if (isInsert || isDictation) {
-            // INSERT/DICTATION: validate typed input via Levenshtein engine
-            const correctText = isDictation
-                ? currentChallenge.question  // For DICTATION, the question IS the answer
-                : options.find((opt) => opt.correct)?.text || "";
+            const correctText = isDictation ? currentChallenge.question : options.find((opt) => opt.correct)?.text || "";
             const result = isAnswerAcceptable(inputValue, correctText);
 
             if (result.isCorrect) {
                 setStatus("correct");
                 playSound("correct");
                 setCorrectCount((prev) => prev + 1);
-
-                if (result.isTypo) {
-                    setTypoMessage(`Quase perfeito! Atenção à ortografia: ${correctText}`);
-                } else {
-                    setTypoMessage(null);
-                }
+                if (result.isTypo) setTypoMessage(`Quase perfeito! Atenção à ortografia: ${correctText}`);
+                else setTypoMessage(null);
 
                 if (isClinic) {
                     setPoints((prev) => prev + 10);
@@ -355,26 +172,16 @@ export const LessonClient = ({
                 playSound("wrong");
                 setWrongCount((prev) => prev + 1);
                 setTypoMessage(null);
-
                 setChallenges((prev) => [...prev, { ...currentChallenge, id: currentChallenge.id + Math.random() }]);
 
                 if (!isClinic) {
-                    onChallengeWrong().then((result) => {
-                        if (result.shieldUsed) {
-                            // Shield protected
-                        } else if (result.hearts !== undefined) {
-                            setHearts(result.hearts);
-                            setHeartsLost((prev) => prev + 1);
-                        }
-                    });
+                    onChallengeWrong().then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
                 }
             }
             return;
         }
 
-        // SELECT mode: existing logic
         if (selectedOption === null) return;
-
         const selectedOpt = options.find((opt) => opt.id === selectedOption);
         if (selectedOpt?.correct) {
             setStatus("correct");
@@ -391,81 +198,29 @@ export const LessonClient = ({
                     setXpGained((prev) => prev + xp);
                 });
             }
-
         } else {
             setStatus("wrong");
             playSound("wrong");
             setWrongCount((prev) => prev + 1);
-
             setChallenges((prev) => [...prev, { ...currentChallenge, id: currentChallenge.id + Math.random() }]);
 
             if (!isClinic) {
-                onChallengeWrong().then((result) => {
-                    if (result.shieldUsed) {
-                        // Shield protected
-                    } else if (result.hearts !== undefined) {
-                        setHearts(result.hearts);
-                        setHeartsLost((prev) => prev + 1);
-                    }
-                });
+                onChallengeWrong().then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
             }
         }
     };
 
-    // Old handleContinue removed, new one is integrated above.
-    /* 
-       Wait, I need to make sure I don't leave duplicate handleContinue in the file.
-       The previous block REPLACED text from line 217 onwards, which was inside render?
-       Let me check the line numbers again.
-       The previous replace TARGET was:
-       // Lesson Complete Screen ... (line 247)
-       Wait, I targetted line 217 in my previous 'TargetContent', but the 'StartLine' argument says 217.
-       Looking at the file content from step 1957:
-       Line 216 was "// Lesson Complete Screen".
-       My previous replacement replaced the render logic for lesson complete.
-       BUT, in my 'ReplacementContent', I also included:
-       const handleLessonComplete = ...
-       const handleContinue = ...
+    const handleExit = () => { playWhoosh(); setShowExitModal(true); };
+    const confirmExit = () => router.push("/learn");
+    const cancelExit = () => setShowExitModal(false);
 
-       Wait, I can't declare functions inside the render logic if this block is inside the 'if (lessonComplete)' block?
-       Ah, I need to be careful.
-       Line 217 starts: if (lessonComplete) {
-       My replacement started with: 
-       // Timing const [startTime]...
-       
-       This means I replaced the 'if (lessonComplete)' block with HOOKS and FUNCTIONS followed by the new 'if (lessonComplete)' block.
-       This is VALID, IF line 217 is inside the main component body (it is).
-       
-       HOWEVER, I now have DUPLICATE `handleContinue` if I didn't remove the old one.
-       Old `handleContinue` was at line 188.
-       I need to delete the old `handleContinue` at line 188.
-    */
-
-    const { playWhoosh } = useUISounds();
-
-    const handleExit = () => {
-        playWhoosh();
-        setShowExitModal(true);
-    };
-
-    const confirmExit = () => {
-        router.push("/learn");
-    };
-
-    const cancelExit = () => {
-        setShowExitModal(false);
-    };
-
-    // Timing
     const [startTime] = useState(Date.now());
     const [endTime, setEndTime] = useState<number | null>(null);
 
-    // Calculate time and accuracy
     const duration = endTime ? Math.floor((endTime - startTime) / 1000) : 0;
     const minutes = Math.floor(duration / 60);
     const seconds = duration % 60;
     const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
     const totalQuestions = correctCount + wrongCount;
     const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
@@ -481,7 +236,6 @@ export const LessonClient = ({
             return;
         }
 
-        // Trigger transition animation if moving to the next question
         if (activeIndex < challenges.length - 1) {
             setShowTransition(true);
             setTimeout(() => {
@@ -500,635 +254,198 @@ export const LessonClient = ({
             return;
         }
 
-        // If it's the last challenge
         handleLessonComplete();
     };
 
-    // Lesson Complete Screen
+    const handleFinishLesson = () => {
+        startTransition(() => {
+            const completeAction = isClinic ? onClinicComplete : onLessonComplete;
+            completeAction().then((res: any) => {
+                if (res?.streakExtended) {
+                    setStreakDays(res.streak ?? 0);
+                    setShowStreakModal(true);
+                } else {
+                    router.push(isClinic ? "/shop" : "/learn");
+                }
+            }).catch(() => router.push(isClinic ? "/shop" : "/learn"));
+        });
+    };
+
     if (lessonComplete) {
-        const isSuccess = hearts > 0;
-        return (
-            <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6">
-                <div className="w-full max-w-[400px] text-center flex flex-col items-center">
-
-                    {/* Header */}
-                    <div className="mb-10 pt-10">
-                        <h1 className="text-3xl font-extrabold text-amber-400 uppercase tracking-widest">
-                            Prática Concluída!
-                        </h1>
-                    </div>
-
-                    {/* Hero Mascot Lottie */}
-                    <div className="mb-8 w-72 h-72 relative animate-in fade-in slide-in-from-bottom-8 duration-700">
-                        <HappyStarLottie className="w-full h-full drop-shadow-2xl" />
-                    </div>
-
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-3 gap-4 w-full mb-12">
-                        {/* XP Card */}
-                        <div className="flex flex-col items-center overflow-hidden rounded-2xl border-2 border-amber-400 bg-amber-400">
-                            <div className="w-full bg-amber-400 p-1 text-center text-xs font-bold text-white uppercase">
-                                Total XP
-                            </div>
-                            <div className="flex w-full flex-col items-center justify-center bg-white p-3">
-                                <Zap className="h-6 w-6 text-amber-400 mb-1 fill-amber-400" />
-                                <span className="text-xl font-bold text-amber-400">{xpGained}</span>
-                            </div>
+        if (hearts === 0 && !isClinic) {
+            return (
+                <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-rose-400 to-rose-500 px-6">
+                    <div className="w-full max-w-md text-center">
+                        <div className="mb-6"><span className="text-8xl">💔</span></div>
+                        <h1 className="mb-2 text-4xl font-extrabold text-white">Gastaste todos os teus corações!</h1>
+                        <p className="mb-8 text-lg text-white/80">O teu progresso foi guardado. Recarrega os corações para continuar.</p>
+                        <div className="flex flex-col gap-3">
+                            <Button variant="super" size="lg" className="w-full" onClick={() => router.push("/shop")}>Recarregar Corações</Button>
+                            <Button variant="primary" size="lg" className="w-full border-green-400 bg-green-500 hover:bg-green-400" onClick={() => router.push("/lesson?clinic=true")}>Praticar para ganhar vidas ❤️</Button>
+                            <Button variant="ghost" size="lg" className="w-full text-white hover:bg-white/20" onClick={() => router.push("/learn")}>Voltar</Button>
                         </div>
-
-                        {/* Time Card */}
-                        <div className="flex flex-col items-center overflow-hidden rounded-2xl border-2 border-sky-400 bg-sky-400">
-                            <div className="w-full bg-sky-400 p-1 text-center text-xs font-bold text-white uppercase">
-                                Tempo
-                            </div>
-                            <div className="flex w-full flex-col items-center justify-center bg-white p-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-sky-400 mb-1"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                                <span className="text-xl font-bold text-sky-400">{timeString}</span>
-                            </div>
-                        </div>
-
-                        {/* Accuracy Card */}
-                        <div className="flex flex-col items-center overflow-hidden rounded-2xl border-2 border-green-400 bg-green-400">
-                            <div className="w-full bg-green-400 p-1 text-center text-xs font-bold text-white uppercase">
-                                Precisão
-                            </div>
-                            <div className="flex w-full flex-col items-center justify-center bg-white p-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-green-400 mb-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-                                <span className="text-xl font-bold text-green-400">{accuracy}%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Footer / Continue Button */}
-                    <div className="w-full mt-auto pb-10">
-                        <Button
-                            variant="primary" // Changed from super/secondary to match existing styles but let's check variant
-                            size="lg"
-                            className="w-full h-12 text-lg uppercase tracking-wide"
-                            onClick={() => {
-                                if (isSuccess) {
-                                    startTransition(() => {
-                                        const completeAction = isClinic ? onClinicComplete : onLessonComplete;
-                                        completeAction()
-                                            .then((res: any) => {
-                                                if (res?.streakExtended) {
-                                                    setStreakDays(res.streak ?? 0);
-                                                    setShowStreakModal(true);
-                                                } else {
-                                                    router.push(isClinic ? "/shop" : "/learn");
-                                                }
-                                            })
-                                            .catch((err) => {
-                                                console.error("Error completing lesson:", err);
-                                                // Fallback to exit even on error to avoid sticking
-                                                router.push(isClinic ? "/shop" : "/learn");
-                                            });
-                                    });
-                                } else {
-                                    router.push("/learn");
-                                }
-                            }}
-                        >
-                            Continuar
-                        </Button>
                     </div>
                 </div>
-                <StreakModal
-                    open={showStreakModal}
-                    onOpenChange={(open) => {
-                        if (!open) router.push("/learn");
-                        setShowStreakModal(open);
-                    }}
-                    streak={streakDays}
-                    variant="gained"
-                />
-            </div>
-        );
-    }
+            );
+        }
 
-    // Out of Hearts Screen
-    if (hearts === 0 && !isClinic && status === "none") {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-rose-400 to-rose-500 px-6">
-                <div className="w-full max-w-md text-center">
-                    {/* Sad Mascot */}
-                    <div className="mb-6">
-                        <span className="text-8xl">💔</span>
-                    </div>
-
-                    {/* Title */}
-                    <h1 className="mb-2 text-4xl font-extrabold text-white">
-                        Gastaste todos os teus corações!
-                    </h1>
-                    <p className="mb-8 text-lg text-white/80">
-                        O teu progresso foi guardado. Recarrega os corações para continuar.
-                    </p>
-
-                    {/* Buttons */}
-                    <div className="flex flex-col gap-3">
-                        <Button
-                            variant="super"
-                            size="lg"
-                            className="w-full"
-                            onClick={() => router.push("/shop")}
-                        >
-                            Recarregar Corações
-                        </Button>
-                        <Button
-                            variant="primary" // Re-using primary for positive actions
-                            size="lg"
-                            className="w-full border-green-400 bg-green-500 hover:bg-green-400"
-                            onClick={() => router.push("/lesson?clinic=true")}
-                        >
-                            Praticar para ganhar vidas â¤ï¸
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="lg"
-                            className="w-full text-white hover:bg-white/20"
-                            onClick={() => router.push("/learn")}
-                        >
-                            Voltar
-                        </Button>
-                    </div>
-                </div>
-            </div>
+            <ResultScreen 
+                isSuccess={hearts > 0 || !!isClinic} 
+                xpGained={xpGained} 
+                timeString={timeString} 
+                accuracy={accuracy} 
+                showStreakModal={showStreakModal} 
+                streakDays={streakDays} 
+                onContinue={handleFinishLesson} 
+                onShowStreakModalChange={(open) => {
+                    if (!open) router.push("/learn");
+                    setShowStreakModal(open);
+                }} 
+            />
         );
     }
 
     if (!currentChallenge) {
-        // Fallback if index out of bounds
         router.push("/learn");
         return null;
     }
 
-
-
     return (
         <>
-
-            {/* Exit Confirmation Modal */}
             {showExitModal && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
                     <div className="w-full max-w-md rounded-[2.5rem] bg-white p-8 shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-500 border-4 border-slate-100 relative overflow-hidden">
-                        {/* Decorative background element */}
                         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-rose-50 to-white -z-10" />
-                        
-                        <div className="w-56 h-56 -mt-4 relative animate-bounce">
-                            <LaughingCatLottie className="w-full h-full drop-shadow-xl" />
-                        </div>
-                        
-                        <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight -mt-4">
-                            Vais mesmo <span className="text-rose-500">desistir</span> agora?! 😭
-                        </h2>
-                        
+                        <div className="w-56 h-56 -mt-4 relative animate-bounce"><LaughingCatLottie className="w-full h-full drop-shadow-xl" /></div>
+                        <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight -mt-4">Vais mesmo <span className="text-rose-500">desistir</span> agora?! 😭</h2>
                         <p className="mt-4 mb-8 text-lg font-medium text-slate-500 px-2 leading-relaxed">
                             O gatinho está a rir-se da tua fraqueza... Fica e prova o teu valor! 
                             <span className="block mt-2 text-sm text-slate-400 font-normal">(Relaxa, o progresso fica guardado de qualquer forma).</span>
                         </p>
-                        
                         <div className="flex flex-col w-full gap-3">
-                            <Button
-                                variant="primary"
-                                size="lg"
-                                className="w-full h-14 text-lg rounded-2xl tracking-wide uppercase active:border-b-0 active:translate-y-1 transition-all"
-                                onClick={cancelExit}
-                            >
-                                CONTINUAR A APRENDER
-                            </Button>
-                            <Button
-                                variant="danger"
-                                size="lg"
-                                className="w-full h-14 text-lg rounded-2xl bg-white text-rose-500 border-2 border-slate-200 hover:bg-rose-50 hover:text-rose-600 active:border-b-0 active:translate-y-1 transition-all"
-                                onClick={confirmExit}
-                            >
-                                Sair porque sou fraco
-                            </Button>
+                            <Button variant="primary" size="lg" className="w-full h-14 text-lg rounded-2xl tracking-wide uppercase active:border-b-0 active:translate-y-1 transition-all" onClick={cancelExit}>CONTINUAR A APRENDER</Button>
+                            <Button variant="danger" size="lg" className="w-full h-14 text-lg rounded-2xl bg-white text-rose-500 border-2 border-slate-200 hover:bg-rose-50 hover:text-rose-600 active:border-b-0 active:translate-y-1 transition-all" onClick={confirmExit}>Sair porque sou fraco</Button>
                         </div>
                     </div>
                 </div>
             )}
 
             <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-white">
-                {/* Header */}
-                <header className="mx-auto flex w-full max-w-[1140px] shrink-0 items-center justify-between gap-x-4 px-6 pt-6 lg:pt-12">
-                    <button onClick={handleExit} className="text-slate-500 hover:text-slate-700">
-                        <X className="h-6 w-6" />
-                    </button>
-                    <div className="flex-1">
-                        <ProgressBar value={progress} />
-                    </div>
+                <LessonHeader progress={progress} hearts={hearts} xpBoostLessons={xpBoostLessons} heartShields={heartShields} isAudioMuted={isAudioMuted} onToggleMute={() => setIsAudioMuted(!isAudioMuted)} onExit={handleExit} />
 
-                    <div className="flex items-center gap-4">
-                        {/* Mute Toggle */}
-                        <button
-                            onClick={() => setIsAudioMuted(!isAudioMuted)}
-                            className={cn(
-                                "rounded-xl p-2 transition-all active:scale-90",
-                                isAudioMuted
-                                    ? "bg-slate-100 text-slate-400 hover:bg-slate-200"
-                                    : "bg-sky-50 text-sky-500 hover:bg-sky-100"
-                            )}
-                            title={isAudioMuted ? "Ativar som" : "Silenciar"}
-                        >
-                            {isAudioMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                        </button>
-
-                        {/* XP Boost Indicator */}
-                        {xpBoostLessons > 0 && (
-                            <div className="flex items-center gap-2 rounded-xl border-2 border-purple-200 bg-purple-100 px-4 py-2 text-purple-600">
-                                <Zap className="h-5 w-5 fill-current" />
-                                <span className="font-bold">{xpBoostLessons}</span>
-                            </div>
-                        )}
-
-                        {/* Heart Shield Indicator */}
-                        {heartShields > 0 && (
-                            <div className="flex items-center gap-2 rounded-xl border-2 border-sky-200 bg-sky-100 px-4 py-2 text-sky-600">
-                                <Shield className="h-5 w-5 fill-current" />
-                                <span className="font-bold">{heartShields}</span>
-                            </div>
-                        )}
-
-                        <Hearts hearts={hearts} />
-                    </div>
-                </header>
-
-                {/* Transition Animation Overlay */}
                 {showTransition && (
                     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white animate-in fade-in duration-300">
-                        <div className="w-80 h-80 animate-in zoom-in duration-500">
-                            <DuoAnimationLottie className="w-full h-full drop-shadow-2xl" />
-                        </div>
-                        <h2 className="text-xl sm:text-2xl font-bold text-slate-400 mt-4 animate-pulse">
-                            A carregar a próxima...
-                        </h2>
+                        <div className="w-80 h-80 animate-in zoom-in duration-500"><DuoAnimationLottie className="w-full h-full drop-shadow-2xl" /></div>
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-400 mt-4 animate-pulse">A carregar a próxima...</h2>
                     </div>
                 )}
 
-                {/* Main content */}
                 <main className="flex-1 overflow-y-auto min-h-0 w-full px-6 py-6 no-scrollbar">
                     <div className="mx-auto flex w-full max-w-[1140px] min-h-full flex-col items-center justify-center gap-y-6">
-
-                    {/* CONTEXT (Scenario) - Shows up if present */}
                     {currentChallenge.context && (
                         <div className="w-full max-w-[600px] bg-sky-50/80 backdrop-blur-sm p-5 rounded-3xl border-2 border-sky-100/50 shadow-sm text-center mb-[-10px] relative transition-all duration-300">
                             <span className="text-[11px] font-black text-sky-400 uppercase tracking-[0.2em] mb-2 block">Contexto</span>
-                            <Button 
-                                variant="ghost" 
-                                className={cn(
-                                    "absolute top-3 right-3 rounded-xl w-10 h-10 p-0 text-sky-500 bg-white border-2 border-slate-100 shadow-sm transition-all hover:bg-sky-50 hover:border-sky-200 hover:scale-105 active:scale-95",
-                                    isPlaying && playingText === currentChallenge.context && "border-sky-300 bg-sky-100 scale-105"
-                                )}
-                                onClick={() => playAudio(
-                                    currentChallenge.context as string, 
-                                    0.9, 
-                                    currentChallenge.contextAudioLang || languageCode
-                                )}
-                            >
-                                {isPlaying && playingText === currentChallenge.context ? (
-                                    <div className="w-4 h-4 bg-sky-500 rounded-sm animate-pulse" />
-                                ) : (
-                                    <Volume2 className="h-5 w-5" />
-                                )}
+                            <Button variant="ghost" className="absolute top-3 right-3 rounded-xl w-10 h-10 p-0 text-sky-500 bg-white border-2 border-slate-100 shadow-sm transition-all hover:bg-sky-50 hover:border-sky-200 hover:scale-105 active:scale-95"
+                                onClick={() => playAudio(currentChallenge.context as string, 0.9, currentChallenge.contextAudioLang || languageCode)}>
+                                {isPlaying && playingText === currentChallenge.context ? <div className="w-4 h-4 bg-sky-500 rounded-sm animate-pulse" /> : <Volume2 className="h-5 w-5" />}
                             </Button>
                             <div className="text-xl font-medium text-slate-700 mt-2 px-8 leading-relaxed">
                                 &quot;<InteractiveText text={currentChallenge.context} language={language} />&quot;
                             </div>
-                            {/* Decorative tail for speech bubble effect */}
                             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-sky-50/80 border-r-2 border-b-2 border-sky-100/50 rotate-45 backdrop-blur-sm" />
                         </div>
                     )}
 
-                    {/* Question */}
                     <div className="flex flex-col gap-6 mb-6 items-center justify-center mt-4">
                         <div className="flex items-center gap-4">
-                            <Button
-                                variant="ghost"
-                                className={cn(
-                                    "bg-white border-2 border-slate-200 w-28 h-28 rounded-full shadow-md transition-all active:scale-95 hover:bg-slate-50 hover:border-sky-200 hover:shadow-lg",
-                                    isPlaying && playingText === currentChallenge.question && "border-sky-400 bg-sky-50 scale-105 shadow-sky-200"
-                                )}
-                                onClick={() => playAudio(
-                                    currentChallenge.question, 
-                                    0.9, 
-                                    currentChallenge.questionAudioLang || languageCode
-                                )}
-                            >
-                                {isPlaying && playingText === currentChallenge.question ? (
-                                    <div className="w-10 h-10 bg-sky-500 rounded-md animate-pulse" />
-                                ) : (
-                                    <Volume2 className="h-14 w-14 text-sky-500" />
-                                )}
+                            <Button variant="ghost" className="bg-white border-2 border-slate-200 w-28 h-28 rounded-full shadow-md transition-all active:scale-95 hover:bg-slate-50 hover:border-sky-200 hover:shadow-lg"
+                                onClick={() => playAudio(currentChallenge.question, 0.9, currentChallenge.questionAudioLang || languageCode)}>
+                                {isPlaying && playingText === currentChallenge.question ? <div className="w-10 h-10 bg-sky-500 rounded-md animate-pulse" /> : <Volume2 className="h-14 w-14 text-sky-500" />}
                             </Button>
-
-                            <Button
-                                variant="ghost"
-                                className="bg-white border-2 border-slate-200 w-14 h-14 rounded-2xl shadow-sm hover:bg-slate-50 hover:border-sky-200 transition-all active:scale-95"
-                                onClick={() => playAudio(
-                                    currentChallenge.question, 
-                                    0.5, 
-                                    currentChallenge.questionAudioLang || languageCode
-                                )}
-                            >
-                                <span className="text-2xl">ðŸ¢</span>
+                            <Button variant="ghost" className="bg-white border-2 border-slate-200 w-14 h-14 rounded-2xl shadow-sm hover:bg-slate-50 hover:border-sky-200 transition-all active:scale-95"
+                                onClick={() => playAudio(currentChallenge.question, 0.5, currentChallenge.questionAudioLang || languageCode)}>
+                                <span className="text-2xl">🐢</span>
                             </Button>
                         </div>
                         <div className="text-center text-3xl font-extrabold lg:text-4xl text-slate-800 tracking-tight">
-                            {currentChallenge.type !== "DICTATION" && (
-                                <InteractiveText text={currentChallenge.question} language={language} />
-                            )}
+                            {currentChallenge.type !== "DICTATION" && <InteractiveText text={currentChallenge.question} language={language} />}
                         </div>
                     </div>
 
-                    {/* Options / Text Input / MATCH Grid / DICTATION */}
                     {currentChallenge.type === "DICTATION" ? (
                         <div className="w-full max-w-[600px] flex flex-col items-center gap-6">
-                            {/* Giant Play Button */}
-                            <button
-                                onClick={() => playAudio(
-                                    currentChallenge.question,
-                                    0.85,
-                                    currentChallenge.questionAudioLang || languageCode
-                                )}
-                                className={cn(
-                                    "w-32 h-32 rounded-full border-4 border-b-[8px] flex items-center justify-center transition-all duration-200 outline-none cursor-pointer",
-                                    "bg-sky-50 border-sky-300 text-sky-500 hover:bg-sky-100 hover:scale-105 active:scale-95 active:border-b-4 active:translate-y-1",
-                                    isPlaying && "animate-pulse bg-sky-100 border-sky-400 scale-105"
-                                )}
-                            >
+                            <button onClick={() => playAudio(currentChallenge.question, 0.85, currentChallenge.questionAudioLang || languageCode)}
+                                className={cn("w-32 h-32 rounded-full border-4 border-b-[8px] flex items-center justify-center transition-all duration-200 outline-none cursor-pointer", "bg-sky-50 border-sky-300 text-sky-500 hover:bg-sky-100 hover:scale-105 active:scale-95 active:border-b-4 active:translate-y-1", isPlaying && "animate-pulse bg-sky-100 border-sky-400 scale-105")}>
                                 <Ear className="h-14 w-14" />
                             </button>
                             <p className="text-slate-400 text-sm font-medium">Ouve e escreve o que ouves</p>
-
-                            {/* Slow speed button */}
-                            <button
-                                onClick={() => playAudio(
-                                    currentChallenge.question,
-                                    0.5,
-                                    currentChallenge.questionAudioLang || languageCode
-                                )}
-                                className="rounded-2xl border-2 border-slate-200 bg-white px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 transition-all active:scale-95"
-                            >
-                                🐢 Mais devagar
-                            </button>
-
-                            {/* Text Input */}
-                            <input
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" && inputValue.trim() && status === "none") {
-                                        e.preventDefault();
-                                        handleCheck();
-                                    }
-                                }}
-                                disabled={status !== "none" || isPending}
-                                placeholder="Escreve o que ouviste..."
-                                autoFocus
-                                className={cn(
-                                    "w-full p-4 border-2 rounded-xl text-lg font-medium transition-all outline-none text-center",
-                                    status === "none" && "border-slate-200 bg-white focus:border-sky-400 focus:ring-2 focus:ring-sky-200 text-slate-800 placeholder:text-slate-400",
-                                    status === "correct" && "border-green-400 bg-green-50 text-green-700",
-                                    status === "wrong" && "border-rose-400 bg-rose-50 text-rose-700"
-                                )}
-                            />
-                            {typoMessage && status === "correct" && (
-                                <p className="text-amber-600 text-sm font-medium bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 animate-in fade-in duration-300">
-                                    ✏️ {typoMessage}
-                                </p>
-                            )}
+                            <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && inputValue.trim() && status === "none") { e.preventDefault(); handleCheck(); } }}
+                                disabled={status !== "none" || isPending} placeholder="Escreve o que ouviste..." autoFocus
+                                className={cn("w-full p-4 border-2 rounded-xl text-lg font-medium transition-all outline-none text-center", status === "none" && "border-slate-200 bg-white focus:border-sky-400 focus:ring-2 focus:ring-sky-200 text-slate-800 placeholder:text-slate-400", status === "correct" && "border-green-400 bg-green-50 text-green-700", status === "wrong" && "border-rose-400 bg-rose-50 text-rose-700")} />
+                            {typoMessage && status === "correct" && <p className="text-amber-600 text-sm font-medium bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 animate-in fade-in duration-300">✏️ {typoMessage}</p>}
                         </div>
                     ) : currentChallenge.type === "MATCH" ? (
-                        <MatchGrid
-                            leftColumn={shuffledLeft}
-                            rightColumn={shuffledRight}
-                            selectedMatchIds={selectedMatchIds}
-                            matchedIds={matchedIds}
-                            wrongMatchFlash={wrongMatchFlash}
+                        <MatchGrid leftColumn={shuffledLeft} rightColumn={shuffledRight} selectedMatchIds={selectedMatchIds} matchedIds={matchedIds} wrongMatchFlash={wrongMatchFlash}
                             onSelect={(optId) => {
                                 if (matchedIds.includes(optId) || wrongMatchFlash.length > 0) return;
-
-                                const newSelected = selectedMatchIds.includes(optId)
-                                    ? selectedMatchIds.filter((id) => id !== optId)
-                                    : [...selectedMatchIds, optId];
-
+                                const newSelected = selectedMatchIds.includes(optId) ? selectedMatchIds.filter((id) => id !== optId) : [...selectedMatchIds, optId];
                                 if (newSelected.length === 2) {
-                                    // Check if they form a valid pair
                                     const [idA, idB] = newSelected;
-                                    const optA = options.find((o) => o.id === idA);
-                                    const optB = options.find((o) => o.id === idB);
                                     const idxA = options.findIndex((o) => o.id === idA);
                                     const idxB = options.findIndex((o) => o.id === idB);
+                                    const isPair = (idxA < 4 && idxB === idxA + 4) || (idxB < 4 && idxA === idxB + 4);
 
-                                    // Pair logic: index i ↔ index i+4 (first 4 are target lang, next 4 are PT)
-                                    const isPair =
-                                        (idxA < 4 && idxB === idxA + 4) ||
-                                        (idxB < 4 && idxA === idxB + 4);
-
-                                    if (isPair && optA && optB) {
-                                        // Correct pair!
+                                    if (isPair) {
                                         playSound("correct");
                                         const newMatched = [...matchedIds, idA, idB];
                                         setMatchedIds(newMatched);
                                         setSelectedMatchIds([]);
-
-                                        // Auto-complete when all 8 matched
                                         if (newMatched.length === 8) {
                                             setStatus("correct");
                                             setCorrectCount((prev) => prev + 1);
-                                            if (isClinic) {
-                                                setPoints((prev) => prev + 10);
-                                                setXpGained((prev) => prev + 10);
-                                            } else {
-                                                onChallengeComplete(currentChallenge.id).then((res) => {
-                                                    const xp = res.xpGained || 10;
-                                                    setPoints((prev) => prev + xp);
-                                                    setXpGained((prev) => prev + xp);
-                                                });
+                                            if (isClinic) { setPoints((prev) => prev + 10); setXpGained((prev) => prev + 10); } else {
+                                                onChallengeComplete(currentChallenge.id).then((res) => { const xp = res.xpGained || 10; setPoints((prev) => prev + xp); setXpGained((prev) => prev + xp); });
                                             }
                                         }
                                     } else {
-                                        // Wrong pair
-                                        playSound("wrong");
-                                        setWrongMatchFlash(newSelected);
-                                        setTimeout(() => {
-                                            setWrongMatchFlash([]);
-                                            setSelectedMatchIds([]);
-                                        }, 600);
+                                        playSound("wrong"); setWrongMatchFlash(newSelected);
+                                        setTimeout(() => { setWrongMatchFlash([]); setSelectedMatchIds([]); }, 600);
                                     }
-                                } else {
-                                    setSelectedMatchIds(newSelected);
-                                }
-                            }}
-                        />
+                                } else { setSelectedMatchIds(newSelected); }
+                            }} />
                     ) : currentChallenge.type === "INSERT" ? (
                         <div className="w-full max-w-[600px] flex flex-col gap-3">
-                            <input
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" && inputValue.trim() && status === "none") {
-                                        e.preventDefault();
-                                        handleCheck();
-                                    }
-                                }}
-                                disabled={status !== "none" || isPending}
-                                placeholder="Escreve a tua resposta..."
-                                autoFocus
-                                className={cn(
-                                    "w-full p-4 border-2 rounded-xl text-lg font-medium transition-all outline-none",
-                                    status === "none" && "border-slate-200 bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-slate-800 placeholder:text-slate-400",
-                                    status === "correct" && "border-green-400 bg-green-50 text-green-700",
-                                    status === "wrong" && "border-rose-400 bg-rose-50 text-rose-700"
-                                )}
-                            />
-                            {typoMessage && status === "correct" && (
-                                <p className="text-amber-600 text-sm font-medium bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 animate-in fade-in duration-300">
-                                    ✏️ {typoMessage}
-                                </p>
-                            )}
+                            <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && inputValue.trim() && status === "none") { e.preventDefault(); handleCheck(); } }}
+                                disabled={status !== "none" || isPending} placeholder="Escreve a tua resposta..." autoFocus
+                                className={cn("w-full p-4 border-2 rounded-xl text-lg font-medium transition-all outline-none", status === "none" && "border-slate-200 bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-slate-800 placeholder:text-slate-400", status === "correct" && "border-green-400 bg-green-50 text-green-700", status === "wrong" && "border-rose-400 bg-rose-50 text-rose-700")} />
+                            {typoMessage && status === "correct" && <p className="text-amber-600 text-sm font-medium bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 animate-in fade-in duration-300">✏️ {typoMessage}</p>}
                         </div>
                     ) : (
                         <div className="grid w-full max-w-[600px] grid-cols-1 gap-3 sm:grid-cols-2">
                             {options.map((option) => (
-                                <ChallengeOptionCard
-                                    key={option.id}
-                                    id={option.id}
-                                    text={option.text}
-                                    imageSrc={option.imageSrc}
-                                    selected={selectedOption === option.id}
-                                    disabled={status !== "none" || isPending}
-                                    isCorrect={option.correct}
-                                    status={
-                                        status !== "none" && selectedOption === option.id
-                                            ? status
-                                            : option.correct && status === "wrong"
-                                                ? "correct"
-                                                : "none"
-                                    }
-                                    onClick={() => handleSelect(option.id)}
-                                />
+                                <ChallengeOptionCard key={option.id} id={option.id} text={option.text} imageSrc={option.imageSrc} selected={selectedOption === option.id} disabled={status !== "none" || isPending} isCorrect={option.correct}
+                                    status={status !== "none" && selectedOption === option.id ? status : option.correct && status === "wrong" ? "correct" : "none"}
+                                    onClick={() => handleSelect(option.id)} />
                             ))}
                         </div>
                     )}
                     </div>
                 </main>
-
-                {/* Footer */}
-                <footer
-                    className={cn(
-                        "shrink-0 border-t-2 p-4 lg:p-8",
-                        status === "correct" && "border-transparent bg-green-100",
-                        status === "wrong" && "border-transparent bg-rose-100"
-                    )}
-                >
-                    <div className="mx-auto flex w-full max-w-[1140px] items-center justify-between">
-                        <div className="w-full">
-                            {status === "none" && (
-                                <div className="flex justify-between w-full">
-                                    <Button variant="ghost" onClick={handleExit} className="hidden lg:block">Saltar</Button>
-                                    <Button
-                                        variant="primary"
-                                        disabled={
-                                            (currentChallenge.type === "INSERT" || currentChallenge.type === "DICTATION"
-                                                ? !inputValue.trim()
-                                                : currentChallenge.type === "MATCH"
-                                                    ? matchedIds.length < 8
-                                                    : selectedOption === null)
-                                            || isPending
-                                        }
-                                        onClick={handleCheck}
-                                        className="ml-auto"
-                                    >
-                                        Verificar
-                                    </Button>
-                                </div>
-                            )}
-
-                            {status === "wrong" && (
-                                <div className="flex flex-col w-full gap-4 animate-in slide-in-from-bottom-4 duration-300">
-                                    {/* Hero row: Lottie + status */}
-                                    <div className="flex items-center gap-4">
-                                        <StarAngryLottie className="w-20 h-20 shrink-0" />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xl font-black text-rose-600 tracking-tight">Incorreto! 😞</p>
-                                            <p className="text-sm text-rose-500 mt-0.5">
-                                                Resposta correta:{" "}
-                                                <span className="font-bold">{currentChallenge.challengeOptions.find((o) => o.correct)?.text}</span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    {/* Explanation */}
-                                    {currentChallenge.explanation && (
-                                        <div className="text-rose-800 bg-rose-200/60 p-4 rounded-2xl text-sm border-l-4 border-rose-500 relative pb-10 sm:pb-4 sm:pr-14 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
-                                            <strong className="text-rose-700">💡 Explicação:</strong>{" "}
-                                            {currentChallenge.explanation}
-                                            <Button 
-                                                variant="ghost" 
-                                                size="sm"
-                                                className="absolute bottom-2 right-2 sm:top-2 sm:bottom-auto rounded-full w-9 h-9 p-0 text-rose-500 bg-rose-100 hover:bg-rose-200 shadow-sm"
-                                                onClick={() => playMixedSpeech(currentChallenge.explanation as string, "pt-PT", languageCode)}
-                                            >
-                                                <Volume2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    )}
-                                    {/* Continue button */}
-                                    <Button 
-                                        variant="danger" 
-                                        onClick={handleContinue} 
-                                        disabled={isPending} 
-                                        className="w-full py-4 text-base font-extrabold rounded-2xl border-b-4 border-rose-700 active:border-b-0 active:translate-y-1 transition-all"
-                                    >
-                                        {hearts === 0 ? "Terminar" : "Continuar"}
-                                    </Button>
-                                </div>
-                            )}
-
-                            {status === "correct" && (
-                                <div className="flex flex-col w-full gap-4 animate-in slide-in-from-bottom-4 duration-300">
-                                    {/* Hero row: Lottie + status */}
-                                    <div className="flex items-center gap-4">
-                                        <BearDanceLottie className="w-20 h-20 shrink-0" />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xl font-black text-green-600 tracking-tight">Correto! 🎉</p>
-                                            <p className="text-sm text-green-500 font-bold mt-0.5">+10 XP â€” Muito bem!</p>
-                                        </div>
-                                    </div>
-                                    {/* Explanation */}
-                                    {currentChallenge.explanation && (
-                                        <div className="text-green-800 bg-green-200/60 p-4 rounded-2xl text-sm border-l-4 border-green-500 relative pb-10 sm:pb-4 sm:pr-14 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
-                                            <strong className="text-green-700">💡 Sabias que?</strong>{" "}
-                                            {currentChallenge.explanation}
-                                            <Button 
-                                                variant="ghost" 
-                                                size="sm"
-                                                className="absolute bottom-2 right-2 sm:top-2 sm:bottom-auto rounded-full w-9 h-9 p-0 text-green-600 bg-green-100 hover:bg-green-200 shadow-sm"
-                                                onClick={() => playMixedSpeech(currentChallenge.explanation as string, "pt-PT", languageCode)}
-                                            >
-                                                <Volume2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    )}
-                                    {/* Continue button */}
-                                    <Button 
-                                        variant="primary" 
-                                        onClick={handleContinue} 
-                                        disabled={isPending}
-                                        className="w-full py-4 text-base font-extrabold rounded-2xl border-b-4 border-green-700 active:border-b-0 active:translate-y-1 transition-all"
-                                    >
-                                        Continuar
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </footer>
+                
+                <LessonFooter 
+                    status={status} 
+                    isPending={isPending} 
+                    isDisabled={(currentChallenge.type === "INSERT" || currentChallenge.type === "DICTATION" ? !inputValue.trim() : currentChallenge.type === "MATCH" ? matchedIds.length < 8 : selectedOption === null)} 
+                    hearts={hearts} 
+                    currentChallenge={currentChallenge as any} 
+                    languageCode={languageCode} 
+                    onCheck={handleCheck} 
+                    onContinue={handleContinue} 
+                    onSkip={handleExit} 
+                    playMixedSpeech={playMixedSpeech} 
+                />
             </div>
         </>
     );
 };
-
