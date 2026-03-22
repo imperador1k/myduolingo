@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider, ClerkLoading, ClerkLoaded } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
 import { Toaster } from "sonner";
 import { OneSignalProvider } from "@/components/shared/OneSignalProvider";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"] });
@@ -30,10 +31,15 @@ export default function RootLayout({
   return (
     <ClerkProvider localization={ptBR}>
       <html lang="pt">
-        <body className={nunito.className}>
+        <body className={`${nunito.className} bg-slate-50`}>
           <Toaster />
           <OneSignalProvider />
-          {children}
+          <ClerkLoading>
+            <LoadingScreen />
+          </ClerkLoading>
+          <ClerkLoaded>
+            {children}
+          </ClerkLoaded>
         </body>
       </html>
     </ClerkProvider>

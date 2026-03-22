@@ -87,17 +87,17 @@ def get_base_prompt(topic_name, focus_area, target_lang, level, style, seed):
           "title": "String (In Target Language)",
           "challenges": [
             {
-              "context": "String (A short sentence, dialogue, or scenario setting the scene. MANDATORY above A1.)",
-              "context_audio_lang": "String (BCP-47 language code for context audio, e.g. 'pt-PT', 'es-ES')",
-              "question": "String (The query based on the context)",
-              "question_audio_lang": "String (BCP-47 language code for question audio, e.g. 'pt-PT', 'es-ES')",
-              "type": "SELECT",
+              "type": "String (MUST BE 'SELECT' or 'INSERT')",
+              "context": "String (A scenario, dialogue, or short text. MANDATORY.)",
+              "context_audio_lang": "String (BCP-47 language code)",
+              "question": "String (For SELECT: The specific query. For INSERT: The same context but with a '_____' blank space where the user must type the missing word)",
+              "question_audio_lang": "String (BCP-47 language code)",
               "options": [
                 { "text": "Distractor 1", "correct": false, "audio_lang": "String (BCP-47 code)" },
                 { "text": "Correct Answer", "correct": true, "audio_lang": "String (BCP-47 code)" },
                 { "text": "Distractor 2", "correct": false, "audio_lang": "String (BCP-47 code)" }
               ],
-              "explanation": "String (Pedagogical explanation in PORTUGUESE. For B1+, explain WHY the context clue leads to the answer.)"
+              "explanation": "String (Pedagogical explanation in PORTUGUESE. Explain WHY it's correct based on context.)"
             }
           ]
         }
@@ -127,10 +127,15 @@ Seed: {seed}
     base += f"""
 === GENERATION RULES ===
 1. Generate exactly 1 Unit, 3 Lessons per Unit, and 4 to 5 Challenges per lesson.
-2. The `type` must always be "SELECT".
-3. **AUDIO LANGUAGE TAGS**: You MUST determine the correct BCP 47 language code for reading the text aloud. If the text is an instruction or explanation in Portuguese, use 'pt-PT'. If the text is the target language, use the target language's code (e.g., 'es-ES', 'en-US', 'fr-FR').
-4. NO Markdown markdown blocks. Output MUST be ONLY valid, pure JSON format matching exactly this structure:
+2. **AUDIO LANGUAGE TAGS**: You MUST determine the correct BCP 47 language code for reading the text aloud. If the text is an instruction or explanation in Portuguese, use 'pt-PT'. If the text is the target language, use the target language's code (e.g., 'es-ES', 'en-US', 'fr-FR').
+3. NO Markdown markdown blocks. Output MUST be ONLY valid, pure JSON format matching exactly this structure:
 {json_structure}
+
+=== REGRAS DE METODOLOGIA POLIGLOTA (CRÍTICO) ===
+1. É ESTRITAMENTE PROIBIDO usar o formato "Como se diz X?".
+2. Exercícios 'SELECT' (Múltipla Escolha): O contexto dá a pista, e as opções são palavras parecidas onde só uma faz sentido.
+3. Exercícios 'INSERT' (Cloze Deletion): Usa-os para Active Recall. O campo 'question' deve conter a frase/contexto com uma lacuna "______" para o utilizador escrever. Se o type for INSERT, as options devem conter na mesma a Correct Answer (os distractors podem ir vazios ou ignorados).
+4. Distribuição: Garante que cerca de 40%% dos desafios de cada lição são do tipo 'INSERT'.
 """
     return base
 
@@ -268,15 +273,17 @@ def insert_into_db(data, course_id):
                     q_text = clean_text(chall.get('question', ''))
                     q_audio_lang = clean_text(chall.get('question_audio_lang', ''))
                     c_type = clean_text(chall.get('type', 'SELECT'))
+                    if c_type not in ['SELECT', 'INSERT', 'DICTATION']:
+                        c_type = 'SELECT'
                     c_ctx = clean_text(chall.get('context', ''))
                     c_ctx_audio_lang = clean_text(chall.get('context_audio_lang', ''))
                     c_exp = clean_text(chall.get('explanation', ''))
                     
                     cur.execute("""
                         INSERT INTO public.challenges (question, type, "order", lesson_id, context, explanation, question_audio_lang, context_audio_lang)
-                        VALUES (%s, 'SELECT', %s, %s, %s, %s, %s, %s)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                         RETURNING id;
-                    """, (q_text, idx_c+1, vid_lesson, c_ctx, c_exp, q_audio_lang, c_ctx_audio_lang))
+                    """, (q_text, c_type, idx_c+1, vid_lesson, c_ctx, c_exp, q_audio_lang, c_ctx_audio_lang))
                     
                     vid_chal = cur.fetchone()[0]
                     

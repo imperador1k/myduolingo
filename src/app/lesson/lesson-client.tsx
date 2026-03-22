@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import { useTTS } from "@/hooks/use-tts";
 import { useUISounds } from "@/hooks/use-ui-sounds";
 import { BearDanceLottie, StarAngryLottie, HappyStarLottie, DuoAnimationLottie, LaughingCatLottie } from "@/components/ui/lottie-animation";
 import { InteractiveText } from "@/components/ui/interactive-text";
+import { isAnswerAcceptable } from "@/lib/string-matching";
 
 // Types
 type ChallengeOption = {
@@ -25,7 +26,7 @@ type ChallengeOption = {
 type Challenge = {
     id: number;
     question: string;
-    type: "SELECT" | "ASSIST";
+    type: "SELECT" | "ASSIST" | "INSERT";
     order: number;
     completed: boolean;
     challengeOptions: ChallengeOption[];
@@ -170,6 +171,10 @@ export const LessonClient = ({
     const [lessonComplete, setLessonComplete] = useState(false);
     const [showTransition, setShowTransition] = useState(false);
 
+    // INSERT mode state
+    const [inputValue, setInputValue] = useState("");
+    const [typoMessage, setTypoMessage] = useState<string | null>(null);
+
     // Streak State
     const [showStreakModal, setShowStreakModal] = useState(false);
     const [streakDays, setStreakDays] = useState(0);
@@ -222,6 +227,57 @@ export const LessonClient = ({
     };
 
     const handleCheck = () => {
+        const isInsert = currentChallenge.type === "INSERT";
+
+        if (isInsert) {
+            // INSERT mode: validate typed input via Levenshtein engine
+            const correctText = options.find((opt) => opt.correct)?.text || "";
+            const result = isAnswerAcceptable(inputValue, correctText);
+
+            if (result.isCorrect) {
+                setStatus("correct");
+                playSound("correct");
+                setCorrectCount((prev) => prev + 1);
+
+                if (result.isTypo) {
+                    setTypoMessage(`Quase perfeito! Atenção à ortografia: ${correctText}`);
+                } else {
+                    setTypoMessage(null);
+                }
+
+                if (isClinic) {
+                    setPoints((prev) => prev + 10);
+                    setXpGained((prev) => prev + 10);
+                } else {
+                    onChallengeComplete(currentChallenge.id).then((res) => {
+                        const xp = res.xpGained || 10;
+                        setPoints((prev) => prev + xp);
+                        setXpGained((prev) => prev + xp);
+                    });
+                }
+            } else {
+                setStatus("wrong");
+                playSound("wrong");
+                setWrongCount((prev) => prev + 1);
+                setTypoMessage(null);
+
+                setChallenges((prev) => [...prev, { ...currentChallenge, id: currentChallenge.id + Math.random() }]);
+
+                if (!isClinic) {
+                    onChallengeWrong().then((result) => {
+                        if (result.shieldUsed) {
+                            // Shield protected
+                        } else if (result.hearts !== undefined) {
+                            setHearts(result.hearts);
+                            setHeartsLost((prev) => prev + 1);
+                        }
+                    });
+                }
+            }
+            return;
+        }
+
+        // SELECT mode: existing logic
         if (selectedOption === null) return;
 
         const selectedOpt = options.find((opt) => opt.id === selectedOption);
@@ -231,7 +287,6 @@ export const LessonClient = ({
             setCorrectCount((prev) => prev + 1);
 
             if (isClinic) {
-                // Local points for the clinic
                 setPoints((prev) => prev + 10);
                 setXpGained((prev) => prev + 10);
             } else {
@@ -247,8 +302,7 @@ export const LessonClient = ({
             playSound("wrong");
             setWrongCount((prev) => prev + 1);
 
-            // Re-append the failed challenge to the end of the lesson so the user MUST get it right later
-            setChallenges((prev) => [...prev, { ...currentChallenge, id: currentChallenge.id + Math.random() }]); // using slight random id variation for mapping keys internally if needed, or structured cloning
+            setChallenges((prev) => [...prev, { ...currentChallenge, id: currentChallenge.id + Math.random() }]);
 
             if (!isClinic) {
                 onChallengeWrong().then((result) => {
@@ -340,6 +394,8 @@ export const LessonClient = ({
                 setActiveIndex((prev) => prev + 1);
                 setSelectedOption(null);
                 setStatus("none");
+                setInputValue("");
+                setTypoMessage(null);
             }, 1200);
             return;
         }
@@ -669,28 +725,58 @@ export const LessonClient = ({
                         </div>
                     </div>
 
-                    {/* Options */}
-                    <div className="grid w-full max-w-[600px] grid-cols-1 gap-3 sm:grid-cols-2">
-                        {options.map((option) => (
-                            <ChallengeOptionCard
-                                key={option.id}
-                                id={option.id}
-                                text={option.text}
-                                imageSrc={option.imageSrc}
-                                selected={selectedOption === option.id}
+                    {/* Options or Text Input */}
+                    {currentChallenge.type === "INSERT" ? (
+                        <div className="w-full max-w-[600px] flex flex-col gap-3">
+                            <input
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && inputValue.trim() && status === "none") {
+                                        e.preventDefault();
+                                        handleCheck();
+                                    }
+                                }}
                                 disabled={status !== "none" || isPending}
-                                isCorrect={option.correct}
-                                status={
-                                    status !== "none" && selectedOption === option.id
-                                        ? status
-                                        : option.correct && status === "wrong"
-                                            ? "correct"
-                                            : "none"
-                                }
-                                onClick={() => handleSelect(option.id)}
+                                placeholder="Escreve a tua resposta..."
+                                autoFocus
+                                className={cn(
+                                    "w-full p-4 border-2 rounded-xl text-lg font-medium transition-all outline-none",
+                                    status === "none" && "border-slate-200 bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-slate-800 placeholder:text-slate-400",
+                                    status === "correct" && "border-green-400 bg-green-50 text-green-700",
+                                    status === "wrong" && "border-rose-400 bg-rose-50 text-rose-700"
+                                )}
                             />
-                        ))}
-                    </div>
+                            {typoMessage && status === "correct" && (
+                                <p className="text-amber-600 text-sm font-medium bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 animate-in fade-in duration-300">
+                                    ✏️ {typoMessage}
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="grid w-full max-w-[600px] grid-cols-1 gap-3 sm:grid-cols-2">
+                            {options.map((option) => (
+                                <ChallengeOptionCard
+                                    key={option.id}
+                                    id={option.id}
+                                    text={option.text}
+                                    imageSrc={option.imageSrc}
+                                    selected={selectedOption === option.id}
+                                    disabled={status !== "none" || isPending}
+                                    isCorrect={option.correct}
+                                    status={
+                                        status !== "none" && selectedOption === option.id
+                                            ? status
+                                            : option.correct && status === "wrong"
+                                                ? "correct"
+                                                : "none"
+                                    }
+                                    onClick={() => handleSelect(option.id)}
+                                />
+                            ))}
+                        </div>
+                    )}
                     </div>
                 </main>
 
@@ -709,7 +795,12 @@ export const LessonClient = ({
                                     <Button variant="ghost" onClick={handleExit} className="hidden lg:block">Saltar</Button>
                                     <Button
                                         variant="primary"
-                                        disabled={selectedOption === null || isPending}
+                                        disabled={
+                                            (currentChallenge.type === "INSERT"
+                                                ? !inputValue.trim()
+                                                : selectedOption === null)
+                                            || isPending
+                                        }
                                         onClick={handleCheck}
                                         className="ml-auto"
                                     >

@@ -2,7 +2,7 @@ import { pgTable, serial, text, integer, boolean, pgEnum, date, timestamp, jsonb
 import { relations } from "drizzle-orm";
 
 // Enum for challenge types
-export const challengeTypeEnum = pgEnum("type", ["SELECT", "ASSIST"]);
+export const challengeTypeEnum = pgEnum("type", ["SELECT", "ASSIST", "INSERT"]);
 
 // ===== COURSES =====
 export const courses = pgTable("courses", {
