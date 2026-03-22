@@ -32,7 +32,7 @@ export default function RootLayout({
     <ClerkProvider localization={ptBR}>
       <html lang="pt">
         <body className={`${nunito.className} bg-slate-50`}>
-          <Toaster />
+          <Toaster richColors />
           <OneSignalProvider />
           <ClerkLoading>
             <LoadingScreen />

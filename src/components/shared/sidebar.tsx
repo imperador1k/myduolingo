@@ -20,9 +20,11 @@ import {
     MoreHorizontal,
     Search,
     GraduationCap,
-    Archive
+    Archive,
+    ShieldAlert
 } from "lucide-react";
 import { useUISounds } from "@/hooks/use-ui-sounds";
+import { useUser } from "@clerk/nextjs";
 
 type SidebarItemProps = {
     label: string;
@@ -69,6 +71,10 @@ export const Sidebar = ({ className, notificationCount, unreadMessageCount }: Pr
     const [isMoreOpen, setIsMoreOpen] = useState(false);
     const { playClick } = useUISounds();
 
+    // Check for admin role
+    const { user } = useUser();
+    const isAdmin = (user?.publicMetadata as any)?.role === "admin";
+
     return (
         <div className={cn("fixed left-0 top-0 hidden h-full w-[256px] flex-col border-r-2 px-4 lg:flex overflow-y-auto custom-scrollbar pb-4 bg-white z-20", className)}>
             {/* Logo */}
@@ -113,7 +119,6 @@ export const Sidebar = ({ className, notificationCount, unreadMessageCount }: Pr
                 {/* Secondary Routes Toggle */}
                 <div
                     onClick={() => {
-                        playClick();
                         setIsMoreOpen(!isMoreOpen);
                     }}
                     className={cn(
@@ -175,6 +180,13 @@ export const Sidebar = ({ className, notificationCount, unreadMessageCount }: Pr
                             href="/settings"
                             iconSrc={<Settings className="h-5 w-5" />}
                         />
+                        {isAdmin && (
+                            <SidebarItem
+                                label="Painel Admin"
+                                href="/admin"
+                                iconSrc={<ShieldAlert className="h-5 w-5 text-rose-500" />}
+                            />
+                        )}
                     </div>
                 )}
             </div>

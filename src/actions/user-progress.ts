@@ -20,6 +20,7 @@ import {
     resolveMistake,
     completeClinicLesson
 } from "@/db/queries";
+import { recordDailyStatsAction } from "@/actions/daily-stats";
 
 /**
  * Handles a correctly answered challenge.
@@ -55,6 +56,9 @@ export const onChallengeComplete = async (challengeId: number) => {
     // Add XP (10 normal, 20 with boost)
     const xpAmount = hasXpBoost ? 20 : 10;
     await addPoints(xpAmount);
+    
+    // Log XP for daily stats
+    await recordDailyStatsAction(xpAmount, 0);
 
     // Update streak (once per day)
     await updateStreak();
@@ -94,6 +98,9 @@ export const onLessonComplete = async () => {
         // Consume 1 boost lesson only at the END of the lesson
         await consumeXpBoost();
     }
+
+    // Log lesson completion for daily stats
+    await recordDailyStatsAction(0, 1);
 
     // Update streak (ensure it counts only if not already updated today)
     // Actually, onChallengeComplete calls it too? check line 39.

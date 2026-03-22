@@ -20,10 +20,12 @@ import {
     GraduationCap,
     Archive,
     BarChart,
+    ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { useUISounds } from "@/hooks/use-ui-sounds";
+import { useUser } from "@clerk/nextjs";
 
 type MobileItemProps = {
     href: string;
@@ -67,6 +69,33 @@ const MobileItem = ({ href, icon, label, isActive, onClick, badgeCount }: Mobile
     );
 };
 
+const ExpandedMobileItem = ({ href, icon, label, isActive, onClick, badgeCount }: MobileItemProps) => {
+    const { playClick } = useUISounds();
+    return (
+        <Link
+            href={href}
+            onClick={(e) => {
+                playClick();
+                if (onClick) onClick();
+            }}
+            className={cn(
+                "relative flex flex-col items-center justify-center gap-2 p-2 rounded-2xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors",
+                isActive && "text-sky-500 bg-sky-50 hover:bg-sky-100 hover:text-sky-600 border border-sky-100"
+            )}
+        >
+            {badgeCount && badgeCount > 0 ? (
+                <div className="absolute top-1 right-2 translate-x-1/2 -translate-y-1/2 z-10 bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white animate-pulse">
+                    {badgeCount > 99 ? "99+" : badgeCount}
+                </div>
+            ) : null}
+            <div className="flex h-8 w-8 items-center justify-center">
+                {icon}
+            </div>
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center">{label}</span>
+        </Link>
+    );
+};
+
 type MobileNavProps = {
     notificationCount?: number;
     unreadMessageCount?: number;
@@ -75,6 +104,10 @@ type MobileNavProps = {
 export const MobileNav = ({ notificationCount, unreadMessageCount }: MobileNavProps) => {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
+
+    // Check for admin role
+    const { user } = useUser();
+    const isAdmin = (user?.publicMetadata as any)?.role === "admin";
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -98,73 +131,82 @@ export const MobileNav = ({ notificationCount, unreadMessageCount }: MobileNavPr
                         isOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-10 scale-95 pointer-events-none"
                     )}
                 >
-                    <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 rounded-2xl p-4 shadow-xl flex flex-col gap-4 min-w-[280px]">
-                        <div className="flex flex-wrap justify-center gap-4">
-                            <MobileItem
+                    <div className="bg-white/95 backdrop-blur-md border border-slate-200 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 min-w-[320px]">
+                        <div className="grid grid-cols-3 gap-y-6 gap-x-2">
+                            <ExpandedMobileItem
                                 href="/friends"
-                                icon={<Users className="h-6 w-6" />}
+                                icon={<Users className="h-7 w-7" />}
                                 label="Amigos"
                                 isActive={pathname === "/friends"}
                                 onClick={closeMenu}
                             />
-                            <MobileItem
+                            <ExpandedMobileItem
                                 href="/courses"
-                                icon={<BookOpen className="h-6 w-6" />}
+                                icon={<BookOpen className="h-7 w-7" />}
                                 label="Cursos"
                                 isActive={pathname === "/courses"}
                                 onClick={closeMenu}
                             />
-                            <MobileItem
+                            <ExpandedMobileItem
                                 href="/messages"
-                                icon={<MessageSquare className="h-6 w-6" />}
+                                icon={<MessageSquare className="h-7 w-7" />}
                                 label="Msgs"
                                 isActive={pathname === "/messages"}
                                 onClick={closeMenu}
                                 badgeCount={unreadMessageCount}
                             />
-                            <MobileItem
+                            <ExpandedMobileItem
                                 href="/notifications"
-                                icon={<Bell className="h-6 w-6" />}
+                                icon={<Bell className="h-7 w-7" />}
                                 label="Notif."
                                 isActive={pathname === "/notifications"}
                                 onClick={closeMenu}
                                 badgeCount={notificationCount}
                             />
-                            <MobileItem
+                            <ExpandedMobileItem
                                 href="/leaderboard"
-                                icon={<Trophy className="h-6 w-6" />}
+                                icon={<Trophy className="h-7 w-7" />}
                                 label="Liga"
                                 isActive={pathname === "/leaderboard"}
                                 onClick={closeMenu}
                             />
-                            <MobileItem
+                            <ExpandedMobileItem
                                 href="/settings"
-                                icon={<Settings className="h-6 w-6" />}
+                                icon={<Settings className="h-7 w-7" />}
                                 label="Defin."
                                 isActive={pathname === "/settings"}
                                 onClick={closeMenu}
                             />
-                            <MobileItem
+                            <ExpandedMobileItem
                                 href="/vocabulary"
-                                icon={<Archive className="h-6 w-6" />}
+                                icon={<Archive className="h-7 w-7" />}
                                 label="Cofre"
                                 isActive={pathname === "/vocabulary"}
                                 onClick={closeMenu}
                             />
-                            <MobileItem
+                            <ExpandedMobileItem
                                 href="/analytics"
-                                icon={<BarChart className="h-6 w-6" />}
+                                icon={<BarChart className="h-7 w-7" />}
                                 label="Estat."
                                 isActive={pathname === "/analytics"}
                                 onClick={closeMenu}
                             />
-                            <MobileItem
+                            <ExpandedMobileItem
                                 href="/evaluation"
-                                icon={<GraduationCap className="h-6 w-6" />}
+                                icon={<GraduationCap className="h-7 w-7" />}
                                 label="Avaliação"
                                 isActive={pathname === "/evaluation"}
                                 onClick={closeMenu}
                             />
+                            {isAdmin && (
+                                <ExpandedMobileItem
+                                    href="/admin"
+                                    icon={<ShieldAlert className="h-7 w-7 text-rose-500" />}
+                                    label="Admin"
+                                    isActive={pathname === "/admin"}
+                                    onClick={closeMenu}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
@@ -190,8 +232,8 @@ export const MobileNav = ({ notificationCount, unreadMessageCount }: MobileNavPr
                             onClick={toggleMenu}
                             size="icon"
                             className={cn(
-                                "h-12 w-12 rounded-full shadow-lg transition-transform duration-300",
-                                isOpen ? "bg-slate-800 hover:bg-slate-900 rotate-180" : "bg-sky-500 hover:bg-sky-600"
+                                "h-14 w-14 rounded-full shadow-lg transition-all duration-300",
+                                isOpen ? "bg-slate-800 hover:bg-slate-900 rotate-90 scale-105" : "bg-sky-500 hover:bg-sky-600"
                             )}
                         >
                             {isOpen ? (

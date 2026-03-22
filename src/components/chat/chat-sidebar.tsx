@@ -118,7 +118,7 @@ export const ChatSidebar = ({ conversations }: Props) => {
                         Nenhuma conversa ainda.
                     </div>
                 )}
-                {conversations.map((conv) => (
+                {conversations.filter(conv => conv.partner).map((conv) => (
                     <div
                         key={conv.partner.userId}
                         onClick={() => onSelect(conv.partner.userId)}
@@ -132,7 +132,7 @@ export const ChatSidebar = ({ conversations }: Props) => {
                                 <img src={conv.partner.userImageSrc} alt={conv.partner.userName} className="h-full w-full object-cover" />
                             ) : (
                                 <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl">
-                                    {conv.partner.userName[0]?.toUpperCase()}
+                                    {conv.partner.userName?.[0]?.toUpperCase()}
                                 </div>
                             )}
                         </div>

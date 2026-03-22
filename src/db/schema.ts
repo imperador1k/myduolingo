@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, boolean, pgEnum, date, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, pgEnum, date, timestamp, jsonb, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // Enum for challenge types
@@ -291,7 +291,9 @@ export const userDailyStats = pgTable("user_daily_stats", {
     date: text("date").notNull(), // Format YYYY-MM-DD
     xpGained: integer("xp_gained").notNull().default(0),
     lessonsCompleted: integer("lessons_completed").notNull().default(0),
-});
+}, (t) => ({
+    userDateUnq: unique("user_id_date_unique").on(t.userId, t.date),
+}));
 
 export const userDailyStatsRelations = relations(userDailyStats, ({ one }) => ({
     user: one(userProgress, {
