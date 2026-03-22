@@ -25,6 +25,7 @@ import { z } from "zod";
 import { db } from "@/db/drizzle";
 import { challenges } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { gameplayRateLimit } from "@/lib/ratelimit";
 
 /**
  * Handles a correctly answered challenge.
@@ -50,6 +51,12 @@ export const onChallengeComplete = async (challengeId: number) => {
 
     if (!userId) {
         throw new Error("Unauthorized");
+    }
+
+    // 🛡️ ANTI-CHEAT: Rate Limiting
+    const { success } = await gameplayRateLimit.limit(userId);
+    if (!success) {
+        throw new Error("Estás a ir rápido demais!");
     }
 
     // 🛡️ ANTI-CHEAT: Database Spoofing Guard
@@ -182,6 +189,12 @@ export const onChallengeWrong = async (challengeId?: number) => {
 
     if (!userId) {
         throw new Error("Unauthorized");
+    }
+
+    // 🛡️ ANTI-CHEAT: Rate Limiting
+    const { success } = await gameplayRateLimit.limit(userId);
+    if (!success) {
+        throw new Error("Estás a ir rápido demais!");
     }
 
     if (parsed.data.challengeId) {

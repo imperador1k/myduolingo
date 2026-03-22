@@ -38,3 +38,14 @@ myduolingo-449c1-firebase-adminsdk-fbsvc-035fdac656.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Sentry Config File
+.env.sentry-build-plugin

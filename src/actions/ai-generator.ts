@@ -7,13 +7,16 @@ import { units, lessons, challenges, challengeOptions } from "@/db/schema";
 import { eq, count } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { AI_TOPICS, GENERATION_STYLES } from "@/lib/ai-topics";
+import { aiRateLimit } from "@/lib/ratelimit";
 
 // ── Helpers ──────────────────────────────────────────────
 
 async function assertAdmin() {
     const user = await currentUser();
-    const isAdmin = (user?.publicMetadata as any)?.role === "admin";
+    if (!user) throw new Error("Unauthorized: No user found.");
+    const isAdmin = (user.publicMetadata as any)?.role === "admin";
     if (!isAdmin) throw new Error("Unauthorized: Admin access required.");
+    return user;
 }
 
 function cleanText(text: any): string {
@@ -115,7 +118,13 @@ export async function generateCourseContent(
     topicId: number,
     level: string
 ) {
-    await assertAdmin();
+    const user = await assertAdmin();
+
+    // Rate Limiting (Protects Gemini Quota)
+    const { success } = await aiRateLimit.limit(user.id);
+    if (!success) {
+        throw new Error("Rate limit exceeded. Por favor, aguarda um minuto antes de gerar mais conteúdo.");
+    }
 
     const topic = AI_TOPICS.find((t) => t.id === topicId);
     if (!topic) throw new Error(`Topic ID ${topicId} not found.`);

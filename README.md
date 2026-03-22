@@ -1,8 +1,10 @@
 <div align="center">
   
-  # 🚀 MyDuolingo — Plataforma Gamificada de Aprendizagem de Idiomas
-  
-  *Uma aplicação SaaS de nível enterprise, aumentada por IA e construída para performance, retenção e escala maciça.*
+  # 🚀# MyDuolingo 🦉
+
+[![CI/CD Pipeline](https://github.com/imperador1k/myduolingo/actions/workflows/ci.yml/badge.svg)](https://github.com/imperador1k/myduolingo/actions/workflows/ci.yml)
+
+> The Ultimate Open-Source Language Learning Ecosystem, Powered by Next.js 14, Clerk, Drizzle, and Google Gemini AI.aplicação SaaS de nível enterprise, aumentada por IA e construída para performance, retenção e escala maciça.*
 
   ![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)
   ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)
