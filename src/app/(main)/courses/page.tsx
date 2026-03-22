@@ -1,4 +1,4 @@
-﻿import { getCourses, getUserProgress } from "@/db/queries";
+import { getCourses, getUserProgress } from "@/db/queries";
 import { CoursesList } from "./courses-list";
 import { BookOpen, Flame, Target, Trophy, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -62,7 +62,7 @@ export default async function CoursesPage() {
                                     {activeCourse.imageSrc && activeCourse.imageSrc.startsWith("http") ? (
                                         <img src={activeCourse.imageSrc} alt={activeCourse.title} className="w-full h-full object-cover" />
                                     ) : (
-                                        "ðŸŒŸ" // Generic active star or flag
+                                        "🌟" // Generic active star or flag
                                     )}
                                 </div>
                                 
@@ -119,11 +119,11 @@ export default async function CoursesPage() {
                     Espanhol, Francês, Italiano, Alemão, Japonês e muitos mais estão a ser limados nos nossos estúdios.
                 </p>
                 <div className="flex justify-center gap-3 mt-4 text-2xl">
-                    <span className="opacity-50 transition-opacity">ðŸ‡ªðŸ‡¸</span>
-                    <span className="opacity-50 transition-opacity">ðŸ‡«ðŸ‡·</span>
-                    <span className="opacity-50 transition-opacity">ðŸ‡®ðŸ‡¹</span>
-                    <span className="opacity-50 transition-opacity">ðŸ‡©ðŸ‡ª</span>
-                    <span className="opacity-50 transition-opacity">ðŸ‡¯ðŸ‡µ</span>
+                    <span className="opacity-50 transition-opacity">🇪🇸</span>
+                    <span className="opacity-50 transition-opacity">🇫🇷</span>
+                    <span className="opacity-50 transition-opacity">🇮🇹</span>
+                    <span className="opacity-50 transition-opacity">🇩🇪</span>
+                    <span className="opacity-50 transition-opacity">🇯🇵</span>
                 </div>
             </div>
         </div>

@@ -1,4 +1,4 @@
-﻿
+
 import { getConversations, getMessagesForThread, getUserProgressById } from "@/db/queries";
 import { ChatSidebar } from "@/components/chat/chat-sidebar";
 import { ChatWindow } from "@/components/chat/chat-window";
@@ -53,7 +53,7 @@ export default async function MessagesPage({ searchParams }: Props) {
                     />
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4">
-                        <div className="text-6xl">ðŸ’¬</div>
+                        <div className="text-6xl">💬</div>
                         <p className="font-bold text-lg">As tuas mensagens</p>
                         <p className="text-sm">Seleciona uma conversa para começar.</p>
                     </div>

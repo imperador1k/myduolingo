@@ -613,7 +613,7 @@ export const LessonClient = ({
                 <div className="w-full max-w-md text-center">
                     {/* Sad Mascot */}
                     <div className="mb-6">
-                        <span className="text-8xl">ðŸ’”</span>
+                        <span className="text-8xl">💔</span>
                     </div>
 
                     {/* Title */}
@@ -679,7 +679,7 @@ export const LessonClient = ({
                         </div>
                         
                         <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight -mt-4">
-                            Vais mesmo <span className="text-rose-500">desistir</span> agora?! ðŸ˜­
+                            Vais mesmo <span className="text-rose-500">desistir</span> agora?! 😭
                         </h2>
                         
                         <p className="mt-4 mb-8 text-lg font-medium text-slate-500 px-2 leading-relaxed">
@@ -1054,7 +1054,7 @@ export const LessonClient = ({
                                     <div className="flex items-center gap-4">
                                         <StarAngryLottie className="w-20 h-20 shrink-0" />
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-xl font-black text-rose-600 tracking-tight">Incorreto! ðŸ˜ž</p>
+                                            <p className="text-xl font-black text-rose-600 tracking-tight">Incorreto! 😞</p>
                                             <p className="text-sm text-rose-500 mt-0.5">
                                                 Resposta correta:{" "}
                                                 <span className="font-bold">{currentChallenge.challengeOptions.find((o) => o.correct)?.text}</span>
@@ -1064,7 +1064,7 @@ export const LessonClient = ({
                                     {/* Explanation */}
                                     {currentChallenge.explanation && (
                                         <div className="text-rose-800 bg-rose-200/60 p-4 rounded-2xl text-sm border-l-4 border-rose-500 relative pb-10 sm:pb-4 sm:pr-14 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
-                                            <strong className="text-rose-700">ðŸ’¡ Explicação:</strong>{" "}
+                                            <strong className="text-rose-700">💡 Explicação:</strong>{" "}
                                             {currentChallenge.explanation}
                                             <Button 
                                                 variant="ghost" 
@@ -1094,14 +1094,14 @@ export const LessonClient = ({
                                     <div className="flex items-center gap-4">
                                         <BearDanceLottie className="w-20 h-20 shrink-0" />
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-xl font-black text-green-600 tracking-tight">Correto! ðŸŽ‰</p>
+                                            <p className="text-xl font-black text-green-600 tracking-tight">Correto! 🎉</p>
                                             <p className="text-sm text-green-500 font-bold mt-0.5">+10 XP â€” Muito bem!</p>
                                         </div>
                                     </div>
                                     {/* Explanation */}
                                     {currentChallenge.explanation && (
                                         <div className="text-green-800 bg-green-200/60 p-4 rounded-2xl text-sm border-l-4 border-green-500 relative pb-10 sm:pb-4 sm:pr-14 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
-                                            <strong className="text-green-700">ðŸ’¡ Sabias que?</strong>{" "}
+                                            <strong className="text-green-700">💡 Sabias que?</strong>{" "}
                                             {currentChallenge.explanation}
                                             <Button 
                                                 variant="ghost" 

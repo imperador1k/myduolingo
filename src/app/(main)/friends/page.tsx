@@ -92,7 +92,7 @@ export default async function FriendsPage({ searchParams }: Props) {
                                             {f.following.userImageSrc ? (
                                                 <img src={f.following.userImageSrc} alt={f.following.userName} className="h-full w-full object-cover" />
                                             ) : (
-                                                <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl">ðŸ§‘â€ ðŸŽ“</div>
+                                                <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl">🧑‍🎓</div>
                                             )}
                                         </div>
                                         <div>
@@ -129,7 +129,7 @@ export default async function FriendsPage({ searchParams }: Props) {
                                             {f.follower.userImageSrc ? (
                                                 <img src={f.follower.userImageSrc} alt={f.follower.userName} className="h-full w-full object-cover" />
                                             ) : (
-                                                <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl">ðŸ§‘â€ ðŸŽ“</div>
+                                                <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl">🧑‍🎓</div>
                                             )}
                                         </div>
                                         <div>

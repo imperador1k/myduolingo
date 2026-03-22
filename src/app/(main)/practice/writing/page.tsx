@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useTransition } from "react";
 import { generatePracticePrompt, analyzeWriting } from "@/actions/gemini";
@@ -309,7 +309,7 @@ export default function WritingPracticePage() {
                                             </span>
                                         </div>
                                         <p className="text-sm text-slate-500 italic">
-                                            ðŸ’¡ {correction.explication}
+                                            💡 {correction.explication}
                                         </p>
                                     </div>
                                 ))}
@@ -318,7 +318,7 @@ export default function WritingPracticePage() {
 
                         {feedback.corrections.length === 0 && (
                             <div className="text-center p-4 bg-white/50 rounded-lg text-green-700 font-medium">
-                                ðŸŽ‰ Nenhuma correção necessária! Excelente trabalho!
+                                🎉 Nenhuma correção necessária! Excelente trabalho!
                             </div>
                         )}
                     </div>

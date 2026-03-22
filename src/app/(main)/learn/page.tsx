@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getUnits, getUserProgress, getCourses } from "@/db/queries";
@@ -62,11 +62,11 @@ const DesktopSidebar = ({
         <div className={`rounded-2xl p-5 text-white shadow-md border-b-4 ${streak > 0 ? "bg-gradient-to-br from-orange-400 to-red-500 border-red-600" : "bg-gradient-to-br from-slate-300 to-slate-400 border-slate-500"}`}>
             <div className="flex items-center justify-between">
                 <div>
-                    <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">ðŸ”¥ Streak</p>
+                    <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">🔥 Streak</p>
                     <p className="text-5xl font-black tracking-tighter">{streak}</p>
                     <p className="text-sm opacity-80 mt-1">{streak === 0 ? "Começa hoje!" : streak === 1 ? "Que arranque!" : "dias seguidos"}</p>
                 </div>
-                <span className="text-5xl opacity-25 select-none">{streak > 0 ? "ðŸ”¥" : "ðŸ’¤"}</span>
+                <span className="text-5xl opacity-25 select-none">{streak > 0 ? "🔥" : "💤"}</span>
             </div>
             {streak > 0 && (
                 <div className="mt-3 bg-white/20 rounded-full h-1.5">
@@ -188,7 +188,7 @@ export default async function LearnPage() {
                         {/* Speech bubble â€” inline on all sizes */}
                         <div className="flex-1 min-w-0">
                             <p className="text-base sm:text-lg font-black text-slate-800 leading-tight">
-                                {completedLessons === 0 ? "Vamos começar! ðŸš€" : completedLessons === totalLessons ? "Parabéns! ðŸ†" : "Continua assim! ðŸ’ª"}
+                                {completedLessons === 0 ? "Vamos começar! 🚀" : completedLessons === totalLessons ? "Parabéns! 💪" : "Continua assim! 💪"}
                             </p>
                             <p className="text-xs sm:text-sm text-slate-500 mt-1">
                                 {completedLessons === 0
@@ -224,7 +224,7 @@ export default async function LearnPage() {
                         <div className="flex items-center justify-center gap-3 py-14 mt-4">
                             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
                             <div className="flex flex-col items-center gap-1">
-                                <span className="text-3xl">ðŸ†</span>
+                                <span className="text-3xl">💪</span>
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Continua a aprender</span>
                             </div>
                             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
@@ -234,7 +234,7 @@ export default async function LearnPage() {
                     {/* Empty */}
                     {units.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <span className="text-5xl mb-4">ðŸ“š</span>
+                            <span className="text-5xl mb-4">📚</span>
                             <h2 className="text-xl font-bold text-slate-700 mb-2">Ainda não há lições</h2>
                             <p className="text-slate-500 mb-6 text-sm">Seleciona um curso para começar!</p>
                             <Link href="/courses"><Button variant="primary">Ver Cursos</Button></Link>

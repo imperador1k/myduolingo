@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useCallback, useTransition } from "react";
 import Link from "next/link";
@@ -202,7 +202,7 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
                 </div>
 
                 <h1 className="text-3xl md:text-4xl font-black text-slate-800 mb-2">
-                    Treino Completo! ðŸ’ª
+                    Treino Completo! 💪
                 </h1>
                 <p className="text-lg text-slate-500 font-medium mb-8">
                     Treinaste {words.length} palavras nesta sessão.
