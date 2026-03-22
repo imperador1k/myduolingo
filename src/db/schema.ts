@@ -2,7 +2,7 @@ import { pgTable, serial, text, integer, boolean, pgEnum, date, timestamp, jsonb
 import { relations } from "drizzle-orm";
 
 // Enum for challenge types
-export const challengeTypeEnum = pgEnum("type", ["SELECT", "ASSIST", "INSERT"]);
+export const challengeTypeEnum = pgEnum("type", ["SELECT", "ASSIST", "INSERT", "MATCH", "DICTATION"]);
 
 // ===== COURSES =====
 export const courses = pgTable("courses", {
@@ -280,6 +280,22 @@ export const userVocabulary = pgTable("user_vocabulary", {
 export const userVocabularyRelations = relations(userVocabulary, ({ one }) => ({
     user: one(userProgress, {
         fields: [userVocabulary.userId],
+        references: [userProgress.userId],
+    }),
+}));
+
+// ===== USER DAILY STATS (Analytics) =====
+export const userDailyStats = pgTable("user_daily_stats", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    date: text("date").notNull(), // Format YYYY-MM-DD
+    xpGained: integer("xp_gained").notNull().default(0),
+    lessonsCompleted: integer("lessons_completed").notNull().default(0),
+});
+
+export const userDailyStatsRelations = relations(userDailyStats, ({ one }) => ({
+    user: one(userProgress, {
+        fields: [userDailyStats.userId],
         references: [userProgress.userId],
     }),
 }));

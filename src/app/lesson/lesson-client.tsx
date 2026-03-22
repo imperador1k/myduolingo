@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, X, Zap, Shield, Volume2 } from "lucide-react";
+import { Heart, X, Zap, Shield, Volume2, VolumeX, Ear } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { onChallengeComplete, onChallengeWrong, onLessonComplete, onClinicComplete } from "@/actions/user-progress";
@@ -26,7 +26,7 @@ type ChallengeOption = {
 type Challenge = {
     id: number;
     question: string;
-    type: "SELECT" | "ASSIST" | "INSERT";
+    type: "SELECT" | "ASSIST" | "INSERT" | "MATCH" | "DICTATION";
     order: number;
     completed: boolean;
     challengeOptions: ChallengeOption[];
@@ -144,6 +144,76 @@ const ChallengeOptionCard = ({
     );
 };
 
+// MATCH Grid Component
+type MatchGridProps = {
+    leftColumn: ChallengeOption[]; // Portuguese (correct: true)
+    rightColumn: ChallengeOption[]; // Target Language (correct: false)
+    selectedMatchIds: number[];
+    matchedIds: number[];
+    wrongMatchFlash: number[];
+    onSelect: (optId: number) => void;
+};
+
+const MatchGrid = ({ leftColumn, rightColumn, selectedMatchIds, matchedIds, wrongMatchFlash, onSelect }: MatchGridProps) => {
+    return (
+        <div className="grid w-full max-w-[800px] grid-cols-2 gap-8">
+            {/* Left Column (Portuguese) */}
+            <div className="flex flex-col gap-4">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-2">Português</span>
+                {leftColumn.map((opt) => {
+                    const isSelected = selectedMatchIds.includes(opt.id);
+                    const isMatched = matchedIds.includes(opt.id);
+                    const isWrongFlash = wrongMatchFlash.includes(opt.id);
+
+                    return (
+                        <button
+                            key={opt.id}
+                            onClick={() => onSelect(opt.id)}
+                            disabled={isMatched}
+                            className={cn(
+                                "p-4 min-h-[70px] rounded-2xl border-2 border-b-[5px] text-lg font-bold text-center transition-all duration-200 outline-none cursor-pointer",
+                                !isSelected && !isMatched && !isWrongFlash && "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:-translate-y-0.5 hover:shadow-sm active:translate-y-1 active:border-b-2",
+                                isSelected && !isWrongFlash && "border-sky-400 bg-sky-50 text-sky-700 scale-[1.02] shadow-md shadow-sky-100/50",
+                                isMatched && "border-green-400 bg-green-50 text-green-600 opacity-40 cursor-default scale-95 border-b-2 translate-y-1",
+                                isWrongFlash && "border-rose-400 bg-rose-50 text-rose-600 animate-shake"
+                            )}
+                        >
+                            {opt.text}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* Right Column (Target Language) */}
+            <div className="flex flex-col gap-4">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-2">Língua Alvo</span>
+                {rightColumn.map((opt) => {
+                    const isSelected = selectedMatchIds.includes(opt.id);
+                    const isMatched = matchedIds.includes(opt.id);
+                    const isWrongFlash = wrongMatchFlash.includes(opt.id);
+
+                    return (
+                        <button
+                            key={opt.id}
+                            onClick={() => onSelect(opt.id)}
+                            disabled={isMatched}
+                            className={cn(
+                                "p-4 min-h-[70px] rounded-2xl border-2 border-b-[5px] text-lg font-bold text-center transition-all duration-200 outline-none cursor-pointer",
+                                !isSelected && !isMatched && !isWrongFlash && "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:-translate-y-0.5 hover:shadow-sm active:translate-y-1 active:border-b-2",
+                                isSelected && !isWrongFlash && "border-sky-400 bg-sky-50 text-sky-700 scale-[1.02] shadow-md shadow-sky-100/50",
+                                isMatched && "border-green-400 bg-green-50 text-green-600 opacity-40 cursor-default scale-95 border-b-2 translate-y-1",
+                                isWrongFlash && "border-rose-400 bg-rose-50 text-rose-600 animate-shake"
+                            )}
+                        >
+                            {opt.text}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
 export const LessonClient = ({
     initialLesson,
     initialHearts,
@@ -175,6 +245,16 @@ export const LessonClient = ({
     const [inputValue, setInputValue] = useState("");
     const [typoMessage, setTypoMessage] = useState<string | null>(null);
 
+    // MATCH mode state
+    const [selectedMatchIds, setSelectedMatchIds] = useState<number[]>([]);
+    const [matchedIds, setMatchedIds] = useState<number[]>([]);
+    const [wrongMatchFlash, setWrongMatchFlash] = useState<number[]>([]);
+    const [shuffledLeft, setShuffledLeft] = useState<ChallengeOption[]>([]);
+    const [shuffledRight, setShuffledRight] = useState<ChallengeOption[]>([]);
+
+    // Mute toggle state
+    const [isAudioMuted, setIsAudioMuted] = useState(false);
+
     // Streak State
     const [showStreakModal, setShowStreakModal] = useState(false);
     const [streakDays, setStreakDays] = useState(0);
@@ -188,6 +268,16 @@ export const LessonClient = ({
     const currentChallenge = challenges[activeIndex];
     const options = currentChallenge?.challengeOptions || [];
     const progress = ((activeIndex) / challenges.length) * 100;
+
+    // Shuffle MATCH options when entering a new MATCH challenge
+    useEffect(() => {
+        if (currentChallenge?.type === "MATCH" && currentChallenge.challengeOptions.length > 0) {
+            const left = currentChallenge.challengeOptions.filter(o => o.correct).sort(() => Math.random() - 0.5);
+            const right = currentChallenge.challengeOptions.filter(o => !o.correct).sort(() => Math.random() - 0.5);
+            setShuffledLeft(left);
+            setShuffledRight(right);
+        }
+    }, [activeIndex, currentChallenge?.type, currentChallenge?.challengeOptions]);
 
     // Audio Logic (using Smart TTS Hook)
     const { playAudio, playMixedSpeech, stopAudio, isPlaying, playingText } = useTTS(languageCode);
@@ -215,23 +305,28 @@ export const LessonClient = ({
 
         setSelectedOption(optionId);
 
-        // Find the selected option text and speak it
-        const selectedOpt = options.find((opt) => opt.id === optionId);
-        if (selectedOpt?.text) {
-            playAudio(
-                selectedOpt.text, 
-                0.9, 
-                selectedOpt.audioLang || languageCode
-            );
+        // Find the selected option text and speak it (respects mute)
+        if (!isAudioMuted) {
+            const selectedOpt = options.find((opt) => opt.id === optionId);
+            if (selectedOpt?.text) {
+                playAudio(
+                    selectedOpt.text, 
+                    0.9, 
+                    selectedOpt.audioLang || languageCode
+                );
+            }
         }
     };
 
     const handleCheck = () => {
         const isInsert = currentChallenge.type === "INSERT";
+        const isDictation = currentChallenge.type === "DICTATION";
 
-        if (isInsert) {
-            // INSERT mode: validate typed input via Levenshtein engine
-            const correctText = options.find((opt) => opt.correct)?.text || "";
+        if (isInsert || isDictation) {
+            // INSERT/DICTATION: validate typed input via Levenshtein engine
+            const correctText = isDictation
+                ? currentChallenge.question  // For DICTATION, the question IS the answer
+                : options.find((opt) => opt.correct)?.text || "";
             const result = isAnswerAcceptable(inputValue, correctText);
 
             if (result.isCorrect) {
@@ -396,6 +491,11 @@ export const LessonClient = ({
                 setStatus("none");
                 setInputValue("");
                 setTypoMessage(null);
+                setSelectedMatchIds([]);
+                setMatchedIds([]);
+                setWrongMatchFlash([]);
+                setShuffledLeft([]);
+                setShuffledRight([]);
             }, 1200);
             return;
         }
@@ -620,6 +720,20 @@ export const LessonClient = ({
                     </div>
 
                     <div className="flex items-center gap-4">
+                        {/* Mute Toggle */}
+                        <button
+                            onClick={() => setIsAudioMuted(!isAudioMuted)}
+                            className={cn(
+                                "rounded-xl p-2 transition-all active:scale-90",
+                                isAudioMuted
+                                    ? "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                                    : "bg-sky-50 text-sky-500 hover:bg-sky-100"
+                            )}
+                            title={isAudioMuted ? "Ativar som" : "Silenciar"}
+                        >
+                            {isAudioMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                        </button>
+
                         {/* XP Boost Indicator */}
                         {xpBoostLessons > 0 && (
                             <div className="flex items-center gap-2 rounded-xl border-2 border-purple-200 bg-purple-100 px-4 py-2 text-purple-600">
@@ -721,12 +835,135 @@ export const LessonClient = ({
                             </Button>
                         </div>
                         <div className="text-center text-3xl font-extrabold lg:text-4xl text-slate-800 tracking-tight">
-                            <InteractiveText text={currentChallenge.question} language={language} />
+                            {currentChallenge.type !== "DICTATION" && (
+                                <InteractiveText text={currentChallenge.question} language={language} />
+                            )}
                         </div>
                     </div>
 
-                    {/* Options or Text Input */}
-                    {currentChallenge.type === "INSERT" ? (
+                    {/* Options / Text Input / MATCH Grid / DICTATION */}
+                    {currentChallenge.type === "DICTATION" ? (
+                        <div className="w-full max-w-[600px] flex flex-col items-center gap-6">
+                            {/* Giant Play Button */}
+                            <button
+                                onClick={() => playAudio(
+                                    currentChallenge.question,
+                                    0.85,
+                                    currentChallenge.questionAudioLang || languageCode
+                                )}
+                                className={cn(
+                                    "w-32 h-32 rounded-full border-4 border-b-[8px] flex items-center justify-center transition-all duration-200 outline-none cursor-pointer",
+                                    "bg-sky-50 border-sky-300 text-sky-500 hover:bg-sky-100 hover:scale-105 active:scale-95 active:border-b-4 active:translate-y-1",
+                                    isPlaying && "animate-pulse bg-sky-100 border-sky-400 scale-105"
+                                )}
+                            >
+                                <Ear className="h-14 w-14" />
+                            </button>
+                            <p className="text-slate-400 text-sm font-medium">Ouve e escreve o que ouves</p>
+
+                            {/* Slow speed button */}
+                            <button
+                                onClick={() => playAudio(
+                                    currentChallenge.question,
+                                    0.5,
+                                    currentChallenge.questionAudioLang || languageCode
+                                )}
+                                className="rounded-2xl border-2 border-slate-200 bg-white px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 transition-all active:scale-95"
+                            >
+                                🐢 Mais devagar
+                            </button>
+
+                            {/* Text Input */}
+                            <input
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && inputValue.trim() && status === "none") {
+                                        e.preventDefault();
+                                        handleCheck();
+                                    }
+                                }}
+                                disabled={status !== "none" || isPending}
+                                placeholder="Escreve o que ouviste..."
+                                autoFocus
+                                className={cn(
+                                    "w-full p-4 border-2 rounded-xl text-lg font-medium transition-all outline-none text-center",
+                                    status === "none" && "border-slate-200 bg-white focus:border-sky-400 focus:ring-2 focus:ring-sky-200 text-slate-800 placeholder:text-slate-400",
+                                    status === "correct" && "border-green-400 bg-green-50 text-green-700",
+                                    status === "wrong" && "border-rose-400 bg-rose-50 text-rose-700"
+                                )}
+                            />
+                            {typoMessage && status === "correct" && (
+                                <p className="text-amber-600 text-sm font-medium bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 animate-in fade-in duration-300">
+                                    ✏️ {typoMessage}
+                                </p>
+                            )}
+                        </div>
+                    ) : currentChallenge.type === "MATCH" ? (
+                        <MatchGrid
+                            leftColumn={shuffledLeft}
+                            rightColumn={shuffledRight}
+                            selectedMatchIds={selectedMatchIds}
+                            matchedIds={matchedIds}
+                            wrongMatchFlash={wrongMatchFlash}
+                            onSelect={(optId) => {
+                                if (matchedIds.includes(optId) || wrongMatchFlash.length > 0) return;
+
+                                const newSelected = selectedMatchIds.includes(optId)
+                                    ? selectedMatchIds.filter((id) => id !== optId)
+                                    : [...selectedMatchIds, optId];
+
+                                if (newSelected.length === 2) {
+                                    // Check if they form a valid pair
+                                    const [idA, idB] = newSelected;
+                                    const optA = options.find((o) => o.id === idA);
+                                    const optB = options.find((o) => o.id === idB);
+                                    const idxA = options.findIndex((o) => o.id === idA);
+                                    const idxB = options.findIndex((o) => o.id === idB);
+
+                                    // Pair logic: index i ↔ index i+4 (first 4 are target lang, next 4 are PT)
+                                    const isPair =
+                                        (idxA < 4 && idxB === idxA + 4) ||
+                                        (idxB < 4 && idxA === idxB + 4);
+
+                                    if (isPair && optA && optB) {
+                                        // Correct pair!
+                                        playSound("correct");
+                                        const newMatched = [...matchedIds, idA, idB];
+                                        setMatchedIds(newMatched);
+                                        setSelectedMatchIds([]);
+
+                                        // Auto-complete when all 8 matched
+                                        if (newMatched.length === 8) {
+                                            setStatus("correct");
+                                            setCorrectCount((prev) => prev + 1);
+                                            if (isClinic) {
+                                                setPoints((prev) => prev + 10);
+                                                setXpGained((prev) => prev + 10);
+                                            } else {
+                                                onChallengeComplete(currentChallenge.id).then((res) => {
+                                                    const xp = res.xpGained || 10;
+                                                    setPoints((prev) => prev + xp);
+                                                    setXpGained((prev) => prev + xp);
+                                                });
+                                            }
+                                        }
+                                    } else {
+                                        // Wrong pair
+                                        playSound("wrong");
+                                        setWrongMatchFlash(newSelected);
+                                        setTimeout(() => {
+                                            setWrongMatchFlash([]);
+                                            setSelectedMatchIds([]);
+                                        }, 600);
+                                    }
+                                } else {
+                                    setSelectedMatchIds(newSelected);
+                                }
+                            }}
+                        />
+                    ) : currentChallenge.type === "INSERT" ? (
                         <div className="w-full max-w-[600px] flex flex-col gap-3">
                             <input
                                 type="text"
@@ -796,9 +1033,11 @@ export const LessonClient = ({
                                     <Button
                                         variant="primary"
                                         disabled={
-                                            (currentChallenge.type === "INSERT"
+                                            (currentChallenge.type === "INSERT" || currentChallenge.type === "DICTATION"
                                                 ? !inputValue.trim()
-                                                : selectedOption === null)
+                                                : currentChallenge.type === "MATCH"
+                                                    ? matchedIds.length < 8
+                                                    : selectedOption === null)
                                             || isPending
                                         }
                                         onClick={handleCheck}

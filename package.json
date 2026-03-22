@@ -4,7 +4,15 @@
   "private": true,
   "description": "Uma plataforma de aprendizagem de idiomas gamificada com Inteligência Artificial.",
   "author": "Miguel Pereira Santos",
-  "keywords": ["nextjs", "drizzle", "language-learning", "ai", "gemini", "gamification", "react"],
+  "keywords": [
+    "nextjs",
+    "drizzle",
+    "language-learning",
+    "ai",
+    "gemini",
+    "gamification",
+    "react"
+  ],
   "engines": {
     "node": ">=18.0.0"
   },
@@ -25,6 +33,8 @@
     "@supabase/supabase-js": "^2.90.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "franc-min": "^6.2.0",
@@ -37,6 +47,7 @@
     "react-dom": "^18",
     "react-markdown": "^10.1.0",
     "react-onesignal": "^3.5.1",
+    "recharts": "^3.8.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",

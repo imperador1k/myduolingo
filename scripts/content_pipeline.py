@@ -75,7 +75,7 @@ TEMAS = {
 
 def clean_text(text):
     if not text: return ""
-    return str(text).replace("'", "''").strip()
+    return str(text).strip()
 
 def get_base_prompt(topic_name, focus_area, target_lang, level, style, seed):
     json_structure = """
@@ -87,15 +87,21 @@ def get_base_prompt(topic_name, focus_area, target_lang, level, style, seed):
           "title": "String (In Target Language)",
           "challenges": [
             {
-              "type": "String (MUST BE 'SELECT' or 'INSERT')",
-              "context": "String (A scenario, dialogue, or short text. MANDATORY.)",
+              "type": "String (MUST BE 'SELECT', 'INSERT', 'MATCH', or 'DICTATION')",
+              "context": "String (A scenario, dialogue, or short text. MANDATORY for SELECT/INSERT. Optional for MATCH/DICTATION.)",
               "context_audio_lang": "String (BCP-47 language code)",
-              "question": "String (For SELECT: The specific query. For INSERT: The same context but with a '_____' blank space where the user must type the missing word)",
-              "question_audio_lang": "String (BCP-47 language code)",
-              "options": [
-                { "text": "Distractor 1", "correct": false, "audio_lang": "String (BCP-47 code)" },
-                { "text": "Correct Answer", "correct": true, "audio_lang": "String (BCP-47 code)" },
-                { "text": "Distractor 2", "correct": false, "audio_lang": "String (BCP-47 code)" }
+              "question": "String (For SELECT: The specific query. For INSERT: context with '_____' blank. For MATCH: 'Encontra os pares corretos.' For DICTATION: The exact sentence to be dictated, 4-10 words in the target language.)",
+              "question_audio_lang": "String (BCP-47 language code, CRITICAL for DICTATION — must be the target language code)",
+              "options": "Array. For SELECT/INSERT: 3 options (1 correct=true, 2 correct=false). For MATCH: EXACTLY 8 options (4 pairs). For DICTATION: 1 option with correct=true containing the exact answer text.",
+              "options_example_for_MATCH": [
+                { "text": "Merger", "correct": false, "audio_lang": "en-US" },
+                { "text": "Stakeholder", "correct": false, "audio_lang": "en-US" },
+                { "text": "Revenue", "correct": false, "audio_lang": "en-US" },
+                { "text": "Deadline", "correct": false, "audio_lang": "en-US" },
+                { "text": "Fusão", "correct": true, "audio_lang": "pt-PT" },
+                { "text": "Parte Interessada", "correct": true, "audio_lang": "pt-PT" },
+                { "text": "Receita", "correct": true, "audio_lang": "pt-PT" },
+                { "text": "Prazo", "correct": true, "audio_lang": "pt-PT" }
               ],
               "explanation": "String (Pedagogical explanation in PORTUGUESE. Explain WHY it's correct based on context.)"
             }
@@ -135,7 +141,9 @@ Seed: {seed}
 1. É ESTRITAMENTE PROIBIDO usar o formato "Como se diz X?".
 2. Exercícios 'SELECT' (Múltipla Escolha): O contexto dá a pista, e as opções são palavras parecidas onde só uma faz sentido.
 3. Exercícios 'INSERT' (Cloze Deletion): Usa-os para Active Recall. O campo 'question' deve conter a frase/contexto com uma lacuna "______" para o utilizador escrever. Se o type for INSERT, as options devem conter na mesma a Correct Answer (os distractors podem ir vazios ou ignorados).
-4. Distribuição: Garante que cerca de 40%% dos desafios de cada lição são do tipo 'INSERT'.
+4. Distribuição: Garante que os desafios têm tipos variados: ~30%% SELECT, ~30%% INSERT, ~20%% MATCH, ~20%% DICTATION.
+5. Exercícios 'MATCH' (Pares Mágicos): Servem para limpeza mental e rapidez. O campo 'context' pode ficar vazio ou ter uma frase simples. O array de 'options' TEM DE TER EXATAMENTE 8 ITENS: 4 palavras no target language (correct: false) e as suas 4 traduções diretas em Português (correct: true). Os pares DEVEM estar na mesma ordem (opção 0 traduz para opção 4, opção 1 para opção 5, etc.).
+6. Exercícios 'DICTATION' (Eco / Ditado): Servem para treinar o Listening e a escrita. O campo 'question' deve conter a frase exata que vai ser ditada (escondida do utilizador na UI). O 'context' pode estar vazio. A frase deve ter entre 4 a 10 palavras no target language. O 'question_audio_lang' DEVE ser o código da língua alvo. As 'options' devem ter 1 item com correct=true contendo o texto exato da resposta.
 """
     return base
 
@@ -273,7 +281,7 @@ def insert_into_db(data, course_id):
                     q_text = clean_text(chall.get('question', ''))
                     q_audio_lang = clean_text(chall.get('question_audio_lang', ''))
                     c_type = clean_text(chall.get('type', 'SELECT'))
-                    if c_type not in ['SELECT', 'INSERT', 'DICTATION']:
+                    if c_type not in ['SELECT', 'INSERT', 'DICTATION', 'MATCH']:
                         c_type = 'SELECT'
                     c_ctx = clean_text(chall.get('context', ''))
                     c_ctx_audio_lang = clean_text(chall.get('context_audio_lang', ''))

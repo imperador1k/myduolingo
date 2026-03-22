@@ -1,8 +1,9 @@
-﻿import { Sidebar } from "@/components/shared/sidebar";
+import { Sidebar } from "@/components/shared/sidebar";
 import { MobileHeader } from "@/components/shared/mobile-header";
 import { MobileNav } from "@/components/shared/mobile-nav";
 import { StreakCheck } from "@/components/shared/streak-check";
 import { getUnreadMessageCount, getUnreadNotificationCount } from "@/db/queries";
+import { CommandMenu } from "@/components/shared/command-menu";
 
 type Props = {
     children: React.ReactNode;
@@ -32,6 +33,7 @@ export default async function MainLayout({ children }: Props) {
                 unreadMessageCount={unreadMessages} 
             />
             <StreakCheck />
+            <CommandMenu />
         </>
     );
 }

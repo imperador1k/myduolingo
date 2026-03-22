@@ -19,6 +19,7 @@ import {
     Dumbbell,
     GraduationCap,
     Archive,
+    BarChart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -148,6 +149,13 @@ export const MobileNav = ({ notificationCount, unreadMessageCount }: MobileNavPr
                                 icon={<Archive className="h-6 w-6" />}
                                 label="Cofre"
                                 isActive={pathname === "/vocabulary"}
+                                onClick={closeMenu}
+                            />
+                            <MobileItem
+                                href="/analytics"
+                                icon={<BarChart className="h-6 w-6" />}
+                                label="Estat."
+                                isActive={pathname === "/analytics"}
                                 onClick={closeMenu}
                             />
                             <MobileItem
