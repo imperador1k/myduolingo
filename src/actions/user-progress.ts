@@ -21,6 +21,10 @@ import {
     completeClinicLesson
 } from "@/db/queries";
 import { recordDailyStatsAction } from "@/actions/daily-stats";
+import { z } from "zod";
+import { db } from "@/db/drizzle";
+import { challenges } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 /**
  * Handles a correctly answered challenge.
@@ -37,23 +41,47 @@ import { recordDailyStatsAction } from "@/actions/daily-stats";
  * @throws {Error} If the user is not authenticated.
  */
 export const onChallengeComplete = async (challengeId: number) => {
+    // 🛡️ ANTI-CHEAT: Zod Payload Validation
+    const schema = z.object({ challengeId: z.number().positive() });
+    const parsed = schema.safeParse({ challengeId });
+    if (!parsed.success) throw new Error("Invalid payload: challengeId must be a positive number.");
+
     const { userId } = await auth();
 
     if (!userId) {
         throw new Error("Unauthorized");
     }
 
+    // 🛡️ ANTI-CHEAT: Database Spoofing Guard
+    const challengeExists = await db.query.challenges.findFirst({
+        where: eq(challenges.id, parsed.data.challengeId),
+    });
+
+    if (!challengeExists) {
+        throw new Error("Invalid challenge: Spoofing attempt detected.");
+    }
+
+    const userProgressData = await getUserProgress();
+
+    if (!userProgressData) {
+        throw new Error("User progress not found.");
+    }
+
+    // 🛡️ ANTI-CHEAT: Boundary Guard
+    if (userProgressData.hearts === 0 && !userProgressData.heartShields) {
+        throw new Error("Cannot complete challenges with 0 hearts.");
+    }
+
     // Mark challenge as complete
-    await upsertChallengeProgress(challengeId);
+    await upsertChallengeProgress(parsed.data.challengeId);
 
     // Resolve from mistakes table (if it was a previous error, they mastered it now)
-    await resolveMistake(challengeId);
+    await resolveMistake(parsed.data.challengeId);
 
     // Check for XP boost
-    const userProgressData = await getUserProgress();
-    const hasXpBoost = userProgressData && (userProgressData.xpBoostLessons || 0) > 0;
+    const hasXpBoost = (userProgressData.xpBoostLessons || 0) > 0;
 
-    // Add XP (10 normal, 20 with boost)
+    // 🛡️ ANTI-CHEAT: Hardcoded Server Rewards
     const xpAmount = hasXpBoost ? 20 : 10;
     await addPoints(xpAmount);
     
@@ -145,15 +173,32 @@ export const onLessonComplete = async () => {
  * @throws {Error} If the user is not authenticated.
  */
 export const onChallengeWrong = async (challengeId?: number) => {
+    // 🛡️ ANTI-CHEAT: Zod Payload Validation
+    const schema = z.object({ challengeId: z.number().positive().optional() });
+    const parsed = schema.safeParse({ challengeId });
+    if (!parsed.success) throw new Error("Invalid payload.");
+
     const { userId } = await auth();
 
     if (!userId) {
         throw new Error("Unauthorized");
     }
 
+    if (parsed.data.challengeId) {
+        // 🛡️ ANTI-CHEAT: Database Spoofing Guard
+        const challengeExists = await db.query.challenges.findFirst({
+            where: eq(challenges.id, parsed.data.challengeId),
+        });
+        if (!challengeExists) throw new Error("Invalid challenge.");
+    }
+
+    const userProgressData = await getUserProgress();
+    if (!userProgressData) throw new Error("User progress not found.");
+    if (userProgressData.hearts === 0) throw new Error("Hearts already depleted.");
+
     // Log the mistake for the Heart Clinic
-    if (challengeId) {
-        await logMistake(challengeId);
+    if (parsed.data.challengeId) {
+        await logMistake(parsed.data.challengeId);
     }
 
     // Check for heart shield first
@@ -231,6 +276,13 @@ export const onRefillHearts = async () => {
         throw new Error("Unauthorized");
     }
 
+    const userProgressData = await getUserProgress();
+    if (!userProgressData) throw new Error("User progress not found.");
+    
+    // 🛡️ ANTI-CHEAT: Hard boundaries
+    if (userProgressData.hearts === 5) throw new Error("Hearts already full.");
+    if (userProgressData.points < 100) throw new Error("Insufficient XP.");
+
     const result = await refillHearts();
 
     revalidatePath("/learn");
@@ -252,6 +304,13 @@ export const onBuyOneHeart = async () => {
     if (!userId) {
         throw new Error("Unauthorized");
     }
+
+    const userProgressData = await getUserProgress();
+    if (!userProgressData) throw new Error("User progress not found.");
+    
+    // 🛡️ ANTI-CHEAT: Hard boundaries
+    if (userProgressData.hearts >= 5) throw new Error("Hearts already full.");
+    if (userProgressData.points < 20) throw new Error("Insufficient XP.");
 
     const result = await buyOneHeart();
 
