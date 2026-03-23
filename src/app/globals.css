@@ -229,3 +229,63 @@ body,
     transform: translateY(0) scale(1);
   }
 }
+
+/* === V2 Design System Classes === */
+.sidebar-item {
+  transition: all 0.2s ease-in-out;
+}
+.sidebar-item:hover {
+  background-color: #e5e7eb;
+}
+.sidebar-item.active {
+  background-color: #58CC02;
+  color: white;
+  border-bottom: 4px solid #58A700;
+}
+.sidebar-item.active:hover {
+  background-color: #58CC02;
+}
+
+.progress-bar-container {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.unit-card-green {
+  background-color: #58cc02;
+  border-bottom: 8px solid #46a302;
+  box-shadow: 0 8px 0 #4da918;
+}
+
+.unit-card-gray {
+  background-color: #e5e5e5;
+  border-bottom: 8px solid #cccccc;
+  box-shadow: 0 8px 0 #b1b5b9;
+}
+
+.path-node {
+  box-shadow: 0 4px 0px rgba(0,0,0,0.1);
+}
+.path-node-green {
+  background-color: #58cc02;
+  border-bottom: 4px solid #46a302;
+}
+.path-node-current {
+  background-color: white;
+  border-bottom: 4px solid #e5e7eb;
+  box-shadow: 0 4px 0px #e5e5e5;
+}
+.path-node-gray {
+  background-color: #cecece;
+  border-bottom: 4px solid #b3b3b3;
+}
+
+.glowing-path {
+  filter: drop-shadow(0 0 8px rgba(113, 201, 255, 0.6));
+}
+
+.bg-shape {
+  position: absolute;
+  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+  z-index: 0;
+  pointer-events: none;
+}

@@ -4,6 +4,7 @@ import { MobileNav } from "@/components/shared/mobile-nav";
 import { StreakCheck } from "@/components/shared/streak-check";
 import { getUnreadMessageCount, getUnreadNotificationCount } from "@/db/queries";
 import { CommandMenu } from "@/components/shared/command-menu";
+import { GlobalModals } from "@/components/modals/global-modals";
 
 type Props = {
     children: React.ReactNode;
@@ -16,25 +17,35 @@ export default async function MainLayout({ children }: Props) {
     const unreadNotifications = await getUnreadNotificationCount();
 
     return (
-        <>
+        <div className="flex h-screen overflow-hidden bg-[#f3f6f8]">
             <MobileHeader />
-            <Sidebar 
-                className="hidden lg:flex" 
-                notificationCount={unreadNotifications} 
-                unreadMessageCount={unreadMessages} 
-            />
-            <main className="lg:pl-[256px] h-full pt-[50px] lg:pt-0 overflow-y-auto overflow-x-hidden">
-                <div className="max-w-[1056px] mx-auto pt-6 min-h-full pb-48 lg:pb-8">
+            
+            {/* Locked Sidebar Wrapper */}
+            <div className="hidden lg:flex w-[256px] h-full border-r border-gray-200 bg-white flex-shrink-0 z-20">
+                <Sidebar 
+                    className="w-full h-full border-none" 
+                    notificationCount={unreadNotifications} 
+                    unreadMessageCount={unreadMessages} 
+                />
+            </div>
+            
+            {/* Independent Scrolling Main Area */}
+            <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative pt-[50px] lg:pt-0 z-10">
+                <div className="max-w-[1056px] mx-auto pt-6 px-6 pb-48 lg:pb-8 relative min-h-full">
                     {children}
                 </div>
             </main>
+            
             <MobileNav 
                 notificationCount={unreadNotifications} 
                 unreadMessageCount={unreadMessages} 
             />
             <StreakCheck />
             <CommandMenu />
-        </>
+
+            {/* Immersive Global Modals Container Z-[100] */}
+            <GlobalModals />
+        </div>
     );
 }
 

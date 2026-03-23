@@ -1,20 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-    Home,
+    Bird,
     BookOpen,
+    Bot,
     Trophy,
     ShoppingBag,
-    User,
+    User as UserIcon,
     Users,
     Bell,
     Mail,
-    Dumbbell,
     Settings,
     BarChart,
     MoreHorizontal,
@@ -39,20 +38,20 @@ const SidebarItem = ({ label, iconSrc, href, notificationCount }: SidebarItemPro
     const { playClick } = useUISounds();
 
     return (
-        <Link href={href}>
+        <Link href={href} className="w-full" onClick={() => playClick()}>
             <div
-                onClick={() => playClick()}
                 className={cn(
-                    "flex items-center gap-x-3 rounded-xl px-3 py-2.5 text-slate-500 transition-all hover:bg-slate-100",
-                    isActive && "bg-sky-500/15 text-sky-500 border-2 border-sky-300"
+                    "sidebar-item flex flex-col md:flex-row items-center justify-center md:justify-start py-3 px-4 rounded-xl gap-3 w-16 md:w-full h-16 md:h-14 relative group",
+                    isActive ? "active" : "text-gray-400 hover:text-gray-600"
                 )}
             >
-                <span className="h-6 w-6">{iconSrc}</span>
-                <span className="font-bold text-sm uppercase tracking-wide">
+                {iconSrc}
+                <span className="hidden md:block font-bold text-sm tracking-wide uppercase">
                     {label}
                 </span>
+                {/* Red Pulse Badge for explicit counts */}
                 {notificationCount && notificationCount > 0 ? (
-                    <span className="ml-auto bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
+                    <span className="absolute top-1 right-1 md:relative md:top-auto md:right-auto md:ml-auto bg-rose-500 text-white text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 rounded-full animate-pulse border-2 border-white">
                         {notificationCount}
                     </span>
                 ) : null}
@@ -76,126 +75,132 @@ export const Sidebar = ({ className, notificationCount, unreadMessageCount }: Pr
     const isAdmin = (user?.publicMetadata as any)?.role === "admin";
 
     return (
-        <div className={cn("fixed left-0 top-0 hidden h-full w-[256px] flex-col border-r-2 px-4 lg:flex overflow-y-auto custom-scrollbar pb-4 bg-white z-20", className)}>
-            {/* Logo */}
-            <Link href="/learn">
-                <div className="flex items-center gap-x-3 pb-5 pl-4 pt-6">
-                    <Image src="/mascot.svg" height={40} width={40} alt="Mascot" />
-                    <h1 className="text-2xl font-extrabold tracking-wide text-green-600">
-                        Duolingo
-                    </h1>
-                </div>
-            </Link>
-
-            {/* Navigation */}
-            <div className="flex flex-1 flex-col gap-y-1 z-10">
-                {/* Core Routes */}
+        <aside className={cn("w-24 md:w-[256px] bg-white border-r border-gray-200 flex-col items-center py-6 h-full z-20 flex-shrink-0 hidden lg:flex", className)}>
+            <div className="mb-10 px-4 md:px-0 w-full flex justify-center md:justify-start md:pl-6">
+                <Link href="/learn" className="flex items-center">
+                    <img 
+                        alt="Duolingo Logo" 
+                        className="hidden md:block h-10 w-auto" 
+                        src="/mascot.svg" 
+                    />
+                    <div className="md:hidden bg-[#58cc02] rounded-2xl p-2 w-12 h-12 flex items-center justify-center border-b-4 border-[#46a302] hover:brightness-110 transition-all">
+                        <Bird className="text-white w-6 h-6 shrink-0" fill="currentColor" />
+                    </div>
+                </Link>
+            </div>
+            
+            <nav className="flex-1 w-full px-2 md:px-4 space-y-2 flex flex-col items-center md:items-stretch overflow-y-auto overflow-x-hidden custom-scrollbar pb-10">
+                
+                {/* Core Routes - Using strictly V2 visual architecture */}
                 <SidebarItem
-                    label="Aprender"
+                    label="Learn"
                     href="/learn"
-                    iconSrc={<Home className="h-6 w-6" />}
+                    iconSrc={<BookOpen className="w-6 h-6 md:w-7 md:h-7 shrink-0" />}
                 />
                 <SidebarItem
-                    label="Praticar AI"
+                    label="Practice AI"
                     href="/practice"
-                    iconSrc={<Dumbbell className="h-6 w-6" />}
+                    iconSrc={<Bot className="w-6 h-6 md:w-7 md:h-7 shrink-0" />}
                 />
                 <SidebarItem
-                    label="Classificação"
+                    label="Leaderboards"
                     href="/leaderboard"
-                    iconSrc={<Trophy className="h-6 w-6" />}
+                    iconSrc={<Trophy className="w-6 h-6 md:w-7 md:h-7 shrink-0" />}
                 />
                 <SidebarItem
-                    label="Loja"
+                    label="Shop"
                     href="/shop"
-                    iconSrc={<ShoppingBag className="h-6 w-6" />}
+                    iconSrc={<ShoppingBag className="w-6 h-6 md:w-7 md:h-7 shrink-0" />}
                 />
                 <SidebarItem
-                    label="Perfil"
+                    label="Profile"
                     href="/profile"
-                    iconSrc={<User className="h-6 w-6" />}
+                    iconSrc={<UserIcon className="w-6 h-6 md:w-7 md:h-7 shrink-0" />}
                 />
 
                 {/* Secondary Routes Toggle */}
                 <div
                     onClick={() => {
+                        playClick();
                         setIsMoreOpen(!isMoreOpen);
                     }}
                     className={cn(
-                        "flex items-center gap-x-3 rounded-xl px-3 py-2.5 text-slate-500 transition-all hover:bg-slate-100 cursor-pointer mt-1 relative",
-                        isMoreOpen && "bg-slate-100 text-slate-700"
+                        "sidebar-item flex flex-col md:flex-row items-center justify-center md:justify-start py-3 px-4 rounded-xl gap-3 text-gray-400 w-16 md:w-full h-16 md:h-14 cursor-pointer relative",
+                        isMoreOpen && "bg-gray-200 text-gray-700"
                     )}
                 >
-                    <span className="h-6 w-6"><MoreHorizontal className="h-6 w-6" /></span>
-                    <span className="font-bold text-sm uppercase tracking-wide">Mais</span>
+                    <div className={cn("rounded-full w-8 h-8 flex items-center justify-center shrink-0", !isMoreOpen && "bg-gray-200")}>
+                        <MoreHorizontal className="w-5 h-5" />
+                    </div>
+                    <span className="hidden md:block font-bold text-sm tracking-wide uppercase">Mais</span>
                     
                     {/* Visual indicator for notification in the "Mais" menu when closed */}
                     {!isMoreOpen && (Number(notificationCount) > 0 || Number(unreadMessageCount) > 0) && (
-                        <span className="absolute right-3 top-3.5 h-3 w-3 rounded-full bg-rose-500 animate-pulse border-2 border-white"></span>
+                        <span className="absolute top-2 right-2 md:right-3 md:top-4 h-3 w-3 rounded-full bg-rose-500 animate-pulse border-2 border-white"></span>
                     )}
                 </div>
 
                 {/* Secondary Routes Dropdown/Accordion */}
                 {isMoreOpen && (
-                    <div className="flex flex-col gap-y-1 mt-1 pl-4 ml-2 border-l-2 border-slate-100 animate-in slide-in-from-top-2 opacity-100 duration-200 overflow-hidden">
+                    <div className="flex flex-col gap-y-2 mt-2 md:pl-4 md:ml-4 border-l-2 md:border-slate-200 animate-in slide-in-from-top-2 duration-200">
                         <SidebarItem
                             label="Cursos"
                             href="/courses"
-                            iconSrc={<BookOpen className="h-5 w-5" />}
+                            iconSrc={<BookOpen className="h-5 w-5 md:w-6 md:h-6 shrink-0" />}
                         />
                         <SidebarItem
                             label="Cofre"
                             href="/vocabulary"
-                            iconSrc={<Archive className="h-5 w-5" />}
+                            iconSrc={<Archive className="h-5 w-5 md:w-6 md:h-6 shrink-0" />}
                         />
                         <SidebarItem
                             label="Estatísticas"
                             href="/analytics"
-                            iconSrc={<BarChart className="h-5 w-5" />}
+                            iconSrc={<BarChart className="h-5 w-5 md:w-6 md:h-6 shrink-0" />}
                         />
                         <SidebarItem
                             label="Avaliação"
                             href="/evaluation"
-                            iconSrc={<GraduationCap className="h-5 w-5" />}
+                            iconSrc={<GraduationCap className="h-5 w-5 md:w-6 md:h-6 shrink-0" />}
                         />
                         <SidebarItem
                             label="Amigos"
                             href="/friends"
-                            iconSrc={<Users className="h-5 w-5" />}
+                            iconSrc={<Users className="h-5 w-5 md:w-6 md:h-6 shrink-0" />}
                         />
                         <SidebarItem
                             label="Notificações"
                             href="/notifications"
-                            iconSrc={<Bell className="h-5 w-5" />}
+                            iconSrc={<Bell className="h-5 w-5 md:w-6 md:h-6 shrink-0" />}
                             notificationCount={notificationCount}
                         />
                         <SidebarItem
                             label="Mensagens"
                             href="/messages"
-                            iconSrc={<Mail className="h-5 w-5" />}
+                            iconSrc={<Mail className="h-5 w-5 md:w-6 md:h-6 shrink-0" />}
                             notificationCount={unreadMessageCount}
                         />
                         <SidebarItem
                             label="Definições"
                             href="/settings"
-                            iconSrc={<Settings className="h-5 w-5" />}
+                            iconSrc={<Settings className="h-5 w-5 md:w-6 md:h-6 shrink-0" />}
                         />
                         {isAdmin && (
                             <SidebarItem
                                 label="Painel Admin"
                                 href="/admin"
-                                iconSrc={<ShieldAlert className="h-5 w-5 text-rose-500" />}
+                                iconSrc={<ShieldAlert className="h-5 w-5 md:w-6 md:h-6 text-rose-500 shrink-0" />}
                             />
                         )}
                     </div>
                 )}
-            </div>
+            </nav>
 
             {/* Hint for global search */}
-            <div className="mt-8 pt-4 border-t-2 border-slate-100 flex items-center justify-center text-slate-400 gap-2 mb-2">
-                <Search className="h-4 w-4" />
+            <div className="mt-auto hidden md:flex pt-4 border-t-2 border-slate-100 items-center justify-center text-slate-400 gap-2 mb-2 w-full">
+                <Search className="h-4 w-4 shrink-0" />
                 <span className="text-xs font-bold uppercase tracking-wider">Cmd+K / Ctrl+K</span>
             </div>
-        </div>
+        </aside>
     );
 };
