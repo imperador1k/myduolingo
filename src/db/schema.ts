@@ -141,6 +141,8 @@ export const userProgress = pgTable("user_progress", {
     cefrLevels: jsonb("cefr_levels").notNull().default({}),
     // Heart regeneration — timestamp of last heart loss
     lastHeartChange: timestamp("last_heart_change").defaultNow(),
+    // Opt-out toggles
+    notificationsEnabled: boolean("notifications_enabled").default(true).notNull(),
 });
 
 export const userProgressRelations = relations(userProgress, ({ one, many }) => ({

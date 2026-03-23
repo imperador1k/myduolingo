@@ -1,5 +1,5 @@
 import { db } from "@/db/drizzle";
-import { notifications } from "@/db/schema";
+import { notifications, userProgress } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
 export const createNotification = async (
@@ -8,6 +8,15 @@ export const createNotification = async (
     message: string,
     link?: string
 ) => {
+    // 🛡️ GATEKEEPER: Check if user has opted out
+    const recipientProgress = await db.query.userProgress.findFirst({ 
+        where: eq(userProgress.userId, userId) 
+    });
+    
+    if (!recipientProgress || !recipientProgress.notificationsEnabled) {
+        return; // Silently abort notification creation
+    }
+
     // Action 1: Insert into the database
     try {
         if (type === "message" && link) {

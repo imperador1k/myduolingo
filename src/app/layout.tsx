@@ -5,6 +5,7 @@ import { ptBR } from "@clerk/localizations";
 import { Toaster } from "sonner";
 import { OneSignalProvider } from "@/components/shared/OneSignalProvider";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { CustomToastProvider } from "@/components/ui/custom-toast";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"] });
@@ -32,14 +33,16 @@ export default function RootLayout({
     <ClerkProvider localization={ptBR}>
       <html lang="pt">
         <body className={`${nunito.className} bg-slate-50`}>
-          <Toaster richColors />
-          <OneSignalProvider />
-          <ClerkLoading>
-            <LoadingScreen />
-          </ClerkLoading>
-          <ClerkLoaded>
-            {children}
-          </ClerkLoaded>
+          <CustomToastProvider>
+            <Toaster richColors />
+            <OneSignalProvider />
+            <ClerkLoading>
+              <LoadingScreen />
+            </ClerkLoading>
+            <ClerkLoaded>
+              {children}
+            </ClerkLoaded>
+          </CustomToastProvider>
         </body>
       </html>
     </ClerkProvider>

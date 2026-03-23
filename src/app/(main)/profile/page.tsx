@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { SignOutButton } from "@clerk/nextjs";
@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { LottieBlock } from "@/components/ui/lottie-block";
 import { AchievementsList } from "@/components/shared/achievements-list";
+import { NotificationToggle } from "@/components/shared/notification-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +124,11 @@ export default async function ProfilePage() {
             {/* Achievements Expandable List */}
             <AchievementsList achievements={achievements} />
 
+            {/* Notification Preferences */}
+            <div className="mb-8">
+                <NotificationToggle initialEnabled={userProgress.notificationsEnabled} />
+            </div>
+
             {/* Action Buttons */}
             <div className="flex flex-col gap-3">
                 <Link href="/settings" className="w-full">
@@ -131,7 +137,7 @@ export default async function ProfilePage() {
                         className="w-full justify-start gap-3 rounded-2xl border-2 border-slate-200 bg-white py-6 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
                     >
                         <Settings className="h-5 w-5 text-slate-400" />
-                        Definições
+                        Conta
                     </Button>
                 </Link>
 

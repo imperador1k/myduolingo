@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { NotificationList } from "@/components/shared/notification-list";
 import { markNotificationsAsRead, deleteAllNotifications } from "@/actions/user-actions";
+import { NotificationSettingsModal } from "@/components/modals/notification-settings-modal";
 import { Button } from "@/components/ui/button";
 import { CheckCheck, Trash, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,11 +21,12 @@ type Notification = {
 
 type Props = {
     initialNotifications: Notification[];
+    initialEnabled: boolean;
 };
 
 type TabStatus = "all" | "messages" | "social";
 
-export const NotificationInbox = ({ initialNotifications }: Props) => {
+export const NotificationInbox = ({ initialNotifications, initialEnabled }: Props) => {
     const [activeTab, setActiveTab] = useState<TabStatus>("all");
     const [isPending, startTransition] = useTransition();
 
@@ -61,9 +63,11 @@ export const NotificationInbox = ({ initialNotifications }: Props) => {
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-slate-700">A tua Inbox</h1>
-                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600">
-                    <Settings className="h-5 w-5" />
-                </Button>
+                <NotificationSettingsModal initialEnabled={initialEnabled}>
+                    <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600">
+                        <Settings className="h-5 w-5" />
+                    </Button>
+                </NotificationSettingsModal>
             </div>
 
             {/* Top Bar Navigation / Actions */}

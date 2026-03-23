@@ -23,9 +23,26 @@ import {
 import { recordDailyStatsAction } from "@/actions/daily-stats";
 import { z } from "zod";
 import { db } from "@/db/drizzle";
-import { challenges } from "@/db/schema";
+import { challenges, userProgress } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { gameplayRateLimit } from "@/lib/ratelimit";
+
+/**
+ * Toggles global notification preferences.
+ */
+export const updateNotificationPreference = async (enabled: boolean) => {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+    
+    await db.update(userProgress)
+        .set({ notificationsEnabled: enabled })
+        .where(eq(userProgress.userId, userId));
+        
+    revalidatePath("/settings");
+    revalidatePath("/notifications");
+    
+    return { success: true, enabled };
+};
 
 /**
  * Handles a correctly answered challenge.
