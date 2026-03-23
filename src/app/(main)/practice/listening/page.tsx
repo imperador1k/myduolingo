@@ -218,9 +218,9 @@ export default function ListeningPracticePage() {
                 <div className="mb-6 flex justify-center">
                     <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
                         <span className="font-bold text-slate-700">{config.language}</span>
-                        <span>â€¢</span>
+                        <span>⭐</span>
                         <span className="font-bold text-slate-700">{config.level}</span>
-                        <span>â€¢</span>
+                        <span>⭐</span>
                         <span className="font-bold text-slate-700 uppercase">{config.mode}</span>
                     </div>
                 </div>
@@ -322,10 +322,10 @@ export default function ListeningPracticePage() {
                         {scriptData?.questions?.map((q, idx) => (
                             <div key={idx} className={cn("bg-white p-4 rounded-xl border-2 transition-all", hasAudioFinished ? "border-slate-200" : "border-slate-100 opacity-50 select-none")}>
                                 <h4 className="font-bold text-slate-700 mb-3 flex items-start gap-2">
-                                    <span className="text-indigo-500 bg-indigo-50 px-2 rounded">{idx+1}.</span>
+                                    <span className="text-indigo-500 bg-indigo-50 px-2 rounded">{idx + 1}.</span>
                                     {hasAudioFinished ? q : "???"}
                                 </h4>
-                                
+
                                 {inputMode === 'voice' ? (
                                     <div className="flex gap-3 items-center">
                                         <Button

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useTransition } from "react";
 import { generatePracticePrompt, analyzeWriting } from "@/actions/gemini";
@@ -134,9 +134,9 @@ export default function WritingPracticePage() {
                 {config && (
                     <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
                         <span className="font-bold text-slate-700">{config.language}</span>
-                        <span>â€¢</span>
+                        <span>⭐</span>
                         <span className="font-bold text-slate-700">{config.level}</span>
-                        <span>â€¢</span>
+                        <span>⭐</span>
                         <span className="font-bold text-slate-700 uppercase">{config.mode}</span>
                     </div>
                 )}

@@ -257,9 +257,9 @@ export default function SpeakingPracticePage() {
                 <div className="mb-6 flex justify-center">
                     <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
                         <span className="font-bold text-slate-700">{config.language}</span>
-                        <span>â€¢</span>
+                        <span>⭐</span>
                         <span className="font-bold text-slate-700">{config.level}</span>
-                        <span>â€¢</span>
+                        <span>⭐</span>
                         <span className="font-bold text-slate-700 uppercase">{config.mode}</span>
                     </div>
                 </div>
@@ -298,7 +298,7 @@ export default function SpeakingPracticePage() {
                     {promptData?.rules && promptData.rules.length > 0 && (
                         <div className="mt-4 pt-4 border-t border-slate-100">
                             <p className="text-xs font-bold uppercase text-amber-500 flex items-center gap-1 mb-2">
-                                <Target className="h-4 w-4" /> REGRAS DE CONVERSAÇÃƒO:
+                                <Target className="h-4 w-4" /> REGRAS DE CONVERSA:
                             </p>
                             <ul className="space-y-2">
                                 {promptData.rules.map((rule, i) => (

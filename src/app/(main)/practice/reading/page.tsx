@@ -139,7 +139,7 @@ export default function ReadingPracticePage() {
                     </div>
                     <div>
                         <h1 className="text-xl font-bold text-slate-800">{config?.language || "Language"} Reading</h1>
-                        <p className="text-xs text-slate-500 font-medium">Level {config?.level} â€¢ {config?.mode === 'focus' ? 'Course Focus' : 'Random Topic'}</p>
+                        <p className="text-xs text-slate-500 font-medium">Level {config?.level} ⭐ {config?.mode === 'focus' ? 'Course Focus' : 'Random Topic'}</p>
                     </div>
                 </div>
 

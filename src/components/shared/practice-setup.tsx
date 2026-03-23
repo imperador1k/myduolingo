@@ -159,7 +159,7 @@ export function PracticeSetup({ type, onStart }: Props) {
                                                         ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white border-orange-300"
                                                         : "bg-slate-100 text-slate-600 border-slate-200"
                                                 )}>
-                                                    {isEvaluated ? "O TEU NÍVEL" : "SUGESTÃƒO"}
+                                                    {isEvaluated ? "O TEU NÍVEL" : "SUGESTÃO"}
                                                 </span>
                                             )}
                                         </button>
@@ -210,7 +210,7 @@ export function PracticeSetup({ type, onStart }: Props) {
                             className="w-full h-20 text-xl font-black tracking-wider rounded-[1.5rem] shadow-[0_15px_40px_-5px_rgba(139,92,246,0.5)] bg-gradient-to-r from-violet-600 via-fuchsia-600 to-sky-500 hover:from-violet-500 hover:via-fuchsia-500 hover:to-sky-400 hover:-translate-y-1 border-t-2 border-white/20 transition-all text-white relative group overflow-hidden"
                             onClick={() => onStart({ language, level, mode })}
                         >
-                            <Sparkles className="mr-3 h-6 w-6 animate-pulse" /> INICIAR SESSÃƒO IA
+                            <Sparkles className="mr-3 h-6 w-6 animate-pulse" /> INICIAR SESSÃO IA
                             
                             {/* Shiny overlay */}
                             <div className="absolute inset-0 w-[50%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[200%] skew-x-[45deg] group-hover:animate-progress-indeterminate transition-all" />
