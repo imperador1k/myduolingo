@@ -5,23 +5,53 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
 import { notifications } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 
-export const markNotificationsAsRead = async () => {
+export const markNotificationsAsRead = async (category?: string) => {
     const { userId } = await auth();
     if (!userId) return;
 
+    let targetTypes: string[] | null = null;
+    if (category === "messages") targetTypes = ["message"];
+    if (category === "social") targetTypes = ["follow", "streak"]; // extend as needed
+
+    const conditions = [
+        eq(notifications.userId, userId),
+        eq(notifications.read, false)
+    ];
+
+    if (targetTypes) {
+        conditions.push(inArray(notifications.type, targetTypes));
+    }
+
     await db.update(notifications)
         .set({ read: true })
-        .where(
-            and(
-                eq(notifications.userId, userId),
-                eq(notifications.read, false)
-            )
-        );
+        .where(and(...conditions));
 
     revalidatePath("/notifications");
     revalidatePath("/"); // Update sidebar badge everywhere
+};
+
+export const deleteAllNotifications = async (category?: string) => {
+    const { userId } = await auth();
+    if (!userId) return;
+
+    let targetTypes: string[] | null = null;
+    if (category === "messages") targetTypes = ["message"];
+    if (category === "social") targetTypes = ["follow", "streak"]; 
+
+    const conditions = [
+        eq(notifications.userId, userId)
+    ];
+
+    if (targetTypes) {
+        conditions.push(inArray(notifications.type, targetTypes));
+    }
+
+    await db.delete(notifications).where(and(...conditions));
+
+    revalidatePath("/notifications");
+    revalidatePath("/");
 };
 
 export const onFollow = async (id: string) => {

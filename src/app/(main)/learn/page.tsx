@@ -130,6 +130,7 @@ export default async function LearnPage() {
     const courses = await getCourses();
 
     if (!userProgress || !userProgress.activeCourseId) redirect("/courses");
+    if (!units || units.length === 0) redirect("/courses");
 
     const activeCourse = courses.find(c => c.id === userProgress.activeCourseId);
     const unitsWithChallenges = units.map(unit => ({

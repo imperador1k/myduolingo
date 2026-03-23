@@ -1,5 +1,6 @@
 import { db } from "@/db/drizzle";
 import { notifications } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export const createNotification = async (
     userId: string,
@@ -9,13 +10,45 @@ export const createNotification = async (
 ) => {
     // Action 1: Insert into the database
     try {
-        await db.insert(notifications).values({
-            userId,
-            type,
-            message,
-            link,
-            read: false,
-        });
+        if (type === "message" && link) {
+            // Smart Grouping Logic ("WhatsApp" Effect)
+            const existingUnread = await db.query.notifications.findFirst({
+                where: and(
+                    eq(notifications.userId, userId),
+                    eq(notifications.type, "message"),
+                    eq(notifications.link, link),
+                    eq(notifications.read, false)
+                )
+            });
+
+            if (existingUnread) {
+                // Merge/Bump existing notification
+                await db.update(notifications)
+                    .set({
+                        message: "Tens novas mensagens! 💬",
+                        createdAt: new Date(), // bump to top
+                    })
+                    .where(eq(notifications.id, existingUnread.id));
+            } else {
+                // Insert standard notification
+                await db.insert(notifications).values({
+                    userId,
+                    type,
+                    message,
+                    link,
+                    read: false,
+                });
+            }
+        } else {
+            // Insert standard notification for all generic types
+            await db.insert(notifications).values({
+                userId,
+                type,
+                message,
+                link,
+                read: false,
+            });
+        }
     } catch (dbError) {
         console.error("Failed to insert notification into DB:", dbError);
         // If DB insert fails, we probably shouldn't send the push to avoid desync, or we can choose to proceed.

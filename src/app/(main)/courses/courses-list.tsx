@@ -130,12 +130,19 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
                                         onClick={() => handleSelect(course.id)}
                                         disabled={isPending}
                                         className={cn(
-                                            "group relative overflow-hidden bg-white border-2 border-slate-200 rounded-2xl p-5 text-left transition-all duration-300 cursor-pointer",
-                                            "hover:border-sky-400 hover:shadow-md hover:-translate-y-1 active:scale-[0.98]",
-                                            isSelected && "border-green-500 bg-green-50/50 shadow-md shadow-green-500/10 hover:border-green-500",
-                                            isPending && "opacity-50 cursor-not-allowed transform-none hover:shadow-none hover:border-slate-200"
+                                            "group relative overflow-hidden bg-white border-2 border-slate-100 rounded-3xl p-6 text-left transition-all duration-300 cursor-pointer",
+                                            "hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 active:scale-[0.98]",
+                                            (isSelected || isActive) && "border-green-400 shadow-sm shadow-green-500/10",
+                                            isPending && "opacity-50 cursor-not-allowed transform-none hover:shadow-none hover:border-slate-100"
                                         )}
                                     >
+                                        {/* Absolute Top-Right Active Checkmark */}
+                                        {(isSelected || isActive) && (
+                                            <div className="absolute top-4 right-4 flex h-7 w-7 items-center justify-center rounded-full bg-green-500 shadow-sm z-20 animate-in fade-in zoom-in-50 duration-300">
+                                                <Check className="h-4 w-4 text-white font-bold" />
+                                            </div>
+                                        )}
+
                                         {/* Background gradient hint */}
                                         <div
                                             className={cn(
@@ -163,14 +170,9 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
 
                                                 <div className="flex flex-col items-end gap-2">
                                                     {isActive && (
-                                                        <div className="flex items-center gap-1 rounded-full bg-amber-100 text-amber-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wider">
+                                                        <div className="flex items-center gap-1 rounded-full bg-sky-100 text-sky-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wider">
                                                             <Sparkles className="h-3 w-3" />
                                                             Ativo
-                                                        </div>
-                                                    )}
-                                                    {isSelected && !isActive && (
-                                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500 shadow-sm">
-                                                            <Check className="h-4 w-4 text-white" />
                                                         </div>
                                                     )}
                                                 </div>
