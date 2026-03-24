@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Shuffle, Target, Signal, Languages, Sparkles, Wand2 } from "lucide-react";
+import { Shuffle, Target, Signal, Languages, Sparkles, Wand2, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SUPPORTED_LANGUAGES } from "@/lib/constants";
 import { getActiveLanguage, getUserLevelForLanguage } from "@/actions/evaluation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CatLottie } from "@/components/ui/lottie-animation";
 
 type PracticeConfig = {
@@ -25,6 +26,7 @@ export function PracticeSetup({ type, onStart }: Props) {
     const [level, setLevel] = useState("B1");
     const [mode, setMode] = useState<"random" | "focus">("random");
     const [recommendedLevel, setRecommendedLevel] = useState<{ level: string; isEvaluated: boolean } | null>(null);
+    const router = useRouter();
 
     // Initial load: Fetch active language
     useEffect(() => {
@@ -64,7 +66,17 @@ export function PracticeSetup({ type, onStart }: Props) {
         }
     };
      return (
-        <div className="flex flex-col items-center justify-center min-h-[80vh] py-10 px-4 md:px-6 animate-in fade-in zoom-in-95 duration-500 w-full mb-20">
+        <div className="flex flex-col items-center justify-center min-h-[80vh] py-10 px-4 md:px-6 animate-in fade-in zoom-in-95 duration-500 w-full mb-20 relative">
+            
+            {/* ── Back Button ── */}
+            <button 
+                onClick={() => router.push('/practice')}
+                className="absolute top-4 left-4 md:top-8 md:left-8 px-4 py-2 bg-white rounded-2xl border-2 border-stone-200 border-b-4 text-stone-400 font-bold uppercase tracking-widest text-xs md:text-sm hover:bg-stone-50 hover:text-stone-600 active:border-b-0 active:translate-y-1 active:mb-1 transition-all flex items-center gap-2 shadow-sm z-50"
+            >
+                <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="hidden sm:inline">Voltar</span>
+            </button>
+
             {/* ── Header ── */}
             <div className="text-center mb-10 md:mb-16">
                 <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-[2rem] border-2 border-stone-200 border-b-8 shadow-sm mb-6">

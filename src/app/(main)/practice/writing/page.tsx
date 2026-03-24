@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useTransition } from "react";
 import { generatePracticePrompt, analyzeWriting } from "@/actions/gemini";
@@ -6,7 +6,7 @@ import { savePracticeSession } from "@/actions/practice";
 import { Button } from "@/components/ui/button";
 import { AILoadingScreen } from "@/components/ui/ai-loading-screen";
 import { Textarea } from "../../../../components/ui/textarea"; // Correct relative path
-import { Loader2, RefreshCw, Send, Sparkles, Shuffle, Target, CheckCircle2 } from "lucide-react";
+import { Loader2, RefreshCw, Send, Sparkles, Shuffle, Target, CheckCircle2, X, BookOpen, MessageSquareText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
 import { PracticeSetup } from "@/components/shared/practice-setup";
@@ -25,16 +25,12 @@ export default function WritingPracticePage() {
     const [isGeneratingPrompt, startPromptTransition] = useTransition();
     const [isAnalyzing, startAnalysisTransition] = useTransition();
 
-    // ... state variables ...
-    // const [language, setLanguage] = useState("Active Course");
-    // const [level, setLevel] = useState("B1");
     const [isSetupComplete, setIsSetupComplete] = useState(false);
     const [config, setConfig] = useState<{ language: string; level: string; mode: "random" | "focus" } | null>(null);
 
     const handleStartSession = (newConfig: { language: string; level: string; mode: "random" | "focus" }) => {
         setConfig(newConfig);
         setIsSetupComplete(true);
-        // Trigger generation immediately
         handleGeneratePrompt(newConfig);
     };
 
@@ -72,9 +68,6 @@ export default function WritingPracticePage() {
         });
     };
 
-    // useEffect(() => {
-    //     handleGeneratePrompt();
-    // }, [isFocusMode, level, language]); // Re-generate when settings change
 
     if (!isSetupComplete) {
         return <PracticeSetup type="writing" onStart={handleStartSession} />;
@@ -85,245 +78,227 @@ export default function WritingPracticePage() {
     }
 
     return (
-        <div className="mx-auto max-w-[900px] px-6 py-8 pb-20">
-            <div className="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <h1 className="text-2xl font-bold text-slate-700">Writing Practice</h1>
-                <div className="flex gap-2">
-                    {/* <select
-                        value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
-                        className="rounded-md border-slate-200 p-2 text-sm font-medium text-slate-700 shadow-sm focus:border-sky-500 focus:ring-sky-500 bg-white"
-                    >
-                        <option value="Active Course">Active Course</option>
-                        <option value="French">French</option>
-                        <option value="Spanish">Spanish</option>
-                        <option value="Italian">Italian</option>
-                        <option value="German">German</option>
-                        <option value="English">English</option>
-                        <option value="Portuguese">Portuguese</option>
-                    </select>
-
-                    <select
-                        value={level}
-                        onChange={(e) => setLevel(e.target.value)}
-                        className="rounded-md border-slate-200 p-2 text-sm font-medium text-slate-700 shadow-sm focus:border-sky-500 focus:ring-sky-500 bg-white"
-                    >
-                        <option value="A1">A1 (Iniciante)</option>
-                        <option value="A2">A2 (Básico)</option>
-                        <option value="B1">B1 (Intermédio)</option>
-                        <option value="B2">B2 (Intermédio Alto)</option>
-                        <option value="C1">C1 (Avançado)</option>
-                        <option value="C2">C2 (Mestre)</option>
-                    </select> */}
-
-                    <Button
-                        variant="sidebar"
-                        size="sm"
-                        onClick={() => handleGeneratePrompt()}
-                        disabled={isGeneratingPrompt}
-                    >
-                        {isGeneratingPrompt ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                        )}
-                        New Topic
+        <div className="flex flex-col min-h-screen bg-stone-50 w-full overflow-x-hidden pb-10">
+            {/* ── Top Progress Header ── */}
+            <header className="w-full sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b-2 border-stone-200 px-4 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" className="rounded-full text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors" onClick={() => setIsSetupComplete(false)}>
+                        <X className="w-7 h-7" strokeWidth={3} />
                     </Button>
-                </div>
-
-                {config && (
-                    <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-                        <span className="font-bold text-slate-700">{config.language}</span>
-                        <span>⭐</span>
-                        <span className="font-bold text-slate-700">{config.level}</span>
-                        <span>⭐</span>
-                        <span className="font-bold text-slate-700 uppercase">{config.mode}</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Mode Selection Cards */}
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <div
-                    onClick={() => {
-                        if (isFocusMode) setIsFocusMode(false);
-                    }}
-                    className={cn(
-                        "cursor-pointer rounded-xl border-2 p-4 transition-all hover:scale-[1.02] flex items-center gap-4",
-                        !isFocusMode
-                            ? "bg-sky-50 border-sky-400 shadow-md"
-                            : "bg-white border-slate-200 hover:border-sky-200"
-                    )}
-                >
-                    <div className={cn("p-3 rounded-full", !isFocusMode ? "bg-sky-100 text-sky-600" : "bg-slate-100 text-slate-400")}>
-                        <Shuffle className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <h3 className={cn("font-bold text-lg", !isFocusMode ? "text-sky-700" : "text-slate-600")}>Random Mode</h3>
-                        <p className="text-sm text-slate-500">Varied creative topics.</p>
-                    </div>
-                    {!isFocusMode && <CheckCircle2 className="h-6 w-6 text-sky-500 ml-auto" />}
-                </div>
-
-                <div
-                    onClick={() => {
-                        if (!isFocusMode) setIsFocusMode(true);
-                    }}
-                    className={cn(
-                        "cursor-pointer rounded-xl border-2 p-4 transition-all hover:scale-[1.02] flex items-center gap-4",
-                        isFocusMode
-                            ? "bg-indigo-50 border-indigo-400 shadow-md"
-                            : "bg-white border-slate-200 hover:border-indigo-200"
-                    )}
-                >
-                    <div className={cn("p-3 rounded-full", isFocusMode ? "bg-indigo-100 text-indigo-600" : "bg-slate-100 text-slate-400")}>
-                        <Target className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <h3 className={cn("font-bold text-lg", isFocusMode ? "text-indigo-700" : "text-slate-600")}>
-                            Course Focus
-                        </h3>
-                        <div className="flex items-center gap-1">
-                            <p className="text-sm text-slate-500">Based on your current unit.</p>
-                            {isFocusMode && <span className="text-xs bg-indigo-200 text-indigo-800 px-1.5 py-0.5 rounded font-bold">ACTIVE</span>}
+                    <div className="hidden sm:block h-4 w-48 md:w-64 bg-stone-100 rounded-full overflow-hidden border-2 border-stone-200">
+                        {/* Fake progress for Dojo feel */}
+                        <div className="h-full bg-[#58cc02] w-[35%] rounded-full opacity-50 relative overflow-hidden">
+                           <div className="absolute inset-0 bg-white/20 w-full rounded-full animate-pulse"></div>
                         </div>
                     </div>
-                    {isFocusMode && <CheckCircle2 className="h-6 w-6 text-indigo-500 ml-auto" />}
                 </div>
-            </div> */}
-
-            {/* Prompt Card */}
-            <div className="mb-8 rounded-xl border-2 border-slate-200 bg-white p-6 shadow-sm">
-                <div className="mb-2 flex items-center gap-2 text-sky-500">
-                    <Sparkles className="h-5 w-5" />
-                    <h2 className="font-bold uppercase tracking-wide">Tópico Sugerido</h2>
+                <div className="flex items-center gap-2 font-black text-stone-400 uppercase tracking-widest text-xs md:text-sm bg-stone-100 px-4 py-2 rounded-2xl border-2 border-stone-200">
+                    <span className="text-indigo-500">{config?.language}</span> 
+                    <span className="text-stone-300">•</span> 
+                    <span className="text-fuchsia-500">{config?.level}</span>
                 </div>
-                <div>
-                    <div className="text-xl font-medium text-slate-800">
-                        <InteractiveText text={promptData?.scenario} language={config?.language} />
-                    </div>
-                    <p className="mt-1 text-sm text-slate-500">{promptData?.translation}</p>
+            </header>
 
-                    {promptData?.rules && promptData.rules.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-slate-100">
-                            <p className="text-xs font-bold uppercase text-amber-500 flex items-center gap-1 mb-2">
-                                <Target className="h-4 w-4" /> REGRAS DO EXERCÍCIO:
-                            </p>
-                            <ul className="space-y-2">
-                                {promptData.rules.map((rule, i) => (
-                                    <li key={i} className="flex items-start gap-2 text-sm text-slate-700 bg-amber-50/50 p-2 rounded-lg border border-amber-100">
-                                        <CheckCircle2 className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
-                                        <span>{rule}</span>
-                                    </li>
-                                ))}
-                            </ul>
+            <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+                
+                {/* ── Left Column: Challenge & Editor (Spans 8 cols) ── */}
+                <div className="lg:col-span-8 flex flex-col gap-6 md:gap-8">
+                    
+                    {/* The Challenge Area */}
+                    <section className="bg-white rounded-[2rem] border-2 border-stone-200 border-b-8 p-6 md:p-8 flex flex-col sm:flex-row items-start gap-4 md:gap-6 relative overflow-visible z-10 transition-all hover:-translate-y-1 hover:border-b-[10px] hover:mb-[-2px]">
+                        <div className="w-14 h-14 md:w-20 md:h-20 shrink-0 bg-sky-100 rounded-[1.5rem] border-b-4 border-sky-200 flex items-center justify-center shadow-inner">
+                            <Sparkles className="w-7 h-7 md:w-10 md:h-10 text-sky-500" strokeWidth={2.5} />
                         </div>
-                    )}
-
-                    {promptData?.hints && promptData.hints.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-slate-100">
-                            <p className="text-xs font-bold uppercase text-slate-400 mb-2">Ideias para explorar:</p>
-                            <ul className="list-disc pl-5 space-y-1">
-                                {promptData.hints.map((hint, i) => (
-                                    <li key={i} className="text-sm text-slate-600">{hint}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Input Area */}
-            <div className="mb-8">
-                <Textarea
-                    placeholder="Escreve a tua resposta aqui em Inglês..."
-                    className="min-h-[200px] resize-none rounded-xl border-2 border-slate-200 bg-slate-50 p-4 text-lg focus-visible:ring-offset-0"
-                    value={userResponse}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setUserResponse(e.target.value)}
-                    disabled={isGeneratingPrompt || isAnalyzing}
-                />
-                <div className="mt-4 flex justify-end">
-                    <Button
-                        size="lg"
-                        className="w-full sm:w-auto"
-                        onClick={handleSubmit}
-                        disabled={!userResponse.trim() || isGeneratingPrompt || isAnalyzing}
-                    >
-                        {isAnalyzing ? (
-                            <>
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Analisando...
-                            </>
-                        ) : (
-                            <>
-                                Enviar Resposta
-                                <Send className="ml-2 h-5 w-5" />
-                            </>
-                        )}
-                    </Button>
-                </div>
-            </div>
-
-            {/* Feedback Section */}
-            {feedback && (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className={cn(
-                        "rounded-xl border-2 p-6 mb-6",
-                        feedback.score >= 80 ? "border-green-200 bg-green-50" :
-                            feedback.score >= 50 ? "border-amber-200 bg-amber-50" :
-                                "border-red-200 bg-red-50"
-                    )}>
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800">
-                                <CheckCircle2 className={cn(
-                                    "h-6 w-6",
-                                    feedback.score >= 80 ? "text-green-600" :
-                                        feedback.score >= 50 ? "text-amber-600" :
-                                            "text-red-600"
-                                )} />
-                                Análise da AI
+                        <div className="flex flex-col gap-3 relative z-10 w-full">
+                            <h2 className="text-xl md:text-3xl font-black text-stone-700 tracking-tight leading-tight">
+                                <InteractiveText text={promptData?.scenario} language={config?.language} />
                             </h2>
+                            <p className="text-stone-500 font-medium text-sm md:text-lg leading-relaxed max-w-2xl">
+                                {promptData?.translation}
+                            </p>
+                            
+                            {/* Rules / Constraints */}
+                            {promptData?.rules && promptData.rules.length > 0 && (
+                                <div className="mt-2 pt-4 border-t-2 border-stone-100 w-full flex flex-col gap-3">
+                                    <span className="text-xs font-black tracking-widest uppercase text-amber-500 flex items-center gap-2">
+                                        <Target className="w-4 h-4 md:w-5 md:h-5" /> Regras do Dojo
+                                    </span>
+                                    <ul className="flex flex-wrap gap-2 md:gap-3">
+                                        {promptData.rules.map((rule, i) => (
+                                            <li key={i} className="inline-flex items-center gap-2 bg-amber-50 border-2 border-amber-100 text-amber-700 font-bold text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2 rounded-xl shadow-sm">
+                                                <CheckCircle2 className="w-4 h-4 fill-amber-400 text-white shrink-0" />
+                                                {rule}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                    
+                    {/* The Draft Pad */}
+                    <section className="relative group z-0">
+                        {/* Label */}
+                        <div className="absolute -top-4 left-6 bg-indigo-500 text-white text-xs font-black uppercase tracking-widest px-4 py-1 rounded-xl shadow border-2 border-indigo-600 z-10 flex items-center gap-2">
+                            <MessageSquareText className="w-3.5 h-3.5" /> A TUA TAREFA
+                        </div>
+                        <Textarea
+                            placeholder="Escreve a tua resposta aqui no idioma de destino..."
+                            className={cn(
+                                "w-full min-h-[350px] md:min-h-[450px] bg-white border-2 border-b-8 rounded-[2rem] p-6 md:p-8 pt-10 text-lg md:text-xl font-medium focus-visible:ring-0 transition-all resize-y shadow-sm outline-none",
+                                feedback
+                                    ? "border-stone-200 text-stone-400 bg-stone-50"
+                                    : "border-stone-200 text-stone-700 focus-visible:border-indigo-400 focus-visible:bg-indigo-50/10"
+                            )}
+                            value={userResponse}
+                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setUserResponse(e.target.value)}
+                            disabled={isAnalyzing || !!feedback}
+                            style={{ lineHeight: '1.8' }}
+                        />
+                        {/* Dynamic Word Count - Dojo Style */}
+                        {(!feedback && !isAnalyzing) && (
+                            <div className="absolute bottom-6 right-6 hidden md:flex items-center gap-2 px-4 py-2 bg-stone-100 rounded-[1rem] border-2 border-stone-200 font-black text-stone-500 text-xs tracking-widest uppercase shadow-sm">
+                                <span className={cn("text-lg", userResponse.trim().length > 0 ? "text-indigo-500" : "")}>
+                                    {userResponse.trim() ? userResponse.trim().split(/\s+/).length : 0}
+                                </span> 
+                                PALAVRAS
+                            </div>
+                        )}
+                    </section>
+                    
+                    {/* Feedback Area */}
+                    {feedback && (
+                        <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 mt-4">
                             <div className={cn(
-                                "px-4 py-1 rounded-full font-bold text-lg",
-                                feedback.score >= 80 ? "bg-green-200 text-green-700" :
-                                    feedback.score >= 50 ? "bg-amber-200 text-amber-700" :
-                                        "bg-red-200 text-red-700"
+                                "rounded-[2rem] border-2 border-b-8 p-6 md:p-10",
+                                feedback.score >= 80 ? "border-green-300 bg-green-50" :
+                                    feedback.score >= 50 ? "border-amber-300 bg-amber-50" :
+                                        "border-red-300 bg-red-50"
                             )}>
-                                Score: {feedback.score}
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                                    <h2 className={cn(
+                                        "text-2xl md:text-3xl font-black flex items-center gap-3",
+                                        feedback.score >= 80 ? "text-green-700" :
+                                            feedback.score >= 50 ? "text-amber-700" :
+                                                "text-red-700"
+                                    )}>
+                                        <div className={cn(
+                                            "w-12 h-12 rounded-full flex items-center justify-center border-b-4",
+                                            feedback.score >= 80 ? "bg-green-200 border-green-300" :
+                                                feedback.score >= 50 ? "bg-amber-200 border-amber-300" :
+                                                    "bg-red-200 border-red-300"
+                                        )}>
+                                            <CheckCircle2 className="h-7 w-7" strokeWidth={3} />
+                                        </div>
+                                        Análise da AI
+                                    </h2>
+                                    <div className={cn(
+                                        "px-6 py-2 md:py-3 rounded-[1.5rem] font-black text-xl md:text-2xl border-2 border-b-4",
+                                        feedback.score >= 80 ? "bg-green-100/50 border-green-300 text-green-700" :
+                                            feedback.score >= 50 ? "bg-amber-100/50 border-amber-300 text-amber-700" :
+                                                "bg-red-100/50 border-red-300 text-red-700"
+                                    )}>
+                                        SCORE: {feedback.score}%
+                                    </div>
+                                </div>
+                                
+                                <p className="text-stone-700 font-medium text-lg leading-relaxed mb-8 bg-white/50 p-6 rounded-2xl border border-stone-200/50">
+                                    {feedback.feedback}
+                                </p>
+
+                                {feedback.corrections.length > 0 && (
+                                    <div className="space-y-4">
+                                        <h3 className="font-black text-stone-400 uppercase tracking-widest text-sm mb-4">
+                                            Correções Sugeridas
+                                        </h3>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {feedback.corrections.map((correction, idx) => (
+                                                <div key={idx} className="rounded-[1.5rem] bg-white p-5 md:p-6 border-2 border-stone-200 hover:border-indigo-200 transition-colors shadow-sm">
+                                                    <div className="flex flex-col md:flex-row gap-4 items-start md:items-center mb-3">
+                                                        <div className="flex-1 bg-red-50 text-red-700 font-bold px-4 py-3 rounded-xl border border-red-100 w-full line-through decoration-red-300 decoration-2">
+                                                            {correction.original}
+                                                        </div>
+                                                        <div className="hidden md:flex shrink-0 w-8 h-8 rounded-full bg-stone-100 items-center justify-center font-bold text-stone-400">
+                                                            →
+                                                        </div>
+                                                        <div className="flex-1 bg-green-50 text-green-700 font-black px-4 py-3 rounded-xl border border-green-200 w-full shadow-inner">
+                                                            {correction.correction}
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-sm font-medium text-stone-500 bg-stone-50 px-4 py-2.5 rounded-xl border border-stone-100">
+                                                        <span className="font-bold text-indigo-500">Motivo:</span> {correction.explication}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {feedback.corrections.length === 0 && (
+                                    <div className="text-center p-8 bg-white rounded-[2rem] border-2 border-green-200 text-green-700 font-black text-xl shadow-sm">
+                                        🎉 Trabalho Perfeito! Não há correções a fazer.
+                                    </div>
+                                )}
                             </div>
                         </div>
-                        <p className="text-slate-700 leading-relaxed mb-6">{feedback.feedback}</p>
+                    )}
+                </div>
 
-                        {feedback.corrections.length > 0 && (
-                            <div className="space-y-4">
-                                <h3 className="font-bold text-slate-700 border-b pb-2">Correções Sugeridas</h3>
-                                {feedback.corrections.map((correction, idx) => (
-                                    <div key={idx} className="rounded-lg bg-white/60 p-4 border border-slate-100">
-                                        <div className="flex flex-col sm:flex-row gap-2 sm:items-baseline mb-2">
-                                            <span className="text-red-500 line-through decoration-2 decoration-red-500/50 bg-red-50 px-2 rounded">
-                                                {correction.original}
-                                            </span>
-                                            <span className="text-slate-400 text-sm hidden sm:inline">â†’</span>
-                                            <span className="text-green-600 font-medium bg-green-50 px-2 rounded">
-                                                {correction.correction}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-slate-500 italic">
-                                            💡 {correction.explication}
-                                        </p>
-                                    </div>
+                {/* ── Right Column: Toolbelt & Submit (Spans 4 cols) ── */}
+                <aside className="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24">
+                    
+                    {/* Vocabulary Card */}
+                    {promptData?.hints && promptData.hints.length > 0 && (
+                        <div className="bg-white rounded-[2rem] border-2 border-stone-200 border-b-8 p-6 md:p-8 flex flex-col gap-4">
+                            <h3 className="text-sm font-black uppercase tracking-widest text-stone-400 flex items-center gap-3">
+                                <div className="p-2 bg-indigo-50 text-indigo-500 rounded-xl"><BookOpen className="w-5 h-5" /></div>
+                                Arsenal de Palavras
+                            </h3>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {promptData.hints.map((hint, i) => (
+                                    <span key={i} className="px-3 md:px-4 py-2 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold text-stone-600 text-sm md:text-base hover:bg-stone-100 hover:-translate-y-0.5 transition-all cursor-default">
+                                        {hint}
+                                    </span>
                                 ))}
                             </div>
+                        </div>
+                    )}
+                    
+                    {/* Submit Area */}
+                    <div className="mt-8 lg:mt-0 flex flex-col gap-4 w-full">
+                        {!feedback ? (
+                            <button
+                                onClick={handleSubmit}
+                                disabled={!userResponse.trim() || isAnalyzing}
+                                className="w-full h-20 md:h-24 bg-[#58cc02] text-white text-xl md:text-2xl font-black rounded-3xl border-2 border-transparent border-b-8 border-b-[#46a302] hover:bg-[#61da02] active:border-b-0 active:mt-2 active:mb-[-8px] transition-all uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none shadow-sm"
+                            >
+                                {isAnalyzing ? (
+                                    <>
+                                        <span className="animate-pulse">A AVALIAR...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        ENVIAR 
+                                    </>
+                                )}
+                            </button>
+                        ) : (
+                             <button
+                                onClick={() => handleGeneratePrompt()}
+                                className="w-full h-20 md:h-24 bg-sky-400 text-white text-xl md:text-2xl font-black rounded-3xl border-2 border-transparent border-b-8 border-b-sky-500 hover:bg-sky-500 active:border-b-0 active:mt-2 active:mb-[-8px] transition-all uppercase tracking-widest flex items-center justify-center gap-3 shadow-sm"
+                            >
+                                NOVO DESAFIO
+                                <RefreshCw className="w-7 h-7" strokeWidth={3} />
+                            </button>
                         )}
-
-                        {feedback.corrections.length === 0 && (
-                            <div className="text-center p-4 bg-white/50 rounded-lg text-green-700 font-medium">
-                                🎉 Nenhuma correção necessária! Excelente trabalho!
-                            </div>
-                        )}
+                        
+                        <p className="text-center font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] text-stone-400 flex items-center justify-center gap-2">
+                            A AI vai avaliar a tua gramática e fluxo
+                        </p>
                     </div>
-                </div>
-            )}
+                </aside>
+
+            </main>
         </div>
     );
 }

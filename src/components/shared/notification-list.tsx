@@ -24,16 +24,32 @@ type Props = {
 export const NotificationList = ({ notifications }: Props) => {
     const [playSuccess] = useSound("/sounds/success.mp3", { volume: 0.3 });
 
-    const getIcon = (type: string) => {
+    const getIconBlock = (type: string) => {
         switch (type) {
             case "streak":
-                return <Flame className="h-6 w-6 text-orange-500" />;
+                return (
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-orange-50 border-2 border-orange-200 border-b-4 shadow-sm group-active:translate-y-1 transition-transform">
+                        <Flame className="h-7 w-7 text-orange-500 fill-orange-200" />
+                    </div>
+                );
             case "follow":
-                return <UserPlus className="h-6 w-6 text-purple-500" />;
+                return (
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-purple-50 border-2 border-purple-200 border-b-4 shadow-sm group-active:translate-y-1 transition-transform">
+                        <UserPlus className="h-7 w-7 text-purple-500" />
+                    </div>
+                );
             case "message":
-                return <MessageCircle className="h-6 w-6 text-sky-500" />;
+                return (
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-sky-50 border-2 border-sky-200 border-b-4 shadow-sm group-active:translate-y-1 transition-transform">
+                        <MessageCircle className="h-7 w-7 text-sky-500 fill-sky-200" />
+                    </div>
+                );
             default:
-                return <Bell className="h-6 w-6 text-slate-500" />;
+                return (
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-50 border-2 border-slate-200 border-b-4 shadow-sm group-active:translate-y-1 transition-transform">
+                        <Bell className="h-7 w-7 text-slate-500" />
+                    </div>
+                );
         }
     };
 
@@ -46,17 +62,17 @@ export const NotificationList = ({ notifications }: Props) => {
 
     if (notifications.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
-                {/* Sleeping mascot Lottie — swap JSON later */}
-                <LottieBlock className="w-32 h-32 md:w-48 md:h-48 mx-auto mb-4" />
-                <p className="font-bold">Sem notificações novas</p>
-                <p className="text-slate-400">Tudo calmo por aqui.</p>
+            <div className="flex flex-col items-center justify-center py-12 md:py-20 text-center font-sans">
+                {/* Sleeping mascot Lottie */}
+                <LottieBlock className="w-32 h-32 md:w-48 md:h-48 mx-auto mb-6 opacity-80" />
+                <h2 className="text-2xl font-black text-stone-700 tracking-tight mb-2">Sem notificações novas</h2>
+                <p className="text-stone-400 font-bold text-lg">Tudo calmo por aqui.</p>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
             {notifications.map((n, index) => {
                 const Wrapper = n.link ? Link : ("div" as any);
                 const props = n.link ? { href: n.link } : {};
@@ -67,26 +83,27 @@ export const NotificationList = ({ notifications }: Props) => {
                         {...props}
                         onClick={() => handleClick(n.id, n.read)}
                         className={cn(
-                            "relative flex items-center gap-4 rounded-2xl border-2 p-4 transition-all hover:bg-slate-50",
+                            "w-full relative flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left group",
                             "animate-in slide-in-from-right fade-in duration-300",
-                            !n.read ? "bg-sky-50/50 border-sky-200" : "bg-white border-slate-200",
+                            n.read 
+                                ? "bg-white border-stone-200 border-b-4 hover:bg-stone-50 active:translate-y-1 active:border-b-0 active:mb-[4px]" 
+                                : "bg-sky-50 border-sky-200 border-b-4 hover:bg-sky-100 active:translate-y-1 active:border-b-0 active:mb-[4px]",
                             n.link && "cursor-pointer"
                         )}
                         style={{ animationDelay: `${index * 50}ms`, animationFillMode: "backwards" }}
                     >
                         {/* Unread Indicator Pulse Dot */}
                         {!n.read && (
-                            <div className="absolute top-4 right-4 h-2.5 w-2.5 rounded-full bg-sky-500 animate-pulse" />
+                            <div className="absolute top-4 right-4 h-3 w-3 rounded-full bg-sky-500 animate-pulse shadow-sm" />
                         )}
 
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white border-2 border-slate-100 shadow-sm">
-                            {getIcon(n.type)}
-                        </div>
-                        <div className="flex flex-col pr-6">
-                            <p className={cn("text-slate-700", !n.read ? "font-bold" : "font-medium")}>
+                        {getIconBlock(n.type)}
+                        
+                        <div className="flex flex-col pr-8">
+                            <p className={cn("text-lg sm:text-xl leading-tight tracking-tight", !n.read ? "font-black text-stone-800" : "font-bold text-stone-600")}>
                                 {n.message}
                             </p>
-                            <p className="text-xs text-slate-400 mt-1">
+                            <p className="text-sm rounded-lg font-bold text-stone-400 uppercase tracking-widest mt-2">
                                 {new Date(n.createdAt!).toLocaleDateString("pt-PT", {
                                     day: 'numeric',
                                     month: 'short',

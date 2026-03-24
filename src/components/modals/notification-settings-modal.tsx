@@ -22,15 +22,19 @@ export const NotificationSettingsModal = ({ children, initialEnabled }: Props) =
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md bg-white p-6 rounded-3xl border-0 shadow-2xl">
-                <DialogHeader>
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 mb-4">
-                        <Settings className="h-8 w-8 text-slate-500" />
+            <DialogContent className="sm:max-w-md bg-white p-6 md:p-8 rounded-[2.5rem] border-2 border-stone-200 border-b-8 shadow-2xl overflow-hidden group">
+                {/* Decorative background element */}
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-sky-50 rounded-full blur-3xl opacity-50" />
+                
+                <DialogHeader className="relative z-10">
+                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-sky-50 border-2 border-sky-100 border-b-4 mb-6 shadow-sm group-hover:bounce transition-all">
+                        <Settings className="h-10 w-10 text-sky-500 animate-[spin_4s_linear_infinite]" />
                     </div>
-                    <DialogTitle className="text-2xl font-black text-center text-slate-700">
+                    <DialogTitle className="text-3xl font-black text-center text-stone-700 tracking-tight leading-tight uppercase">
                         Preferências
                     </DialogTitle>
-                    <DialogDescription className="text-center text-slate-500 text-base">
+                    <div className="h-1.5 w-12 bg-sky-400 rounded-full mx-auto my-4" />
+                    <DialogDescription className="text-center text-stone-500 font-bold text-lg leading-relaxed px-4">
                         Personaliza a forma como comunicamos contigo.
                     </DialogDescription>
                 </DialogHeader>

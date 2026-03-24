@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useTransition, useRef } from "react";
 import { generateListeningScript, analyzeListening } from "@/actions/gemini";
 import { savePracticeSession } from "@/actions/practice";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, RefreshCw, Send, Headphones, Play, Pause, Square, Eye, EyeOff, CheckCircle2, AlertCircle, Mic, Keyboard, Shuffle, Target, Sparkles } from "lucide-react";
+import { Loader2, RefreshCw, Send, Headphones, Play, Pause, Square, Eye, EyeOff, CheckCircle2, AlertCircle, Mic, Keyboard, Shuffle, Target, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTTS } from "@/hooks/use-tts";
 import { getLocaleForLanguage } from "@/lib/constants";
@@ -203,283 +203,291 @@ export default function ListeningPracticePage() {
     }
 
     return (
-        <div className="mx-auto max-w-[900px] px-6 py-8 pb-20">
-            <div className="mb-8 flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-slate-700 flex items-center gap-2">
-                    <Headphones className="h-8 w-8 text-indigo-600" />
-                    Listening Practice
-                </h1>
-                <Button variant="sidebar" size="sm" onClick={() => handleGenerateScript()} disabled={isGenerating}>
-                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                    New Audio
-                </Button>
-            </div>
-            {config && (
-                <div className="mb-6 flex justify-center">
-                    <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-                        <span className="font-bold text-slate-700">{config.language}</span>
-                        <span>⭐</span>
-                        <span className="font-bold text-slate-700">{config.level}</span>
-                        <span>⭐</span>
-                        <span className="font-bold text-slate-700 uppercase">{config.mode}</span>
+        <div className="flex flex-col min-h-screen bg-stone-50 w-full overflow-x-hidden pb-10">
+            {/* ── Top Progress Header ── */}
+            <header className="w-full sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b-2 border-stone-200 px-4 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" className="rounded-full text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors" onClick={() => setIsSetupComplete(false)}>
+                        <X className="w-7 h-7" strokeWidth={3} />
+                    </Button>
+                    <div className="hidden sm:block h-4 w-48 md:w-64 bg-stone-100 rounded-full overflow-hidden border-2 border-stone-200">
+                        {/* Fake progress for Dojo feel */}
+                        <div className="h-full bg-indigo-500 w-[60%] rounded-full opacity-50 relative overflow-hidden">
+                           <div className="absolute inset-0 bg-white/20 w-full rounded-full animate-pulse"></div>
+                        </div>
                     </div>
                 </div>
-            )}
+                <div className="flex items-center gap-2 font-black text-stone-400 uppercase tracking-widest text-xs md:text-sm bg-stone-100 px-4 py-2 rounded-2xl border-2 border-stone-200">
+                    <span className="text-indigo-500">{config?.language}</span> 
+                    <span className="text-stone-300">•</span> 
+                    <span className="text-fuchsia-500">{config?.level}</span>
+                </div>
+            </header>
 
-
-            {/* Audio Control Card */}
-            <div className="mb-8 rounded-xl border-2 border-slate-200 bg-white p-8 shadow-sm text-center">
-                {scriptData ? (
-                    <div className="space-y-6">
-                        <div>
-                            <p className="text-sm font-bold uppercase tracking-wide text-indigo-400 mb-2">Topic</p>
-                            <h2 className="text-2xl font-bold text-slate-800">
-                                {hasAudioFinished ? scriptData.topic : <span className="blur-sm select-none">Hidden Topic (Listen First)</span>}
-                            </h2>
-                        </div>
-
-                        <div className="flex justify-center gap-4">
-                            {isPlaying ? (
-                                <Button
-                                    size="lg"
-                                    onClick={pauseAudio}
-                                    className="w-40 h-14 text-lg rounded-full bg-amber-500 hover:bg-amber-600 shadow-lg hover:scale-105 transition-transform"
-                                >
-                                    <Pause className="mr-2 h-6 w-6 fill-current" /> Pause
-                                </Button>
-                            ) : (
-                                <Button
-                                    size="lg"
-                                    onClick={playAudio}
-                                    className={cn(
-                                        "w-40 h-14 text-lg rounded-full shadow-lg hover:scale-105 transition-transform",
-                                        isPaused ? "bg-emerald-500 hover:bg-emerald-600" : "bg-indigo-500 hover:bg-indigo-600"
-                                    )}
-                                >
-                                    <Play className="mr-2 h-6 w-6 fill-current" /> {isPaused ? "Resume" : "Listen"}
-                                </Button>
-                            )}
-
-                            {(isPlaying || isPaused) && (
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={stopAudio}
-                                    className="h-14 w-14 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50"
-                                    title="Stop and Reset"
-                                >
-                                    <Square className="h-6 w-6 fill-current" />
-                                </Button>
-                            )}
-                        </div>
-
-                        {scriptData.questions && (
-                            <div className={cn(
-                                "text-center mb-4 transition-all duration-500",
-                                !hasAudioFinished && "opacity-50 blur-[2px] select-none grayscale"
-                            )}>
-                                <p className="font-bold text-slate-500 uppercase tracking-wide flex items-center justify-center gap-2 mb-2">
-                                    <AlertCircle className="h-4 w-4 text-indigo-400" />
-                                    {hasAudioFinished ? "Play the audio to discover the answers!" : "Questions are locked while audio plays..."}
-                                </p>
+            <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+                {/* ── Left Column: Audio & Questions (Spans 8 cols) ── */}
+                <div className="lg:col-span-8 flex flex-col gap-6 md:gap-8">
+                    
+                    {/* Audio Player Card */}
+                    {scriptData && (
+                        <section className="bg-white rounded-[2rem] border-2 border-stone-200 border-b-8 p-6 md:p-8 flex flex-col items-center justify-center gap-6 relative z-10 transition-all hover:-translate-y-1 hover:border-b-[10px] hover:mb-[-2px]">
+                            <div className="absolute -top-4 left-6 bg-indigo-500 text-white text-xs font-black uppercase tracking-widest px-4 py-1 rounded-xl shadow border-2 border-indigo-600 z-10 flex items-center gap-2">
+                                <Headphones className="w-3.5 h-3.5" /> ÁUDIO NATIVO
                             </div>
-                        )}
-                    </div>
-                ) : null}
-            </div>
+                            
+                            <h2 className="text-xl md:text-3xl font-black text-stone-700 tracking-tight leading-tight text-center mt-2">
+                                {hasAudioFinished ? scriptData.topic : <span className="blur-sm select-none text-stone-400">Tópico Oculto (Ouve Primeiro)</span>}
+                            </h2>
 
-            {/* User Input Area */}
-            <div className="mb-8 grid gap-8 md:grid-cols-2">
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <h3 className="text-lg font-bold text-slate-700">Your Analysis</h3>
-                            <p className="text-sm text-slate-400">Write or speak about what you heard.</p>
-                        </div>
-
-                        {/* Input Mode Toggle */}
-                        <div className="flex p-1 bg-slate-100 rounded-lg">
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setInputMode('text')}
-                                className={cn("px-3 py-1 h-8 rounded-md", inputMode === 'text' && "bg-white shadow-sm text-indigo-600 font-bold")}
-                            >
-                                <Keyboard className="h-4 w-4 mr-1" /> Text
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setInputMode('voice')}
-                                className={cn("px-3 py-1 h-8 rounded-md", inputMode === 'voice' && "bg-white shadow-sm text-indigo-600 font-bold")}
-                            >
-                                <Mic className="h-4 w-4 mr-1" /> Voice
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div className="space-y-6">
-                        {scriptData?.questions?.map((q, idx) => (
-                            <div key={idx} className={cn("bg-white p-4 rounded-xl border-2 transition-all", hasAudioFinished ? "border-slate-200" : "border-slate-100 opacity-50 select-none")}>
-                                <h4 className="font-bold text-slate-700 mb-3 flex items-start gap-2">
-                                    <span className="text-indigo-500 bg-indigo-50 px-2 rounded">{idx + 1}.</span>
-                                    {hasAudioFinished ? q : "???"}
-                                </h4>
-
-                                {inputMode === 'voice' ? (
-                                    <div className="flex gap-3 items-center">
-                                        <Button
-                                            size="icon"
-                                            onClick={() => {
-                                                if (isRecording && activeQuestionIndex === idx) {
-                                                    recognitionRef.current?.stop();
-                                                } else {
-                                                    setActiveQuestionIndex(idx);
-                                                    toggleRecording();
-                                                }
-                                            }}
-                                            className={cn("h-12 w-12 rounded-full shadow-md transition-all", isRecording && activeQuestionIndex === idx ? "bg-red-500 hover:bg-red-600 animate-pulse" : "bg-indigo-500 hover:bg-indigo-600")}
-                                            disabled={!hasAudioFinished || (isRecording && activeQuestionIndex !== idx)}
-                                        >
-                                            {isRecording && activeQuestionIndex === idx ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                                        </Button>
-                                        <div className="flex-1 min-h-[48px] p-3 bg-slate-50 rounded-lg border border-slate-200 text-sm text-slate-600">
-                                            {userAnswers[idx] || (isRecording && activeQuestionIndex === idx ? <span className="italic text-slate-400">Listening...</span> : <span className="italic text-slate-400">Record your answer</span>)}
-                                        </div>
-                                    </div>
+                            <div className="flex justify-center gap-4 w-full mt-4">
+                                {isPlaying ? (
+                                    <button
+                                        onClick={pauseAudio}
+                                        className="w-full md:w-auto px-12 h-16 md:h-20 bg-amber-500 text-white text-lg md:text-xl font-black rounded-3xl border-2 border-transparent border-b-8 border-b-amber-600 hover:bg-amber-400 active:border-b-0 active:mt-2 active:mb-[-8px] transition-all uppercase tracking-widest flex items-center justify-center gap-3 shadow-sm"
+                                    >
+                                        <Pause className="w-6 h-6 fill-current" /> PAUSAR
+                                    </button>
                                 ) : (
-                                    <Textarea
-                                        placeholder="Write your answer here..."
-                                        className="min-h-[100px] resize-none border-slate-200 bg-slate-50 focus-visible:ring-indigo-500"
-                                        value={userAnswers[idx] || ""}
-                                        onChange={(e) => handleTextChange(idx, e.target.value)}
-                                        disabled={!hasAudioFinished || isGenerating || isAnalyzing}
-                                    />
+                                    <button
+                                        onClick={playAudio}
+                                        className={cn(
+                                            "w-full md:w-auto px-12 h-16 md:h-20 text-white text-lg md:text-xl font-black rounded-3xl border-2 border-transparent border-b-8 active:border-b-0 active:mt-2 active:mb-[-8px] transition-all uppercase tracking-widest flex items-center justify-center gap-3 shadow-sm",
+                                            isPaused ? "bg-emerald-500 border-b-emerald-600 hover:bg-emerald-400" : "bg-indigo-500 border-b-indigo-600 hover:bg-indigo-400"
+                                        )}
+                                    >
+                                        <Play className="w-6 h-6 fill-current" /> {isPaused ? "RETOMAR" : "OUVIR"}
+                                    </button>
+                                )}
+
+                                {(isPlaying || isPaused) && (
+                                    <button
+                                        onClick={stopAudio}
+                                        className="h-16 w-16 md:h-20 md:w-20 rounded-3xl bg-stone-100 border-2 border-stone-200 border-b-8 border-b-stone-300 text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all active:border-b-0 active:mt-2 active:mb-[-8px] flex items-center justify-center shrink-0"
+                                        title="Parar Áudio"
+                                    >
+                                        <Square className="h-6 w-6 fill-current" />
+                                    </button>
                                 )}
                             </div>
-                        ))}
-                    </div>
 
-                    <div className="flex justify-end gap-3 mt-4">
-                        {inputMode === 'voice' && isRecording && (
-                            <Button variant="ghost" onClick={() => recognitionRef.current?.stop()} size="sm">
-                                Stop Recording First
-                            </Button>
-                        )}
-
-                        <Button
-                            size="lg"
-                            className="bg-indigo-500 hover:bg-indigo-600 text-white w-full shadow-lg"
-                            onClick={handleSubmit}
-                            disabled={userAnswers.every(a => !a.trim()) || isAnalyzing || isGenerating || isRecording}
-                        >
-                            {isAnalyzing ? (
-                                <>
-                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                    Analyzing...
-                                </>
-                            ) : (
-                                <>
-                                    Submit Analysis
-                                    <Send className="ml-2 h-5 w-5" />
-                                </>
+                            {scriptData.questions && (
+                                <div className={cn(
+                                    "text-center transition-all duration-500 w-full mt-2",
+                                    !hasAudioFinished && "opacity-50 blur-[2px] select-none grayscale"
+                                )}>
+                                    <p className="font-bold text-stone-400 text-xs md:text-sm uppercase tracking-wide flex items-center justify-center gap-2">
+                                        <AlertCircle className="h-4 w-4 text-indigo-400" />
+                                        {hasAudioFinished ? "Responde às questões baseadas no áudio!" : "As questões estão bloqueadas enquanto o áudio toca..."}
+                                    </p>
+                                </div>
                             )}
-                        </Button>
-                    </div>
-                </div>
+                        </section>
+                    )}
 
-                {/* Script Revealer (Right Column) */}
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-bold text-slate-700">Transcript</h3>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowScript(!showScript)}
-                            disabled={!scriptData}
-                        >
-                            {showScript ? (
-                                <>
-                                    <EyeOff className="mr-2 h-4 w-4" /> Hide
-                                </>
-                            ) : (
-                                <>
-                                    <Eye className="mr-2 h-4 w-4" /> Show Text
-                                </>
-                            )}
-                        </Button>
-                    </div>
+                    {/* Questions & Inputs Form */}
+                    <section className="bg-stone-100/50 rounded-[2rem] border-2 border-stone-200 p-6 md:p-8 flex flex-col gap-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <h3 className="text-xl font-black text-stone-700 uppercase tracking-widest flex items-center gap-2">
+                                <Target className="w-6 h-6 text-indigo-500"/>
+                                A TUA ANÁLISE
+                            </h3>
 
-                    <div className={cn(
-                        "h-[300px] rounded-xl border-2 p-6 overflow-y-auto transition-all duration-500",
-                        showScript
-                            ? "bg-white border-slate-200"
-                            : "bg-slate-100 border-slate-200 flex items-center justify-center"
-                    )}>
-                        {showScript && scriptData ? (
-                            <div className="text-lg leading-relaxed text-slate-700 whitespace-pre-wrap">
-                                <InteractiveText text={scriptData.script} language={config?.language} />
-                            </div>
-                        ) : (
-                            <div className="text-center text-slate-400">
-                                <EyeOff className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                <p>Transcript hidden to improve listening skills.</p>
-                                {!feedback && <p className="text-xs mt-2 text-indigo-400">Revealed after submitting.</p>}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Feedback Section */}
-            {feedback && (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className={cn(
-                        "rounded-xl border-2 p-6 mb-6",
-                        feedback.score >= 80 ? "border-indigo-200 bg-indigo-50" :
-                            feedback.score >= 50 ? "border-amber-200 bg-amber-50" :
-                                "border-red-200 bg-red-50"
-                    )}>
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800">
-                                <CheckCircle2 className={cn(
-                                    "h-6 w-6",
-                                    feedback.score >= 80 ? "text-indigo-600" :
-                                        feedback.score >= 50 ? "text-amber-600" :
-                                            "text-red-600"
-                                )} />
-                                Feedback
-                            </h2>
-                            <div className={cn(
-                                "px-4 py-1 rounded-full font-bold text-lg",
-                                feedback.score >= 80 ? "bg-indigo-200 text-indigo-700" :
-                                    feedback.score >= 50 ? "bg-amber-200 text-amber-700" :
-                                        "bg-red-200 text-red-700"
-                            )}>
-                                Score: {feedback.score}
+                            {/* Input Mode Toggle */}
+                            <div className="flex p-1 bg-stone-200/50 rounded-2xl border-2 border-stone-200">
+                                <button
+                                    onClick={() => setInputMode('text')}
+                                    className={cn("px-4 py-2 h-10 rounded-xl text-sm font-black uppercase tracking-widest transition-all flex items-center gap-2", 
+                                        inputMode === 'text' ? "bg-white shadow-sm text-indigo-500 border-2 border-stone-200" : "text-stone-400 hover:text-stone-600 border-2 border-transparent"
+                                    )}
+                                >
+                                    <Keyboard className="h-4 w-4" /> TEXTO
+                                </button>
+                                <button
+                                    onClick={() => setInputMode('voice')}
+                                    className={cn("px-4 py-2 h-10 rounded-xl text-sm font-black uppercase tracking-widest transition-all flex items-center gap-2", 
+                                        inputMode === 'voice' ? "bg-white shadow-sm text-indigo-500 border-2 border-stone-200" : "text-stone-400 hover:text-stone-600 border-2 border-transparent"
+                                    )}
+                                >
+                                    <Mic className="h-4 w-4" /> VOZ
+                                </button>
                             </div>
                         </div>
-                        <p className="text-slate-700 leading-relaxed mb-6 whitespace-pre-wrap">{feedback.feedback}</p>
 
-                        {/* Missed Points */}
-                        {feedback.missedPoints && feedback.missedPoints.length > 0 && (
-                            <div className="mt-6 pt-6 border-t border-indigo-200/50">
-                                <div className="flex items-center gap-2 mb-4 text-indigo-800">
-                                    <AlertCircle className="h-5 w-5" />
-                                    <h3 className="font-bold">Missed Points:</h3>
+                        <div className="flex flex-col gap-6 w-full">
+                            {scriptData?.questions?.map((q, idx) => (
+                                <div key={idx} className={cn(
+                                    "bg-white p-6 rounded-[2rem] border-2 transition-all flex flex-col gap-4", 
+                                    hasAudioFinished ? "border-stone-200 shadow-sm border-b-[6px]" : "border-stone-100 opacity-50 select-none grayscale"
+                                )}>
+                                    <h4 className="font-bold text-stone-700 text-lg flex items-start gap-3">
+                                        <span className="flex items-center justify-center min-w-8 min-h-8 rounded-full bg-indigo-100 text-indigo-600 font-black shrink-0 border-2 border-indigo-200">{idx + 1}</span>
+                                        {hasAudioFinished ? q : "A questão será revelada após o áudio."}
+                                    </h4>
+
+                                    {inputMode === 'voice' ? (
+                                        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full mt-2">
+                                            <button
+                                                onClick={() => {
+                                                    if (isRecording && activeQuestionIndex === idx) {
+                                                        recognitionRef.current?.stop();
+                                                    } else {
+                                                        setActiveQuestionIndex(idx);
+                                                        toggleRecording();
+                                                    }
+                                                }}
+                                                className={cn("h-16 w-16 rounded-2xl shrink-0 border-2 border-transparent transition-all flex items-center justify-center text-white", 
+                                                    isRecording && activeQuestionIndex === idx ? "bg-rose-500 hover:bg-rose-600 shadow-inner border-b-0 translate-y-1 animate-pulse" : "bg-indigo-500 hover:bg-indigo-600 border-b-4 border-b-indigo-700 active:border-b-0 active:translate-y-1"
+                                                )}
+                                                disabled={!hasAudioFinished || (isRecording && activeQuestionIndex !== idx)}
+                                            >
+                                                {isRecording && activeQuestionIndex === idx ? <Square className="h-6 w-6 fill-current" /> : <Mic className="h-7 w-7" />}
+                                            </button>
+                                            <div className="flex-1 w-full min-h-[64px] p-4 bg-stone-50 rounded-2xl border-2 border-stone-200 text-base md:text-lg font-medium text-stone-700 shadow-inner flex items-center">
+                                                {userAnswers[idx] || (isRecording && activeQuestionIndex === idx ? <span className="italic text-stone-400 flex items-center gap-2"><Mic className="w-5 h-5 animate-pulse text-rose-500"/> A ouvir...</span> : <span className="italic text-stone-300">Grava a tua resposta</span>)}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <Textarea
+                                            placeholder="Escreve a tua resposta aqui..."
+                                            className="min-h-[120px] resize-none border-2 border-stone-200 bg-stone-50 rounded-2xl p-4 text-base md:text-lg font-medium text-stone-700 focus-visible:ring-indigo-500 shadow-inner placeholder:text-stone-300 placeholder:italic transition-shadow mt-2"
+                                            value={userAnswers[idx] || ""}
+                                            onChange={(e) => handleTextChange(idx, e.target.value)}
+                                            disabled={!hasAudioFinished || isGenerating || isAnalyzing}
+                                        />
+                                    )}
                                 </div>
-                                <ul className="list-disc list-inside space-y-2">
-                                    {feedback.missedPoints.map((point, idx) => (
-                                        <li key={idx} className="text-indigo-900 font-medium">
-                                            {point}
-                                        </li>
-                                    ))}
-                                </ul>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Feedback Area */}
+                    {feedback && (
+                        <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 mt-4 space-y-6">
+                            <div className={cn(
+                                "rounded-[2rem] border-2 border-b-8 p-6 md:p-10",
+                                feedback.score >= 80 ? "border-green-300 bg-green-50" :
+                                    feedback.score >= 50 ? "border-amber-300 bg-amber-50" :
+                                        "border-red-300 bg-red-50"
+                            )}>
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                                    <h2 className={cn(
+                                        "text-2xl md:text-3xl font-black flex items-center gap-3",
+                                        feedback.score >= 80 ? "text-green-700" :
+                                            feedback.score >= 50 ? "text-amber-700" :
+                                                "text-red-700"
+                                    )}>
+                                        <div className={cn(
+                                            "w-12 h-12 rounded-full flex items-center justify-center border-b-4",
+                                            feedback.score >= 80 ? "bg-green-200 border-green-300" :
+                                                feedback.score >= 50 ? "bg-amber-200 border-amber-300" :
+                                                    "bg-red-200 border-red-300"
+                                        )}>
+                                            <CheckCircle2 className="h-7 w-7" strokeWidth={3} />
+                                        </div>
+                                        Análise da AI
+                                    </h2>
+                                    <div className={cn(
+                                        "px-6 py-2 md:py-3 rounded-[1.5rem] font-black text-xl md:text-2xl border-2 border-b-4",
+                                        feedback.score >= 80 ? "bg-green-100/50 border-green-300 text-green-700" :
+                                            feedback.score >= 50 ? "bg-amber-100/50 border-amber-300 text-amber-700" :
+                                                "bg-red-100/50 border-red-300 text-red-700"
+                                    )}>
+                                        SCORE: {feedback.score}%
+                                    </div>
+                                </div>
+                                
+                                <p className="text-stone-700 font-medium text-lg leading-relaxed mb-8 bg-white/50 p-6 rounded-2xl border border-stone-200/50">
+                                    {feedback.feedback}
+                                </p>
+
+                                {feedback.missedPoints && feedback.missedPoints.length > 0 && (
+                                    <div className="mt-6 pt-6 border-t-2 border-indigo-200 flex flex-col gap-4">
+                                        <h3 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-indigo-500">
+                                            <AlertCircle className="h-5 w-5 shrink-0" /> Pontos Falhados
+                                        </h3>
+                                        <ul className="flex flex-col gap-3">
+                                            {feedback.missedPoints.map((point, idx) => (
+                                                <li key={idx} className="flex items-start gap-3 bg-indigo-50 border-2 border-indigo-100 text-indigo-800 font-bold text-sm md:text-base px-5 py-3 rounded-xl shadow-sm">
+                                                    <span className="w-2 h-2 rounded-full bg-indigo-400 mt-2 shrink-0"></span>
+                                                    {point}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
+
                 </div>
-            )}
+
+                {/* ── Right Column: Toolbelt & Submit (Spans 4 cols) ── */}
+                <aside className="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24">
+                    
+                    {/* Script Revealer */}
+                    <div className="bg-white rounded-[2rem] border-2 border-stone-200 border-b-8 p-6 md:p-8 flex flex-col gap-4 transition-all hover:border-b-[10px] hover:mb-[-2px]">
+                        <div className="flex items-center justify-between w-full">
+                            <h3 className="text-sm font-black uppercase tracking-widest text-stone-400 flex items-center gap-3">
+                                <div className="p-2 bg-indigo-50 text-indigo-500 rounded-xl"><Eye className="w-5 h-5" /></div>
+                                Transcrição
+                            </h3>
+                            <button
+                                onClick={() => setShowScript(!showScript)}
+                                disabled={!scriptData}
+                                className="px-3 py-1.5 bg-stone-100 text-stone-500 font-bold text-xs rounded-lg border-2 border-stone-200 hover:bg-stone-200 active:scale-95 transition-all uppercase tracking-widest flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {showScript ? <><EyeOff className="w-4 h-4" /> ESCONDER</> : "MOSTRAR"}
+                            </button>
+                        </div>
+                        
+                        <div className={cn(
+                            "w-full rounded-2xl border-2 p-5 overflow-y-auto max-h-[300px] transition-all duration-300",
+                            showScript ? "bg-stone-50 border-stone-200 shadow-inner" : "bg-stone-100 border-stone-200 flex flex-col items-center justify-center min-h-[150px]"
+                        )}>
+                            {showScript && scriptData ? (
+                                <div className="text-sm md:text-base font-medium leading-relaxed text-stone-700 whitespace-pre-wrap">
+                                    <InteractiveText text={scriptData.script} language={config?.language} />
+                                </div>
+                            ) : (
+                                <div className="text-center text-stone-400 flex flex-col items-center gap-2">
+                                    <EyeOff className="h-8 w-8 opacity-50" />
+                                    <p className="text-xs font-bold uppercase tracking-widest">Oculta para treinares o ouvido.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Submit Area */}
+                    <div className="mt-8 lg:mt-0 flex flex-col gap-4 w-full">
+                        {!feedback ? (
+                            <button
+                                onClick={handleSubmit}
+                                disabled={userAnswers.every(a => !a?.trim()) || isAnalyzing || isGenerating || isRecording || !hasAudioFinished}
+                                className="w-full h-20 md:h-24 bg-[#58cc02] text-white text-xl md:text-2xl font-black rounded-3xl border-2 border-transparent border-b-8 border-b-[#46a302] hover:bg-[#61da02] active:border-b-0 active:mt-2 active:mb-[-8px] transition-all uppercase tracking-widest flex items-center justify-center gap-3 shadow-sm disabled:opacity-50 disabled:grayscale"
+                            >
+                                {isAnalyzing ? (
+                                    <span className="animate-pulse">A AVALIAR...</span>
+                                ) : (
+                                    "AVALIAR"
+                                )}
+                            </button>
+                        ) : (
+                             <button
+                                onClick={() => handleGenerateScript()}
+                                className="w-full h-20 md:h-24 bg-sky-400 text-white text-xl md:text-2xl font-black rounded-3xl border-2 border-transparent border-b-8 border-b-sky-500 hover:bg-sky-500 active:border-b-0 active:mt-2 active:mb-[-8px] transition-all uppercase tracking-widest flex items-center justify-center gap-3 shadow-sm"
+                            >
+                                NOVO ÁUDIO
+                                <RefreshCw className="w-7 h-7" strokeWidth={3} />
+                            </button>
+                        )}
+                        
+                        <p className="text-center font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] text-stone-400 flex items-center justify-center gap-2 mt-2">
+                            A AI interpreta as tuas respostas
+                        </p>
+                    </div>
+                </aside>
+
+            </main>
         </div>
     );
 }

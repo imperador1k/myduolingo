@@ -35,27 +35,29 @@ export const NotificationToggle = ({ initialEnabled }: Props) => {
     };
 
     return (
-        <div className="flex items-center justify-between p-4 bg-white border-2 border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between p-5 bg-white border-2 border-stone-200 border-b-4 rounded-[2rem] shadow-sm hover:shadow-md transition-shadow group">
             <div className="flex items-center gap-4">
                 <div className={cn(
-                    "flex items-center justify-center w-12 h-12 rounded-full transition-colors",
-                    enabled ? "bg-sky-100 text-sky-500" : "bg-slate-100 text-slate-400"
+                    "flex items-center justify-center w-14 h-14 rounded-2xl border-2 transition-all shadow-sm group-hover:scale-105",
+                    enabled 
+                        ? "bg-sky-50 text-sky-500 border-sky-100 border-b-4" 
+                        : "bg-stone-50 text-stone-300 border-stone-100 border-b-4"
                 )}>
-                    {enabled ? <Bell className="h-6 w-6" /> : <BellOff className="h-6 w-6" />}
+                    {enabled ? <Bell className="h-7 w-7" /> : <BellOff className="h-7 w-7" />}
                 </div>
                 <div>
-                    <h3 className="font-bold text-slate-700 text-lg">Notificações Push</h3>
-                    <p className="text-sm text-slate-500">Recebe alertas sobre mensagens e seguidores.</p>
+                    <h3 className="font-black text-stone-700 text-lg uppercase tracking-tight leading-tight">Notificações Push</h3>
+                    <p className="text-sm text-stone-400 font-bold mt-1">Recebe alertas sobre mensagens e seguidores.</p>
                 </div>
             </div>
 
-            {/* Tailwind Custom Switch Pill */}
+            {/* Dojo Custom Switch Pill */}
             <button 
                 onClick={toggle}
                 disabled={isPending}
                 className={cn(
-                    "relative inline-flex h-8 w-14 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:opacity-50",
-                    enabled ? "bg-sky-500" : "bg-slate-300"
+                    "relative inline-flex h-9 w-16 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-300 focus:outline-none disabled:opacity-50 shadow-inner",
+                    enabled ? "bg-[#58cc02] border-[#46a302]" : "bg-stone-200 border-stone-300"
                 )}
                 role="switch"
                 aria-checked={enabled}
@@ -63,8 +65,8 @@ export const NotificationToggle = ({ initialEnabled }: Props) => {
                 <span className="sr-only">Ativar notificações</span>
                 <span 
                     className={cn(
-                        "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
-                        enabled ? "translate-x-6" : "translate-x-0"
+                        "pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-xl ring-0 transition duration-300 ease-in-out border-b-2 border-stone-100",
+                        enabled ? "translate-x-7" : "translate-x-1"
                     )}
                 />
             </button>
