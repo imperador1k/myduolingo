@@ -35,10 +35,10 @@ export default async function PublicProfilePage({ params }: Props) {
     const totalXpEarned = userProgress.totalXpEarned || userProgress.points || 0;
 
     const stats = [
-        { icon: <Flame className="h-8 w-8 text-orange-500" />, value: streak, label: "Streak", color: "bg-orange-50 border-orange-200" },
-        { icon: <Zap className="h-8 w-8 text-amber-500" />, value: totalXpEarned.toLocaleString(), label: "XP Total", color: "bg-amber-50 border-amber-200" },
-        { icon: <Target className="h-8 w-8 text-green-500" />, value: completedLessons, label: "Lições", color: "bg-green-50 border-green-200" },
-        { icon: <Heart className="h-8 w-8 text-rose-500" />, value: userProgress.hearts, label: "Corações", color: "bg-rose-50 border-rose-200" },
+        { icon: <Flame className="h-9 w-9 text-orange-500 fill-orange-200" />, value: streak, label: "Série", color: "bg-white border-stone-200 text-stone-700" },
+        { icon: <Zap className="h-9 w-9 text-amber-500 fill-amber-200" />, value: totalXpEarned.toLocaleString(), label: "XP Total", color: "bg-white border-stone-200 text-stone-700" },
+        { icon: <Target className="h-9 w-9 text-green-500 fill-green-200" />, value: completedLessons, label: "Lições", color: "bg-white border-stone-200 text-stone-700" },
+        { icon: <Heart className="h-9 w-9 text-rose-500 fill-rose-200" />, value: userProgress.hearts, label: "Vidas", color: "bg-white border-stone-200 text-stone-700" },
     ];
 
     const achievements = ACHIEVEMENTS.map((achievement: Achievement) => ({
@@ -49,24 +49,24 @@ export default async function PublicProfilePage({ params }: Props) {
     }));
 
     return (
-        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 pb-28">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 pb-32 font-sans">
             <ProfileHero 
                 imageUrl={userProgress.userImageSrc}
                 name={userProgress.userName || "Estudante"}
                 username={userProgress.userName || "estudante"}
-                createdAt={new Date()} // Using a fallback since public profiles don't expose clerk join date natively yet.
-                bannerColorFrom="from-sky-400"
-                bannerColorTo="from-emerald-400"
+                createdAt={new Date()} 
+                bannerColorFrom="from-sky-500"
+                bannerColorTo="from-emerald-500"
                 actions={
-                    <div className="flex w-full sm:w-auto items-center gap-3">
-                        <div className="flex-1 sm:w-36">
+                    <div className="flex w-full sm:w-auto items-center gap-4">
+                        <div className="flex-1 sm:w-40 h-14">
                             <FollowButton userId={params.userId} isFollowing={isFollowing} />
                         </div>
-                        <div className="flex-1 sm:w-auto">
-                            <Link href={`/messages?userId=${params.userId}`} className="w-full block">
-                                <Button variant="secondary" className="w-full gap-2 rounded-2xl px-6">
-                                    <MessageSquareText className="h-5 w-5" />
-                                    <span>Enviar Mensagem</span>
+                        <div className="flex-1 sm:w-auto h-14">
+                            <Link href={`/messages?userId=${params.userId}`} className="w-full block h-full">
+                                <Button variant="secondary" className="w-full h-full gap-2 rounded-[1.5rem] px-8 border-b-4 border-stone-300 active:border-b-0 active:translate-y-1 transition-all">
+                                    <MessageSquareText className="h-6 w-6 text-stone-500" />
+                                    <span className="font-black uppercase tracking-widest text-sm">Mensagem</span>
                                 </Button>
                             </Link>
                         </div>
@@ -74,41 +74,55 @@ export default async function PublicProfilePage({ params }: Props) {
                 }
             />
 
-            {/* Stats Bento Grid */}
-            <div className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
+            {/* Stats Bento Grid - High Definition Dojo Style */}
+            <div className="mb-14 grid grid-cols-2 gap-6 sm:grid-cols-4 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-200">
                 {stats.map((stat, i) => (
                     <div
                         key={i}
                         className={cn(
-                            "flex flex-col items-center justify-center rounded-3xl border-b-4 border-2 p-6 transition-all shadow-sm hover:shadow-md hover:-translate-y-1 hover:brightness-105",
+                            "group flex flex-col items-center justify-center rounded-[2.5rem] border-b-8 border-2 p-7 transition-all shadow-sm hover:shadow-md hover:-translate-y-1 active:translate-y-0 active:border-b-0 active:mb-[8px] bg-white",
                             stat.color
                         )}
                     >
-                        {stat.icon}
-                        <p className="mt-3 text-2xl font-black text-slate-700 drop-shadow-sm">{stat.value}</p>
-                        <p className="text-sm font-extrabold text-slate-500 uppercase tracking-widest">{stat.label}</p>
+                        <div className="p-3 bg-stone-50 rounded-2xl border-2 border-stone-100 mb-4 group-hover:scale-110 transition-transform">
+                            {stat.icon}
+                        </div>
+                        <p className="text-3xl font-black text-stone-700 tracking-tighter drop-shadow-sm">{stat.value}</p>
+                        <p className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em] mt-2">{stat.label}</p>
                     </div>
                 ))}
             </div>
 
-            {/* Active Course Context Segment */}
-            <div className="mb-12 rounded-[2rem] border-2 border-slate-200 bg-white p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 shadow-sm hover:shadow-md transition-all">
-                <div className="p-4 bg-sky-100 rounded-2xl border-4 border-sky-50 shadow-inner">
+            {/* Active Course Context Segment - Bento Upgrade */}
+            <div className="mb-14 rounded-[3rem] border-2 border-stone-200 border-b-8 bg-white p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+                {/* Decorative background accent */}
+                <div className="absolute -top-10 -left-10 w-40 h-40 bg-sky-50 rounded-full blur-3xl opacity-40 group-hover:opacity-60 transition-opacity" />
+                
+                <div className="relative z-10 p-5 bg-sky-50 rounded-[2rem] border-2 border-sky-100 border-b-8 shadow-sky-200/50 group-hover:scale-105 transition-transform">
                     <img 
                         src={userProgress.activeCourse?.imageSrc || "/es.svg"} 
                         alt="Course Flag" 
-                        className="h-16 w-20 object-cover rounded-lg shadow-sm"
+                        className="h-20 w-24 object-cover rounded-xl shadow-md border-2 border-white"
                     />
                 </div>
-                <div className="flex-1 text-center md:text-left flex flex-col gap-2">
-                    <h3 className="font-extrabold text-slate-500 uppercase tracking-widest text-sm">Curso Ativo</h3>
-                    <p className="font-black text-2xl text-slate-700">
+                <div className="relative z-10 flex-1 text-center md:text-left flex flex-col gap-3">
+                    <div className="flex items-center justify-center md:justify-start gap-2">
+                        <span className="h-1.5 w-6 bg-sky-400 rounded-full" />
+                        <h3 className="font-black text-sky-500 uppercase tracking-widest text-xs">Curso Ativo</h3>
+                    </div>
+                    <p className="font-black text-3xl text-stone-700 tracking-tight leading-none uppercase">
                         A estudar {userProgress.activeCourse?.title || "Um Novo Idioma"}
                     </p>
                     
-                    {/* Fake Progress Bar to represent where they are */}
-                    <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden mt-2 relative border border-slate-200">
-                        <div className="absolute inset-y-0 left-0 bg-sky-400 w-2/3 rounded-full transition-all duration-1000 ease-out" />
+                    {/* Dojo Progress Bar */}
+                    <div className="w-full mt-4">
+                        <div className="flex justify-between items-center mb-2 px-1">
+                             <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Nível de Mestria</span>
+                             <span className="text-[10px] font-black text-sky-500 uppercase tracking-widest">65%</span>
+                        </div>
+                        <div className="w-full h-5 bg-stone-100 rounded-full overflow-hidden relative border-2 border-stone-200 shadow-inner">
+                            <div className="absolute inset-y-0 left-0 bg-sky-400 w-2/3 rounded-full transition-all duration-1000 ease-out border-r-4 border-sky-500 shadow-[0_0_15px_rgba(56,189,248,0.5)]" />
+                        </div>
                     </div>
                 </div>
             </div>
