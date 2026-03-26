@@ -155,37 +155,42 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
                 </DialogContent>
             </Dialog>
 
-            {/* Header */}
-            <div className="p-4 border-b flex items-center gap-3 shadow-sm bg-white z-10 w-full mb-px">
+            {/* Bento Header */}
+            <div className="p-4 flex items-center gap-4 bg-white z-20 w-full border-b-2 border-slate-100 relative pt-4 md:pt-6 px-6 pb-5">
                 {/* Back Button (Mobile Only) */}
-                <Link href="/messages" className="md:hidden">
-                    <Button variant="ghost" size="icon" className="h-10 w-10 -ml-2">
-                        <ChevronLeft className="h-6 w-6 text-slate-500" />
+                <Link href="/messages" className="md:hidden mr-2">
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-2xl border-2 border-transparent hover:bg-slate-100 active:border-b-0 active:translate-y-1">
+                        <ChevronLeft className="h-8 w-8 text-slate-400" />
                     </Button>
                 </Link>
 
-                <div className="relative h-10 w-10 shrink-0">
-                    <div className="h-full w-full rounded-full border-2 border-slate-200 overflow-hidden">
-                        {partner.userImageSrc ? (
-                            <img src={partner.userImageSrc} alt={partner.userName} className="h-full w-full object-cover" />
-                        ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xl font-bold">
-                                {partner.userName[0]?.toUpperCase()}
-                            </div>
-                        )}
-                    </div>
+                <div className="relative h-14 w-14 shrink-0 flex items-center justify-center rounded-[18px] border-2 border-slate-200 bg-slate-100 overflow-visible shadow-sm">
+                    {partner.userImageSrc ? (
+                        <img src={partner.userImageSrc} alt={partner.userName} className="h-full w-full object-cover rounded-[16px]" />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center text-2xl font-black text-slate-400">
+                            {partner.userName[0]?.toUpperCase()}
+                        </div>
+                    )}
                     {isPartnerOnline && (
-                        <span className="w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white absolute bottom-0 right-0 z-10 shadow-sm animate-in zoom-in duration-300"></span>
+                        <span className="w-4 h-4 bg-emerald-500 rounded-full border-2 border-white absolute -bottom-1.5 -right-1.5 z-10 shadow-sm animate-in zoom-in duration-300"></span>
                     )}
                 </div>
-                <h2 className="font-bold text-slate-700 text-lg">{partner.userName}</h2>
+                <div className="flex flex-col">
+                    <h2 className="font-black text-slate-700 text-xl tracking-tight leading-tight">{partner.userName}</h2>
+                    <span className={cn("text-[13px] font-bold mt-0.5", isPartnerOnline ? "text-emerald-500" : "text-slate-400")}>
+                        {isPartnerOnline ? "Online" : "Offline"}
+                    </span>
+                </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-slate-50 min-h-0">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-6 bg-slate-50 min-h-0 custom-scrollbar">
                 {messages.length === 0 && (
-                    <div className="flex-1 flex items-center justify-center text-slate-400">
-                        Diz olá a {partner.userName}!
+                    <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-4 mt-8">
+                        <div className="text-6xl drop-shadow-sm">👋</div>
+                        <p className="font-black text-xl text-slate-600">Diz olá a {partner.userName}!</p>
+                        <p className="text-sm font-bold text-slate-400 text-center max-w-[200px]">Envia uma mensagem para começar a amizade.</p>
                     </div>
                 )}
                 {messages.map((msg, i) => {
@@ -196,45 +201,48 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
                     return (
                         <div key={i} className={cn("flex w-full flex-col", isMe ? "items-end" : "items-start")}>
                             <div className={cn(
-                                "max-w-[70%] rounded-2xl shadow-sm text-sm overflow-hidden",
-                                isMe ? "bg-sky-500 text-white rounded-br-none" : "bg-white border-2 border-slate-200 text-slate-700 rounded-bl-none",
-                                isImage ? "p-1 bg-transparent border-0 shadow-none" : "px-4 py-2"
-                            )}>
+                                "max-w-[85%] sm:max-w-[75%] rounded-[24px] text-[15px] overflow-hidden relative border-2 border-b-[6px] transition-all animate-in fade-in slide-in-from-bottom-2 duration-300 shadow-sm",
+                                isMe 
+                                    ? "bg-[#1CB0F6] text-white border-[#1CB0F6] rounded-br-[8px] self-end" 
+                                    : "bg-white text-slate-700 border-slate-200 rounded-bl-[8px] self-start"
+                            )}
+                            style={isMe ? { borderBottomColor: '#0092d6', borderColor: '#1CB0F6' } : {}}
+                            >
                                 {isImage ? (
                                     <div
-                                        className="relative cursor-pointer group"
+                                        className="relative cursor-pointer group p-1.5"
                                         onClick={() => setSelectedImage(msg.content)}
                                     >
                                         <img
                                             src={msg.content}
                                             alt="Image"
-                                            className="rounded-xl object-cover max-h-64 min-h-[100px] w-auto bg-slate-200 transition-transform hover:scale-[1.02]"
+                                            className="rounded-[18px] object-cover max-h-64 min-h-[100px] w-auto bg-slate-200 transition-transform hover:scale-[1.02] border-2 border-black/10"
                                             loading="lazy"
                                         />
                                     </div>
                                 ) : isFile ? (
-                                    <div className="flex items-center gap-2">
-                                        <FileText className={cn("h-8 w-8", isMe ? "text-white/80" : "text-slate-500")} />
+                                    <div className="flex items-center gap-3 px-5 py-4">
+                                        <FileText className={cn("h-10 w-10 drop-shadow-sm", isMe ? "text-white" : "text-slate-400")} />
                                         <div className="flex flex-col overflow-hidden">
-                                            <span className="truncate font-bold max-w-[150px]">{msg.fileName || "Ficheiro"}</span>
-                                            <a href={msg.content} target="_blank" rel="noopener noreferrer" className={cn("text-xs underline flex items-center gap-1 hover:opacity-80", isMe ? "text-white/80" : "text-sky-500")}>
-                                                <Download className="h-3 w-3" /> Download
+                                            <span className="truncate font-black text-lg max-w-[150px]">{msg.fileName || "Ficheiro"}</span>
+                                            <a href={msg.content} target="_blank" rel="noopener noreferrer" className={cn("text-[13px] font-bold underline flex items-center gap-1 mt-1 hover:opacity-80 transition-opacity", isMe ? "text-sky-100" : "text-sky-500")}>
+                                                <Download className="h-4 w-4" /> Transferir
                                             </a>
                                         </div>
                                     </div>
                                 ) : (
-                                    msg.content
+                                    <div className="px-5 py-3.5 font-bold leading-relaxed">{msg.content}</div>
                                 )}
                             </div>
                             
                             {/* Timestamp and Read Status */}
                             <div className={cn(
-                                "flex items-center gap-1 text-[10px] sm:text-xs text-slate-400 mt-1 mx-1",
-                                isMe ? "justify-end" : "justify-start"
+                                "flex items-center gap-1 text-[11px] font-bold mt-2 mx-1",
+                                isMe ? "justify-end text-sky-500/80" : "justify-start text-slate-400"
                             )}>
                                 <span>{formatTimestamp(msg.createdAt)}</span>
                                 {isMe && i === actualLastMyMessageIndex && msg.read && (
-                                    <span className="flex items-center gap-0.5 ml-1 font-semibold text-sky-500">
+                                    <span className="flex items-center gap-0.5 ml-1 text-sky-500 relative bg-sky-100 px-2 py-0.5 rounded-full">
                                         Visto
                                     </span>
                                 )}
@@ -244,12 +252,12 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
                 })}
                 
                 {isPartnerTyping && (
-                    <div className="flex w-full flex-col items-start fade-in-0 animate-in slide-in-from-bottom-2 duration-300">
-                        <div className="flex items-center px-4 py-3.5 bg-white border-2 border-slate-200 rounded-2xl rounded-bl-none shadow-sm overflow-hidden w-fit">
-                            <div className="flex gap-1.5 items-center justify-center">
-                                <span className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                <span className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                <span className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    <div className="flex w-full flex-col items-start fade-in-0 animate-in slide-in-from-bottom-2 duration-300 mt-2">
+                        <div className="flex items-center px-5 py-4 bg-white border-2 border-slate-200 border-b-[6px] rounded-bl-[8px] rounded-[24px] shadow-sm overflow-hidden w-fit">
+                            <div className="flex gap-2 items-center justify-center">
+                                <span className="w-2.5 h-2.5 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                <span className="w-2.5 h-2.5 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                <span className="w-2.5 h-2.5 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                             </div>
                         </div>
                     </div>
@@ -258,43 +266,48 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
                 <div ref={bottomRef} />
             </div>
 
-            {/* Input Area */}
-            <div className="p-4 bg-white border-t relative shrink-0">
+            {/* Input Area (Arcade Control Panel) */}
+            <div className="p-4 sm:p-5 bg-slate-50/80 backdrop-blur-md relative shrink-0 flex flex-col items-center">
                 {showGifPicker && (
-                    <div className="absolute bottom-20 left-4 z-50 bg-white p-4 rounded-xl shadow-2xl border border-slate-200">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="font-bold text-sm text-slate-500">GIPHY</span>
-                            <button onClick={() => setShowGifPicker(false)}>
-                                <X className="h-4 w-4 text-slate-400 hover:text-slate-600" />
+                    <div className="absolute bottom-28 left-4 z-[100] bg-white p-4 rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[8px]">
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="font-black text-[15px] text-slate-700 uppercase tracking-widest">GIPHY</span>
+                            <button onClick={() => setShowGifPicker(false)} className="h-8 w-8 bg-slate-100 rounded-full flex items-center justify-center border-2 border-transparent hover:border-slate-300 active:bg-slate-200 transition-all">
+                                <X className="h-4 w-4 text-slate-500" />
                             </button>
                         </div>
                         <GifSelector onSelect={handleSendGif} />
                     </div>
                 )}
 
-                <form action={handleSubmit} ref={formRef} className="flex gap-2 items-end">
-                    <div className="flex gap-1 pb-2">
+                <form action={handleSubmit} ref={formRef} className="flex gap-3 items-end w-full bg-white p-3 rounded-[24px] border-2 border-slate-200 border-b-[6px] shadow-sm relative z-20">
+                    <div className="flex gap-1">
                         <UploadButton onUploadComplete={handleUploadComplete} />
-                        <Button
+                        <button
                             type="button"
-                            variant="ghost"
-                            size="icon"
                             onClick={() => setShowGifPicker(!showGifPicker)}
-                            className="text-slate-400 hover:text-slate-600"
+                            className="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 rounded-[14px] h-[52px] w-[52px] flex items-center justify-center transition-all border-2 border-slate-200 border-b-4 hover:border-b-4 active:border-b-0 active:translate-y-1 shrink-0"
                         >
-                            <ImageIcon className="h-6 w-6" />
-                        </Button>
+                            <ImageIcon className="h-6 w-6 text-slate-500" />
+                        </button>
                     </div>
+                    
                     <input
                         name="content"
                         placeholder="Escreve uma mensagem..."
                         onChange={handleInputChange}
-                        className="flex-1 bg-slate-100 border-2 border-transparent focus:bg-white focus:border-sky-500 rounded-xl px-4 py-3 outline-none transition mb-1"
+                        className="flex-1 bg-slate-100 border-2 border-transparent focus:bg-white focus:border-sky-400 rounded-2xl px-4 py-3 pb-[14px] text-[15px] font-bold text-slate-700 placeholder:text-slate-400 outline-none transition-all h-[52px]"
                         autoComplete="off"
                     />
-                    <Button variant="primary" size="icon" type="submit" className="mb-1">
-                        <Send className="h-5 w-5" />
-                    </Button>
+                    
+                    <button 
+                        type="submit" 
+                        className="h-[52px] w-[52px] sm:w-auto sm:px-6 rounded-[14px] bg-[#58cc02] hover:bg-[#46a302] active:bg-[#46a302] flex items-center justify-center transition-all border-2 border-transparent border-b-[6px] hover:border-b-[6px] active:border-b-0 active:translate-y-[6px] shrink-0"
+                        style={{ borderBottomColor: '#46a302' }}
+                    >
+                        <Send className="h-6 w-6 text-white sm:mr-1" />
+                        <span className="hidden sm:inline text-white font-black text-[15px] tracking-widest uppercase">Enviar</span>
+                    </button>
                 </form>
             </div>
         </div>

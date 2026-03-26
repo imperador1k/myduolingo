@@ -30,16 +30,16 @@ export default async function MessagesPage({ searchParams }: Props) {
     }
 
     return (
-        <div className="flex h-[calc(100vh-120px)] w-full gap-0 bg-white border-2 border-slate-200 rounded-xl max-w-[1000px] overflow-hidden shadow-sm mx-auto my-6">
-            {/* Sidebar: hidden on mobile if activeUserId exists */}
-            <div className={cn("w-full md:w-[320px] flex-shrink-0 border-r bg-white", activeUserId ? "hidden md:flex" : "flex")}>
+        <div className="flex h-[calc(100vh-120px)] w-full gap-0 bg-white border-2 border-slate-200 border-b-[8px] rounded-[32px] max-w-[1056px] overflow-hidden shadow-xl mx-auto my-6">
+            {/* Sidebar Container */}
+            <div className={cn("w-full md:w-[360px] flex-shrink-0 border-r-2 border-slate-200 bg-white z-10", activeUserId ? "hidden md:flex" : "flex")}>
                 <ChatSidebar conversations={conversations} />
             </div>
 
-            {/* Window: hidden on mobile if NO activeUserId */}
+            {/* Window Container */}
             <div className={cn(
-                "flex-1 flex flex-col bg-slate-50",
-                !activeUserId ? "hidden md:flex" : "fixed inset-0 z-[100] bg-white h-[100dvh] md:static md:h-auto md:z-auto"
+                "flex-1 flex flex-col bg-slate-50 relative",
+                !activeUserId ? "hidden md:flex" : "fixed inset-0 z-[100] bg-slate-50 h-[100dvh] md:static md:h-auto md:z-auto"
             )}>
                 {activeUserId && activePartner ? (
                     <ChatWindow
@@ -53,9 +53,9 @@ export default async function MessagesPage({ searchParams }: Props) {
                     />
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4">
-                        <div className="text-6xl">💬</div>
-                        <p className="font-bold text-lg">As tuas mensagens</p>
-                        <p className="text-sm">Seleciona uma conversa para começar.</p>
+                        <div className="text-8xl mb-4 drop-shadow-sm">💬</div>
+                        <p className="font-black text-2xl text-slate-700 uppercase tracking-wide">Mensagens</p>
+                        <p className="text-lg font-bold text-slate-400">Seleciona uma conversa para começares a interagir.</p>
                     </div>
                 )}
             </div>
