@@ -107,7 +107,10 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
     }, {} as Record<string, Course[]>);
 
     return (
-        <div className="space-y-12">
+        <div className="space-y-16">
+            <h2 className="text-2xl font-black text-slate-700 uppercase tracking-widest pl-2 flex items-center gap-3 mb-2">
+                <span className="text-3xl drop-shadow-sm">🧭</span> Explorar Novos Idiomas
+            </h2>
             {Object.entries(groupedCourses).map(([languageLabel, langCourses]) => {
                 const data = getLanguageData(langCourses[0]?.title || languageLabel, languageLabel);
 
@@ -115,11 +118,11 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
                     <div key={languageLabel} className="space-y-6">
                         <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100">
                             <span className="text-3xl drop-shadow-sm">{data.flag}</span>
-                            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
-                                Aprender {languageLabel}
-                            </h2>
+                            <h3 className="text-2xl font-bold text-slate-800 tracking-tight">
+                                {languageLabel}
+                            </h3>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 pt-2">
                             {langCourses.map((course) => {
                                 const isSelected = selectedCourse === course.id;
                                 const isActive = activeCourseId === course.id;
@@ -130,68 +133,53 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
                                         onClick={() => handleSelect(course.id)}
                                         disabled={isPending}
                                         className={cn(
-                                            "group relative overflow-hidden bg-white border-2 border-slate-100 rounded-3xl p-6 text-left transition-all duration-300 cursor-pointer",
-                                            "hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 active:scale-[0.98]",
-                                            (isSelected || isActive) && "border-green-400 shadow-sm shadow-green-500/10",
-                                            isPending && "opacity-50 cursor-not-allowed transform-none hover:shadow-none hover:border-slate-100"
+                                            "group relative overflow-hidden bg-white border-2 border-stone-200 border-b-[8px] rounded-[32px] p-6 lg:p-8 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-1 hover:border-b-[10px] active:translate-y-1 active:border-b-[2px] cursor-pointer shadow-sm",
+                                            (isSelected || isActive) && "border-green-400 !border-b-green-500 shadow-sm shadow-green-500/10",
+                                            isPending && "opacity-50 cursor-not-allowed transform-none hover:shadow-none hover:border-b-[8px]"
                                         )}
                                     >
                                         {/* Absolute Top-Right Active Checkmark */}
                                         {(isSelected || isActive) && (
-                                            <div className="absolute top-4 right-4 flex h-7 w-7 items-center justify-center rounded-full bg-green-500 shadow-sm z-20 animate-in fade-in zoom-in-50 duration-300">
-                                                <Check className="h-4 w-4 text-white font-bold" />
+                                            <div className="absolute top-6 right-6 flex h-8 w-8 items-center justify-center rounded-full bg-green-500 shadow-sm z-20 animate-in fade-in zoom-in-50 duration-300">
+                                                <Check className="h-5 w-5 text-white font-bold" />
                                             </div>
                                         )}
 
-                                        {/* Background gradient hint */}
-                                        <div
-                                            className={cn(
-                                                "absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-20",
+                                        {/* Top: Vibrant Circle + Vector */}
+                                        <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
+                                            <div className={cn(
+                                                "absolute inset-0 rounded-full opacity-20 group-hover:opacity-30 transition-opacity duration-500",
                                                 `bg-gradient-to-br ${data.gradient}`
+                                            )} />
+                                            
+                                            {course.imageSrc && course.imageSrc.startsWith("http") ? (
+                                                <img src={course.imageSrc} alt={course.title} className="w-24 h-24 object-cover drop-shadow-xl z-10 group-hover:scale-110 transition-transform duration-300 rounded-[20px] aspect-square" />
+                                            ) : (
+                                                <span className="text-[5rem] drop-shadow-xl z-10 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                                                    {data.flag}
+                                                </span>
                                             )}
-                                        />
+                                        </div>
 
-                                        <div className="relative flex flex-col items-start gap-4">
-                                            {/* Top Row: Icon/Flag + Status Icons */}
-                                            <div className="flex w-full items-start justify-between">
-                                                <div 
-                                                    className={cn(
-                                                        "relative flex h-14 w-14 items-center justify-center rounded-xl text-3xl transition-transform duration-300 overflow-hidden",
-                                                        "bg-slate-50 border border-slate-100 shadow-sm",
-                                                        "group-hover:scale-110 group-hover:-rotate-3"
-                                                    )}
-                                                >
-                                                    {course.imageSrc && course.imageSrc.startsWith("http") ? (
-                                                        <img src={course.imageSrc} alt={course.title} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <span className="drop-shadow-sm">{data.flag}</span>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex flex-col items-end gap-2">
-                                                    {isActive && (
-                                                        <div className="flex items-center gap-1 rounded-full bg-sky-100 text-sky-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wider">
-                                                            <Sparkles className="h-3 w-3" />
-                                                            Ativo
-                                                        </div>
-                                                    )}
-                                                </div>
+                                        {/* Middle: Title & Pill */}
+                                        <div className="flex flex-col items-center gap-3 w-full mb-8 z-10">
+                                            <h3 className="font-black text-slate-700 text-3xl uppercase tracking-tight group-hover:text-blue-500 transition-colors">
+                                                {course.title}
+                                            </h3>
+                                            <div className="bg-sky-50 text-sky-500 border-2 border-sky-100 font-bold px-4 py-1.5 rounded-xl flex items-center gap-2 text-[13px] uppercase tracking-widest">
+                                                <span>👨‍🎓</span> 1.2M Alunos
                                             </div>
+                                        </div>
 
-                                            {/* Bottom Row: Text Info */}
-                                            <div className="flex flex-col gap-1 z-10">
-                                                <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-sky-600 transition-colors">
-                                                    {course.title}
-                                                </h3>
-                                                <div className="flex items-center gap-2">
-                                                    <p className="text-sm font-medium text-slate-500">
-                                                        {data.nativeName}
-                                                    </p>
-                                                    <span className="text-slate-300 text-xs">•</span>
-                                                    <p className="text-xs font-bold text-sky-500 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 transform duration-300">
-                                                        {data.greeting}
-                                                    </p>
-                                                </div>
+                                        {/* Bottom: Giant COMEÇAR Button */}
+                                        <div className="w-full mt-auto z-10">
+                                            <div className={cn(
+                                                "w-full py-4 rounded-[1rem] font-black text-xl tracking-widest uppercase border-2 flex items-center justify-center shadow-sm pointer-events-none transition-colors",
+                                                (isSelected || isActive) 
+                                                    ? "bg-[#58cc02] text-white border-transparent border-b-[6px] border-b-[#46a302]" 
+                                                    : "bg-[#1CB0F6] text-white border-transparent border-b-[6px] border-b-[#0092d6]"
+                                            )}>
+                                                {(isSelected || isActive) ? "Selecionado" : "Começar"}
                                             </div>
                                         </div>
 

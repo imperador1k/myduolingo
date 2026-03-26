@@ -1,0 +1,2 @@
+ALTER TABLE "user_progress" ADD COLUMN "notifications_enabled" boolean DEFAULT true NOT NULL;--> statement-breakpoint
+ALTER TABLE "user_vocabulary" ADD COLUMN "distractors" jsonb DEFAULT '[]'::jsonb NOT NULL;

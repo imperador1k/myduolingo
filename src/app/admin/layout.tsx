@@ -15,7 +15,7 @@ export default async function AdminLayout({ children }: Props) {
     }
 
     return (
-        <div className="flex h-screen bg-slate-50 text-slate-900 font-sans">
+        <div className="flex h-screen bg-[#fbf9f8] text-slate-900 font-sans">
             {/* Admin Sidebar */}
             <AdminSidebar />
 

@@ -36,6 +36,13 @@
       "when": 1774180144673,
       "tag": "0004_add_daily_stats_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1774562239679,
+      "tag": "0005_wet_rafael_vega",
+      "breakpoints": true
     }
   ]
 }
