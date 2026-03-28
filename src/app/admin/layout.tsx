@@ -1,5 +1,5 @@
-import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 
 type Props = {
@@ -7,11 +7,12 @@ type Props = {
 };
 
 export default async function AdminLayout({ children }: Props) {
-    const user = await currentUser();
-    const isAdmin = (user?.publicMetadata as any)?.role === "admin";
-
-    if (!isAdmin) {
-        redirect("/");
+    const { userId } = await auth();
+    
+    // Server-Side Strict Allowlist Check (Secondary Visual Lock)
+    const allowedIds = process.env.ADMIN_ALLOWED_USER_IDS?.split(",").map(id => id.trim()) || [];
+    if (!userId || !allowedIds.includes(userId)) {
+        notFound(); // Prevents flash of unauthenticated layout content
     }
 
     return (

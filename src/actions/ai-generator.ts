@@ -1,7 +1,7 @@
 "use server";
 
 import { currentUser } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateTextWithFallback } from "@/lib/ai-manager";
 import { db } from "@/db/drizzle";
 import { units, lessons, challenges, challengeOptions } from "@/db/schema";
 import { eq, count } from "drizzle-orm";
@@ -135,21 +135,10 @@ export async function generateCourseContent(
     const promptText = buildPrompt(topic.name, topic.focus, targetLang, level, style, seed);
 
     // ── Call Gemini ──
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error("GEMINI_API_KEY not configured.");
+    
+    
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-        generationConfig: {
-            temperature: 0.7,
-            responseMimeType: "application/json",
-        },
-    });
-
-    const result = await model.generateContent(promptText);
-    const response = result.response;
-    let rawJson = response.text();
+    let rawJson = await generateTextWithFallback(promptText, undefined, { temperature: 0.7, responseMimeType: "application/json" });
 
     // Clean possible markdown artifacts
     rawJson = rawJson.replace(/```json/g, "").replace(/```/g, "").trim();

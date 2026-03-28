@@ -1,16 +1,13 @@
 "use server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateTextWithFallback } from "@/lib/ai-manager";
+
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db/drizzle";
 import { userProgress, placementTestHistory } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getUserProgress } from "@/db/queries";
 import { revalidatePath } from "next/cache";
-
-const apiKey = process.env.GEMINI_API_KEY!;
-const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 // ============================================================
 // Helper: Get user's active course language (for pre-selection)
@@ -55,9 +52,7 @@ function extractJSON(text: string): string {
 // ============================================================
 async function safeLLMCall<T>(prompt: string, validator: (data: unknown) => data is T): Promise<T | null> {
     try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        const text = await generateTextWithFallback(prompt);
         const cleanJSON = extractJSON(text);
         const parsed = JSON.parse(cleanJSON);
         if (validator(parsed)) return parsed;
@@ -254,9 +249,7 @@ Return ONLY raw JSON (no markdown, no backticks):
 }`;
 
     try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        const text = await generateTextWithFallback(prompt);
         const cleanJSON = extractJSON(text);
         return JSON.parse(cleanJSON);
     } catch (error) {
@@ -311,9 +304,7 @@ Return ONLY raw JSON (no markdown, no backticks):
 }`;
 
     try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        const text = await generateTextWithFallback(prompt);
         const cleanJSON = extractJSON(text);
         const data: GradeResult = JSON.parse(cleanJSON);
 

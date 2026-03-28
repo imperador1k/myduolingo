@@ -1,0 +1,1 @@
+import { db } from '../src/db/drizzle'; import { adminAuthAttempts } from '../src/db/schema'; async function main() { console.log(await db.select().from(adminAuthAttempts)); process.exit(0); } main();

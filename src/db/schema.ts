@@ -303,3 +303,10 @@ export const userDailyStatsRelations = relations(userDailyStats, ({ one }) => ({
         references: [userProgress.userId],
     }),
 }));
+
+export const adminAuthAttempts = pgTable("admin_auth_attempts", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull().unique(),
+    attempts: integer("attempts").notNull().default(0),
+    lockoutUntil: timestamp("lockout_until"),
+});

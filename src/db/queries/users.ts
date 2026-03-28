@@ -2,7 +2,7 @@ import { cache } from "react";
 import { auth } from "@clerk/nextjs/server";
 import { eq, and, inArray } from "drizzle-orm";
 import { db } from "../drizzle";
-import { userProgress, userDailyStats, courses } from "../schema";
+import { userProgress, userDailyStats, courses, userVocabulary, challengeProgress, challengeMistakes } from "../schema";
 import { subDays, format } from "date-fns";
 import { createNotification } from "@/lib/notifications";
 
@@ -34,12 +34,40 @@ export const getUserAnalytics = cache(async () => {
 
     const activeDays = weeklyData.filter(d => d.xp > 0).length;
 
+    // Calculate Palavras Dominadas (Mastered Words)
+    const vocabularyList = await db.query.userVocabulary.findMany({
+        where: eq(userVocabulary.userId, userId),
+    });
+    const wordsMastered = vocabularyList.length;
+
+    // Calculate Precisão (Accuracy)
+    const completedChallenges = await db.query.challengeProgress.findMany({
+        where: and(
+            eq(challengeProgress.userId, userId),
+            eq(challengeProgress.completed, true)
+        )
+    });
+    const correctCount = completedChallenges.length;
+
+    const mistakes = await db.query.challengeMistakes.findMany({
+        where: eq(challengeMistakes.userId, userId)
+    });
+    const mistakeCount = mistakes.length;
+
+    const totalAttempts = correctCount + mistakeCount;
+    let accuracy = 100;
+    if (totalAttempts > 0) {
+        accuracy = Math.round((correctCount / totalAttempts) * 100);
+    }
+
     return {
         totalXp: progress.totalXpEarned,
         hearts: progress.hearts,
         lessonsCompleted: weeklyData.reduce((acc, curr) => acc + curr.lessons, 0),
         activeDays,
-        weeklyData
+        weeklyData,
+        wordsMastered,
+        accuracy
     };
 });
 

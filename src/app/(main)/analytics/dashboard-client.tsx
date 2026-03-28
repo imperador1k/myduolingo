@@ -18,6 +18,8 @@ type Props = {
         lessonsCompleted: number;
         activeDays: number;
         weeklyData: WeeklyData[];
+        wordsMastered: number;
+        accuracy: number;
     };
 };
 
@@ -155,14 +157,14 @@ export const DashboardClient = ({ data }: Props) => {
                 {/* Card B (Precisão) */}
                 <div className="bg-white border-2 border-stone-200 border-b-8 rounded-3xl p-6 flex flex-col justify-center items-start gap-2">
                     <Target className="h-8 w-8 text-green-500" />
-                    <span className="font-black text-4xl text-green-500">85%</span>
+                    <span className="font-black text-4xl text-green-500">{data.accuracy}%</span>
                     <p className="font-bold text-stone-400 uppercase tracking-widest text-sm">Precisão</p>
                 </div>
 
                 {/* Card C (Words Mastered) */}
                 <div className="bg-white border-2 border-stone-200 border-b-8 rounded-3xl p-6 flex flex-col justify-center items-start gap-2">
                     <Crown className="h-8 w-8 text-yellow-500" />
-                    <span className="font-black text-4xl text-stone-700">120</span>
+                    <span className="font-black text-4xl text-stone-700">{data.wordsMastered}</span>
                     <p className="font-bold text-stone-400 uppercase tracking-widest text-sm">Palavras Dominadas</p>
                 </div>
             </div>

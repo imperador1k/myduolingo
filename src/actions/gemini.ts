@@ -1,14 +1,6 @@
 "use server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const apiKey = process.env.GEMINI_API_KEY!;
-const genAI = new GoogleGenerativeAI(apiKey);
-
-const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-});
-
+import { generateTextWithFallback } from "@/lib/ai-manager";
 
 
 import { db } from "@/db/drizzle";
@@ -168,9 +160,7 @@ export const generatePracticePrompt = async (
                      "hints": ["Ideia 1 em ${courseTitle}", "Ideia 2 em ${courseTitle}", "Ideia 3 em ${courseTitle}"]
                    }`;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        const text = await generateTextWithFallback(prompt);
 
         // Clean up markdown code blocks if present
         const cleanText = extractJSON(text);
@@ -246,9 +236,7 @@ export const analyzeWriting = async (
       Retorna APENAS o JSON. Deve ser em Português de Portugal!
     `;
 
-        const result = await model.generateContent(inputPrompt);
-        const response = await result.response;
-        const responseText = response.text();
+        const responseText = await generateTextWithFallback(inputPrompt);
         const cleanText = extractJSON(responseText);
 
         return JSON.parse(cleanText);
@@ -306,9 +294,7 @@ export const analyzeSpeaking = async (
       Retorna APENAS o JSON. A resposta deve ser em Português de Portugal!
     `;
 
-        const result = await model.generateContent(inputPrompt);
-        const response = await result.response;
-        const responseText = response.text();
+        const responseText = await generateTextWithFallback(inputPrompt);
         const cleanText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
 
         return JSON.parse(cleanText);
@@ -411,9 +397,7 @@ export const generateReadingText = async (
     }
     `;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let text = response.text();
+        let text = await generateTextWithFallback(prompt);
 
         // Robust JSON Extraction
         const firstOpen = text.indexOf('{');
@@ -491,9 +475,7 @@ export const analyzeReading = async (
       }
     `;
 
-        const result = await model.generateContent(inputPrompt);
-        const response = await result.response;
-        const text = response.text();
+        const text = await generateTextWithFallback(inputPrompt);
         const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
 
         return JSON.parse(cleanText);
@@ -575,9 +557,7 @@ export const generateListeningScript = async (
                      "questions": ["Pergunta 1 em ${courseTitle}", "Pergunta 2 em ${courseTitle}"]
                    }`;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        const text = await generateTextWithFallback(prompt);
         const cleanText = extractJSON(text);
         const data = JSON.parse(cleanText);
         const langCode = getLanguageCode(courseTitle);
@@ -634,9 +614,7 @@ export const analyzeListening = async (
       Retorna APENAS o JSON.
     `;
 
-        const result = await model.generateContent(inputPrompt);
-        const response = await result.response;
-        const text = response.text();
+        const text = await generateTextWithFallback(inputPrompt);
         const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
 
         return JSON.parse(cleanText);

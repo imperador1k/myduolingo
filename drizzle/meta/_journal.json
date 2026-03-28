@@ -43,6 +43,13 @@
       "when": 1774562239679,
       "tag": "0005_wet_rafael_vega",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1774728590062,
+      "tag": "0006_strong_logan",
+      "breakpoints": true
     }
   ]
 }

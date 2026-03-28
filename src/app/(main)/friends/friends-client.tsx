@@ -47,10 +47,7 @@ export const FriendsClient = ({
 
     const handleCopy = () => {
         navigator.clipboard.writeText(profileLink);
-        toast({
-            title: "Copiado!",
-            description: "Link do perfil copiado para a área de transferência.",
-        });
+        toast("Link do perfil copiado para a área de transferência.");
     };
 
     const handleShare = async () => {

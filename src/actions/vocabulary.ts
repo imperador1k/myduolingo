@@ -5,14 +5,8 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
 import { userVocabulary } from "@/db/schema";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateTextWithFallback } from "@/lib/ai-manager";
 
-const apiKey = process.env.GEMINI_API_KEY!;
-const genAI = new GoogleGenerativeAI(apiKey);
-
-const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-});
 
 /**
  * Smart translation: checks the DB first (instant if saved),
@@ -49,8 +43,7 @@ export const getWordTranslation = async (
         // ── Step 2: AI Call (Cache Miss) ─────────────────────
         const prompt = `És um dicionário bilíngue rigoroso. Traduz a palavra '${word}' do idioma ${language} para Português de Portugal, com base neste contexto: '${context}'. Retorna um JSON estrito: 'translation' (APENAS 1 ou 2 palavras diretas, sem pontuação), 'explanation' (MÁXIMO 1 frase curta explicando a nuance no contexto, sem saudações).`;
 
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
+        const responseText = await generateTextWithFallback(prompt);
         const cleanText = responseText.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
 
         const data = JSON.parse(cleanText);
@@ -173,8 +166,7 @@ export const getAIHint = async (word: string, language: string) => {
 
         const prompt = `O utilizador esqueceu-se da tradução de '${word}' em ${language}. Dá-lhe uma pista criativa, uma mnemónica engraçada ou um significado alternativo em Português para o ajudar a adivinhar, MAS NÃO digas a tradução direta! Responde APENAS com a dica em 1-2 frases curtas, sem saudações nem formatação JSON.`;
 
-        const result = await model.generateContent(prompt);
-        const hint = result.response.text().trim();
+        const hint = (await generateTextWithFallback(prompt)).trim();
 
         return { hint };
     } catch (error) {
