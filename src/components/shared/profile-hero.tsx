@@ -29,11 +29,11 @@ export const ProfileHero = ({
                 bannerColorFrom === "from-sky-400" ? "after:from-sky-100 after:to-emerald-100" : "after:from-indigo-100 after:to-purple-100"
             )} />
             
-            <div className="relative z-10 w-full bg-white rounded-[3rem] border-2 border-stone-200 border-b-8 p-8 pt-20 sm:pt-8 shadow-sm flex flex-col md:flex-row items-center sm:items-center gap-6 md:gap-10 mt-16 sm:mt-12 transition-all hover:shadow-md">
+            <div className="relative z-10 w-full bg-white rounded-[3rem] border-2 border-stone-200 border-b-8 p-8 pt-24 md:pt-8 shadow-sm flex flex-col md:flex-row items-center md:items-center gap-6 md:gap-10 mt-16 md:mt-12 transition-all hover:shadow-md">
                 
                 {/* Avatar Bento Box breaking out */}
-                <div className="absolute -top-20 left-1/2 sm:left-12 -translate-x-1/2 sm:translate-x-0">
-                    <div className="flex h-36 w-36 shrink-0 items-center justify-center rounded-[2.5rem] bg-white text-6xl shadow-2xl ring-8 ring-white overflow-hidden border-2 border-stone-100 border-b-8 shadow-stone-200/50 group-hover:scale-105 transition-all duration-500 cursor-pointer">
+                <div className="absolute -top-20 flex left-1/2 max-md:-translate-x-1/2 md:left-12 md:translate-x-0">
+                    <div className="flex h-32 w-32 md:h-36 md:w-36 shrink-0 items-center justify-center rounded-[2rem] md:rounded-[2.5rem] bg-white text-5xl md:text-6xl shadow-2xl ring-4 md:ring-8 ring-white overflow-hidden border-2 border-stone-100 border-b-8 shadow-stone-200/50 group-hover:scale-105 transition-all duration-500 cursor-pointer">
                         {imageUrl ? (
                             <img src={imageUrl} alt="Avatar" className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" />
                         ) : (
@@ -45,18 +45,18 @@ export const ProfileHero = ({
                 </div>
 
                 {/* Content Area */}
-                <div className="sm:ml-[170px] w-full flex flex-col items-center sm:items-start text-center sm:text-left mt-2 sm:mt-0">
-                    <div className="flex flex-col gap-1">
-                        <h1 className="text-4xl font-black text-stone-700 tracking-tight leading-none truncate max-w-[280px] sm:max-w-full drop-shadow-sm uppercase">
+                <div className="md:ml-[170px] w-full md:flex-1 flex flex-col items-center md:items-start text-center md:text-left mt-10 md:mt-0 min-w-0 px-2 lg:px-0">
+                    <div className="flex flex-col gap-1 w-full">
+                        <h1 className="text-3xl lg:text-4xl font-black text-stone-700 tracking-tight drop-shadow-sm uppercase break-words line-clamp-2 xl:line-clamp-none">
                             {name || username || "Estudante"}
                         </h1>
-                        <p className="text-stone-400 font-bold text-lg tracking-tight">@{username?.toLowerCase().replace(" ", "") || "estudante"}</p>
+                        <p className="text-stone-400 font-bold text-lg tracking-tight truncate w-full">@{username?.toLowerCase().replace(" ", "") || "estudante"}</p>
                     </div>
                     
                     <div className="flex items-center gap-2 mt-4">
                         <div className="bg-stone-100 px-4 py-1.5 rounded-xl border-2 border-stone-200 border-b-4 flex items-center gap-2">
-                             <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                             <p className="text-[10px] font-black text-stone-500 uppercase tracking-widest leading-none">
+                             <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse shrink-0" />
+                             <p className="text-[10px] font-black text-stone-500 uppercase tracking-widest leading-none truncate">
                                 Membro desde {new Date(createdAt).getFullYear()}
                             </p>
                         </div>
@@ -64,7 +64,7 @@ export const ProfileHero = ({
                 </div>
 
                 {/* Action Buttons Hub - Tactile and floating */}
-                <div className="mt-6 sm:mt-0 flex flex-wrap items-center justify-center gap-4 sm:ml-auto w-full sm:w-auto">
+                <div className="mt-4 md:mt-0 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 shrink-0 w-full md:w-auto flex-wrap">
                     {actions}
                 </div>
             </div>

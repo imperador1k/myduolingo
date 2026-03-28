@@ -64,15 +64,17 @@ export default async function ProfilePage() {
                 actions={
                     <>
                         <ShareProfileModal username={userProgress.userName}>
-                            <Button variant="sidebarOutline" className="gap-2 px-6 rounded-2xl w-full sm:w-auto hover:bg-slate-100 hover:text-slate-700 hover:border-slate-300 border-2 bg-white text-slate-600 border-slate-200">
-                                <Share2 className="h-5 w-5" /> 
-                                <span className="uppercase tracking-wide font-black">Partilhar</span>
-                            </Button>
+                            <div className="w-full sm:w-auto sm:min-w-[160px] flex-1 h-12 sm:h-14">
+                                <Button variant="sidebarOutline" className="w-full h-full gap-2 rounded-[1.2rem] sm:rounded-[1.5rem] px-4 sm:px-6 border-2 hover:bg-slate-100 hover:text-slate-700 hover:border-slate-300 bg-white text-slate-600 border-slate-200 transition-all">
+                                    <Share2 className="h-5 w-5 md:h-6 md:w-6" /> 
+                                    <span className="uppercase tracking-widest font-black text-[12px] sm:text-sm">Partilhar</span>
+                                </Button>
+                            </div>
                         </ShareProfileModal>
-                        <Link href="/settings" className="w-full sm:w-auto">
-                            <Button variant="primary" className="gap-2 px-6 rounded-2xl w-full">
-                                <Settings className="h-5 w-5" />
-                                <span className="uppercase tracking-wide font-black">Definições</span>
+                        <Link href="/settings" className="w-full sm:w-auto sm:min-w-[160px] flex-1 h-12 sm:h-14 block">
+                            <Button variant="primary" className="w-full h-full gap-2 rounded-[1.2rem] sm:rounded-[1.5rem] px-4 sm:px-6 transition-all">
+                                <Settings className="h-5 w-5 md:h-6 md:w-6" />
+                                <span className="uppercase tracking-widest font-black text-[12px] sm:text-sm">Definições</span>
                             </Button>
                         </Link>
                     </>

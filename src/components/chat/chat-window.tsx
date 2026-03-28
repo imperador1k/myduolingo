@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { UploadButton } from "./upload-button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const GifSelector = dynamic(() => import("./gif-selector").then((mod) => mod.GifSelector), { ssr: false });
 
@@ -142,46 +142,72 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
         <div className="flex flex-col h-full w-full bg-white relative">
             {/* Image Modal */}
             <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-                <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none shadow-none flex items-center justify-center overflow-hidden">
+                <DialogContent className="max-w-5xl w-full h-full sm:h-auto sm:max-h-[95vh] p-0 bg-transparent border-none shadow-none flex items-center justify-center overflow-visible [&>button]:hidden">
+                    <DialogTitle className="sr-only">Visualizador de Imagem</DialogTitle>
                     {selectedImage && (
-                        <div className="relative">
-                            <img
-                                src={selectedImage}
-                                alt="Full size"
-                                className="max-w-full max-h-[90vh] rounded-md"
-                            />
+                        <div className="relative flex flex-col items-center justify-center w-full h-full p-4 sm:p-10 animate-in fade-in zoom-in duration-300">
+                            <div className="relative max-w-full flex justify-center">
+                                {/* Floating Action Buttons */}
+                                <div className="absolute -top-12 right-0 sm:-right-6 sm:-top-6 flex gap-3 z-[60]">
+                                    <a 
+                                        href={selectedImage} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="bg-slate-900/60 hover:bg-slate-900/80 backdrop-blur-xl text-white p-3.5 rounded-full transition-all border-2 border-white/20 shadow-2xl hover:scale-110 active:scale-95"
+                                    >
+                                        <Download className="w-5 h-5 sm:w-6 sm:h-6" />
+                                    </a>
+                                    <button 
+                                        onClick={() => setSelectedImage(null)}
+                                        className="bg-slate-900/60 hover:bg-rose-500/90 backdrop-blur-xl text-white p-3.5 rounded-full transition-all border-2 border-white/20 shadow-2xl hover:scale-110 active:scale-95"
+                                    >
+                                        <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                                    </button>
+                                </div>
+                                
+                                {/* Main Image */}
+                                <div className="relative max-w-full rounded-[24px] sm:rounded-[32px] overflow-hidden border-4 border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)] bg-slate-900/50 backdrop-blur-sm">
+                                    <img
+                                        src={selectedImage}
+                                        alt="Enlarged media"
+                                        className="w-full h-auto object-contain max-h-[75dvh] sm:max-h-[80vh]"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     )}
                 </DialogContent>
             </Dialog>
 
             {/* Bento Header */}
-            <div className="p-4 flex items-center gap-4 bg-white z-20 w-full border-b-2 border-slate-100 relative pt-4 md:pt-6 px-6 pb-5">
+            <div className="p-4 flex items-center gap-4 bg-white z-20 w-full border-b-2 border-slate-100 relative pt-4 md:pt-6 px-4 md:px-6 pb-4 md:pb-5">
                 {/* Back Button (Mobile Only) */}
-                <Link href="/messages" className="md:hidden mr-2">
+                <Link href="/messages" className="md:hidden mr-1">
                     <Button variant="ghost" size="icon" className="h-12 w-12 rounded-2xl border-2 border-transparent hover:bg-slate-100 active:border-b-0 active:translate-y-1">
                         <ChevronLeft className="h-8 w-8 text-slate-400" />
                     </Button>
                 </Link>
 
-                <div className="relative h-14 w-14 shrink-0 flex items-center justify-center rounded-[18px] border-2 border-slate-200 bg-slate-100 overflow-visible shadow-sm">
-                    {partner.userImageSrc ? (
-                        <img src={partner.userImageSrc} alt={partner.userName} className="h-full w-full object-cover rounded-[16px]" />
-                    ) : (
-                        <div className="flex h-full w-full items-center justify-center text-2xl font-black text-slate-400">
-                            {partner.userName[0]?.toUpperCase()}
-                        </div>
-                    )}
-                    {isPartnerOnline && (
-                        <span className="w-4 h-4 bg-emerald-500 rounded-full border-2 border-white absolute -bottom-1.5 -right-1.5 z-10 shadow-sm animate-in zoom-in duration-300"></span>
-                    )}
-                </div>
-                <div className="flex flex-col">
-                    <h2 className="font-black text-slate-700 text-xl tracking-tight leading-tight">{partner.userName}</h2>
-                    <span className={cn("text-[13px] font-bold mt-0.5", isPartnerOnline ? "text-emerald-500" : "text-slate-400")}>
-                        {isPartnerOnline ? "Online" : "Offline"}
-                    </span>
-                </div>
+                <Link href={`/profile/${partner.userId}`} className="flex items-center gap-x-3 md:gap-x-4 group cursor-pointer">
+                    <div className="relative h-12 w-12 md:h-14 md:w-14 shrink-0 flex items-center justify-center rounded-[16px] md:rounded-[18px] border-2 border-slate-200 bg-slate-100 overflow-visible shadow-sm transition-all group-hover:opacity-80 group-hover:border-slate-300">
+                        {partner.userImageSrc ? (
+                            <img src={partner.userImageSrc} alt={partner.userName} className="h-full w-full object-cover rounded-[16px]" />
+                        ) : (
+                            <div className="flex h-full w-full items-center justify-center text-2xl font-black text-slate-400">
+                                {partner.userName[0]?.toUpperCase()}
+                            </div>
+                        )}
+                        {isPartnerOnline && (
+                            <span className="w-4 h-4 bg-emerald-500 rounded-full border-2 border-white absolute -bottom-1.5 -right-1.5 z-10 shadow-sm animate-in zoom-in duration-300"></span>
+                        )}
+                    </div>
+                    <div className="flex flex-col transition-all group-hover:opacity-80">
+                        <h2 className="font-black text-slate-700 text-xl tracking-tight leading-tight">{partner.userName}</h2>
+                        <span className={cn("text-[13px] font-bold mt-0.5", isPartnerOnline ? "text-emerald-500" : "text-slate-400")}>
+                            {isPartnerOnline ? "Online" : "Offline"}
+                        </span>
+                    </div>
+                </Link>
             </div>
 
             {/* Messages */}
@@ -267,45 +293,47 @@ export const ChatWindow = ({ userId, partner, initialMessages }: Props) => {
             </div>
 
             {/* Input Area (Arcade Control Panel) */}
-            <div className="p-4 sm:p-5 bg-slate-50/80 backdrop-blur-md relative shrink-0 flex flex-col items-center">
+            <div className="p-4 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-5 sm:p-5 bg-slate-50/80 backdrop-blur-md relative shrink-0 flex flex-col items-center border-t-2 border-slate-100 z-50">
                 {showGifPicker && (
-                    <div className="absolute bottom-28 left-4 z-[100] bg-white p-4 rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[8px]">
-                        <div className="flex justify-between items-center mb-4">
-                            <span className="font-black text-[15px] text-slate-700 uppercase tracking-widest">GIPHY</span>
+                    <div className="absolute bottom-28 left-4 right-4 sm:right-auto sm:left-4 z-[200] bg-white p-3 sm:p-4 rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[8px] h-[50dvh] sm:h-[480px] w-auto sm:w-[352px] flex flex-col items-center">
+                        <div className="flex justify-between items-center mb-3 sm:mb-4 w-full shrink-0">
+                            <span className="font-black text-[15px] text-slate-700 uppercase tracking-widest pl-2">GIPHY</span>
                             <button onClick={() => setShowGifPicker(false)} className="h-8 w-8 bg-slate-100 rounded-full flex items-center justify-center border-2 border-transparent hover:border-slate-300 active:bg-slate-200 transition-all">
                                 <X className="h-4 w-4 text-slate-500" />
                             </button>
                         </div>
-                        <GifSelector onSelect={handleSendGif} />
+                        <div className="flex-1 w-full min-h-0 relative">
+                            <GifSelector onSelect={handleSendGif} />
+                        </div>
                     </div>
                 )}
 
-                <form action={handleSubmit} ref={formRef} className="flex gap-3 items-end w-full bg-white p-3 rounded-[24px] border-2 border-slate-200 border-b-[6px] shadow-sm relative z-20">
+                <form action={handleSubmit} ref={formRef} className="flex gap-2 sm:gap-3 items-end w-full bg-white p-2 sm:p-3 rounded-[24px] border-2 border-slate-200 border-b-[6px] shadow-sm relative z-20">
                     <div className="flex gap-1">
                         <UploadButton onUploadComplete={handleUploadComplete} />
                         <button
                             type="button"
                             onClick={() => setShowGifPicker(!showGifPicker)}
-                            className="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 rounded-[14px] h-[52px] w-[52px] flex items-center justify-center transition-all border-2 border-slate-200 border-b-4 hover:border-b-4 active:border-b-0 active:translate-y-1 shrink-0"
+                            className="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 rounded-[14px] h-10 w-10 sm:h-[52px] sm:w-[52px] flex items-center justify-center transition-all border-2 border-slate-200 border-b-4 hover:border-b-4 active:border-b-0 active:translate-y-1 shrink-0"
                         >
-                            <ImageIcon className="h-6 w-6 text-slate-500" />
+                            <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-slate-500" />
                         </button>
                     </div>
                     
                     <input
                         name="content"
-                        placeholder="Escreve uma mensagem..."
+                        placeholder="Mensagem..."
                         onChange={handleInputChange}
-                        className="flex-1 bg-slate-100 border-2 border-transparent focus:bg-white focus:border-sky-400 rounded-2xl px-4 py-3 pb-[14px] text-[15px] font-bold text-slate-700 placeholder:text-slate-400 outline-none transition-all h-[52px]"
+                        className="flex-1 bg-slate-100 border-2 border-transparent focus:bg-white focus:border-sky-400 rounded-2xl px-3 sm:px-4 py-2 sm:py-3 pb-[10px] sm:pb-[14px] text-[14px] sm:text-[15px] font-bold text-slate-700 placeholder:text-slate-400 outline-none transition-all h-10 sm:h-[52px]"
                         autoComplete="off"
                     />
                     
                     <button 
                         type="submit" 
-                        className="h-[52px] w-[52px] sm:w-auto sm:px-6 rounded-[14px] bg-[#58cc02] hover:bg-[#46a302] active:bg-[#46a302] flex items-center justify-center transition-all border-2 border-transparent border-b-[6px] hover:border-b-[6px] active:border-b-0 active:translate-y-[6px] shrink-0"
+                        className="h-10 w-10 sm:h-[52px] sm:w-auto sm:px-6 rounded-[14px] bg-[#58cc02] hover:bg-[#46a302] active:bg-[#46a302] flex items-center justify-center transition-all border-2 border-transparent border-b-4 sm:border-b-[6px] hover:border-b-4 sm:hover:border-b-[6px] active:border-b-0 active:translate-y-1 sm:active:translate-y-[6px] shrink-0"
                         style={{ borderBottomColor: '#46a302' }}
                     >
-                        <Send className="h-6 w-6 text-white sm:mr-1" />
+                        <Send className="h-5 w-5 sm:h-6 sm:w-6 text-white sm:mr-1" />
                         <span className="hidden sm:inline text-white font-black text-[15px] tracking-widest uppercase">Enviar</span>
                     </button>
                 </form>

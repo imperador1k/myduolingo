@@ -81,9 +81,9 @@ export const UploadButton = ({ onUploadComplete }: Props) => {
             />
             <label htmlFor="file-upload">
                 <div
-                    className="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 rounded-[14px] h-[52px] w-[52px] flex items-center justify-center transition-all border-2 border-slate-200 border-b-4 hover:border-b-4 active:border-b-0 active:translate-y-1 shrink-0 cursor-pointer"
+                    className="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 rounded-[14px] h-10 w-10 sm:h-[52px] sm:w-[52px] flex items-center justify-center transition-all border-2 border-slate-200 border-b-4 hover:border-b-4 active:border-b-0 active:translate-y-1 shrink-0 cursor-pointer"
                 >
-                    {uploading ? <Loader2 className="h-6 w-6 animate-spin text-slate-500" /> : <Paperclip className="h-6 w-6 text-slate-500" />}
+                    {uploading ? <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-slate-500" /> : <Paperclip className="h-5 w-5 sm:h-6 sm:w-6 text-slate-500" />}
                 </div>
             </label>
         </div>

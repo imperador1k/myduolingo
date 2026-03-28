@@ -62,8 +62,9 @@ export const ChatSidebar = ({ conversations }: Props) => {
 
     return (
         <div className={cn("flex w-full flex-col bg-slate-50 h-full", activeUserId ? "hidden md:flex md:w-[360px]" : "w-full")}>
-            <div className="p-5 border-b-2 border-slate-200 bg-white flex flex-col gap-5 z-20 shadow-sm relative">
-                <h1 className="text-xl font-black text-slate-700 uppercase tracking-widest">Inbox</h1>
+            <div className="p-4 md:p-5 border-b-2 border-slate-200 bg-white flex flex-col gap-4 md:gap-5 z-20 shadow-sm relative">
+                <h1 className="text-xl font-black text-slate-700 uppercase tracking-widest hidden md:block">Inbox</h1>
+                <h1 className="text-xl font-black text-slate-700 uppercase tracking-widest md:hidden mt-2 text-center">Mensagens</h1>
 
                 {/* Massive Tactile Action Button */}
                 <button className="w-full bg-[#58cc02] hover:bg-[#46a302] active:bg-[#46a302] text-white font-black text-[15px] uppercase tracking-widest py-3.5 rounded-2xl border-2 border-transparent border-b-[6px] hover:border-b-[6px] active:border-b-0 active:translate-y-[6px] transition-all flex items-center justify-center gap-2 shadow-sm" style={{ borderBottomColor: '#46a302' }}>
@@ -117,7 +118,7 @@ export const ChatSidebar = ({ conversations }: Props) => {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 pb-[120px] md:pb-4 flex flex-col gap-3 custom-scrollbar">
                 {conversations.length === 0 && !query && (
                     <div className="p-8 text-center bg-white rounded-2xl border-2 border-slate-200 border-b-4 mt-4">
                         <span className="text-4xl">📭</span>

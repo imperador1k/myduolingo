@@ -7,9 +7,10 @@ import { onFollow, onUnfollow } from "@/actions/user-actions";
 type Props = {
     userId: string;
     isFollowing: boolean;
+    className?: string;
 };
 
-export const FollowButton = ({ userId, isFollowing }: Props) => {
+export const FollowButton = ({ userId, isFollowing, className }: Props) => {
     const [pending, startTransition] = useTransition();
 
     const onClick = () => {
@@ -25,7 +26,7 @@ export const FollowButton = ({ userId, isFollowing }: Props) => {
     return (
         <Button
             variant={isFollowing ? "danger" : "primary"}
-            className="w-full"
+            className={className || "w-full"}
             onClick={onClick}
             disabled={pending}
         >

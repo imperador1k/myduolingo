@@ -22,16 +22,16 @@ export const GifSelector = ({ onSelect }: Props) => {
     };
 
     return (
-        <div className="flex flex-col gap-2 w-[320px] h-[400px]">
+        <div className="flex flex-col gap-3 w-full h-full min-h-0">
             <input
-                className="p-2 border rounded-md w-full bg-slate-100 focus:bg-white transition outline-none focus:ring-2 focus:ring-sky-500"
+                className="p-3 border-2 border-slate-200 border-b-4 rounded-xl w-full bg-slate-100 focus:bg-white transition outline-none focus:border-sky-400 font-bold text-slate-700 placeholder:text-slate-400 text-sm shrink-0"
                 placeholder="Pesquisar GIF..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
             />
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-slate-50 rounded-xl border-2 border-slate-200 relative">
                 <Grid
-                    width={300}
+                    width={typeof window !== 'undefined' ? (window.innerWidth < 640 ? window.innerWidth - 64 : 316) : 316}
                     columns={2}
                     fetchGifs={fetchGifs}
                     key={search}

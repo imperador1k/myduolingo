@@ -58,19 +58,23 @@ export default async function PublicProfilePage({ params }: Props) {
                 bannerColorFrom="from-sky-500"
                 bannerColorTo="from-emerald-500"
                 actions={
-                    <div className="flex w-full sm:w-auto items-center gap-4">
-                        <div className="flex-1 sm:w-40 h-14">
-                            <FollowButton userId={params.userId} isFollowing={isFollowing} />
+                    <>
+                        <div className="w-full sm:w-auto sm:min-w-[160px] flex-1 h-12 sm:h-14">
+                            <FollowButton 
+                                userId={params.userId} 
+                                isFollowing={isFollowing} 
+                                className="w-full h-full text-[12px] sm:text-sm font-black uppercase tracking-widest rounded-[1.2rem] sm:rounded-[1.5rem] px-4 sm:px-6"
+                            />
                         </div>
-                        <div className="flex-1 sm:w-auto h-14">
+                        <div className="w-full sm:w-auto sm:min-w-[160px] flex-1 h-12 sm:h-14">
                             <Link href={`/messages?userId=${params.userId}`} className="w-full block h-full">
-                                <Button variant="secondary" className="w-full h-full gap-2 rounded-[1.5rem] px-8 border-b-4 border-stone-300 active:border-b-0 active:translate-y-1 transition-all">
-                                    <MessageSquareText className="h-6 w-6 text-stone-500" />
-                                    <span className="font-black uppercase tracking-widest text-sm">Mensagem</span>
+                                <Button variant="secondary" className="w-full h-full gap-2 rounded-[1.2rem] sm:rounded-[1.5rem] px-4 sm:px-6 border-b-4 border-stone-300 active:border-b-0 active:translate-y-1 transition-all">
+                                    <MessageSquareText className="h-5 w-5 sm:h-6 sm:w-6 text-stone-500" />
+                                    <span className="font-black uppercase tracking-widest text-[12px] sm:text-sm">Mensagem</span>
                                 </Button>
                             </Link>
                         </div>
-                    </div>
+                    </>
                 }
             />
 

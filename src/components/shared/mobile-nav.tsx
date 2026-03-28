@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
     Home,
@@ -101,9 +101,24 @@ type MobileNavProps = {
     unreadMessageCount?: number;
 };
 
-export const MobileNav = ({ notificationCount, unreadMessageCount }: MobileNavProps) => {
+export const MobileNav = (props: MobileNavProps) => {
+    return (
+        <Suspense fallback={null}>
+            <MobileNavContent {...props} />
+        </Suspense>
+    );
+};
+
+const MobileNavContent = ({ notificationCount, unreadMessageCount }: MobileNavProps) => {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const activeUserId = searchParams.get("userId");
     const [isOpen, setIsOpen] = useState(false);
+
+    // If we are in an active chat on mobile, hide the bottom nav entirely to maximize screen space
+    if (pathname === "/messages" && activeUserId) {
+        return null;
+    }
 
     // Check for admin role
     const { user } = useUser();
