@@ -115,14 +115,14 @@ const MobileNavContent = ({ notificationCount, unreadMessageCount }: MobileNavPr
     const activeUserId = searchParams.get("userId");
     const [isOpen, setIsOpen] = useState(false);
 
+    // Check for admin role BEFORE early returns
+    const { user } = useUser();
+    const isAdmin = (user?.publicMetadata as any)?.role === "admin";
+
     // If we are in an active chat on mobile, hide the bottom nav entirely to maximize screen space
     if (pathname === "/messages" && activeUserId) {
         return null;
     }
-
-    // Check for admin role
-    const { user } = useUser();
-    const isAdmin = (user?.publicMetadata as any)?.role === "admin";
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
