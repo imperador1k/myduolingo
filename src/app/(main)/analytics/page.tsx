@@ -16,7 +16,7 @@ const AnalyticsPage = async () => {
                     Estatísticas
                 </h1>
                 <p className="text-lg text-neutral-500">
-                    Acompanha o teu progresso na aprendizagem.
+                    Acompanha o teu domínio do idioma.
                 </p>
             </div>
             

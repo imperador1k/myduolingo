@@ -1,12 +1,12 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import QRCode from "react-qr-code";
-import { Copy, Share2, Search, Users, QrCode } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Copy, Share2 } from "lucide-react";
 import { UserSearch } from "@/components/shared/user-search";
 import { FollowButton } from "@/components/shared/follow-button";
+import { cn } from "@/lib/utils";
 import { useCustomToast } from "@/components/ui/custom-toast";
 
 type UserData = {
@@ -39,35 +39,36 @@ export const FriendsClient = ({
     followers,
     following
 }: Props) => {
-    // If there is an active search query, immediately jump to 'search' tab.
-    const [activeTab, setActiveTab] = useState<'search' | 'my-code' | 'social'>(query ? 'search' : 'search');
+    const [activeTab, setActiveTab] = useState<'following' | 'followers' | 'search' | 'my-code'>(query ? 'search' : 'following');
     const { toast } = useCustomToast();
 
-    const profileLink = `https://myduolingo.vercel.app/profile/${currentUserId}`;
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const profileLink = `${baseUrl}/profile/${currentUserId}`;
 
     const handleCopy = () => {
-        if (!profileLink) return;
-        navigator.clipboard.writeText(profileLink).then(() => {
-            toast("Link copiado para a área de transferência!");
+        navigator.clipboard.writeText(profileLink);
+        toast({
+            title: "Copiado!",
+            description: "Link do perfil copiado para a área de transferência.",
         });
     };
 
-    const handleShare = () => {
-        if (!navigator.share || !profileLink) {
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `Segue-me!`,
+                    text: `Junta-te a mim e vamos aprender juntos!`,
+                    url: profileLink,
+                });
+            } catch (err) {
+                console.log("Erro a partilhar", err);
+            }
+        } else {
             handleCopy();
-            return;
         }
-        navigator.share({
-            title: `Adiciona-me no MyDuolingo`,
-            text: `Vem aprender idiomas comigo e acompanha a minha ofensiva!`,
-            url: profileLink,
-        }).catch((err) => {
-            // Usually triggers if the user cancels the native share sheet
-            console.log("Share failed or cancelled:", err);
-        });
     };
 
-    // Pre-calculate Social graphs for fast O(1) checks
     const followingSet = new Set(
         following
             .filter((f) => f.following !== null && f.following !== undefined)
@@ -82,206 +83,168 @@ export const FriendsClient = ({
     const isMutual = (id: string) => followingSet.has(id) && followerSet.has(id);
     const amIFollowing = (id: string) => followingSet.has(id);
 
-    // Reusable Renderer for a single User Row
     const renderUser = (user: UserData, amFollowingVal: boolean, isFollowerVal: boolean) => (
-        <div key={user.userId} className="flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border-2 border-slate-100 shadow-sm transition-all hover:border-slate-300">
-            <Link href={`/profile/${user.userId}`} className="flex items-center gap-3 hover:opacity-75 transition truncate">
-                <div className="h-12 w-12 shrink-0 rounded-full border-2 border-slate-100 bg-slate-50 overflow-hidden shadow-sm flex items-center justify-center">
+        <div key={user.userId} className="bg-white border-2 border-stone-200 border-b-4 rounded-2xl p-4 mb-3 flex items-center gap-4 transition-all hover:-translate-y-1 hover:border-stone-300">
+            <Link href={`/profile/${user.userId}`} className="flex-1 flex items-center gap-4 min-w-0 hover:opacity-80 transition">
+                <div className="h-14 w-14 rounded-full border-4 border-amber-400 shrink-0 bg-stone-100 flex items-center justify-center overflow-hidden">
                     {user.userImageSrc ? (
                         <img src={user.userImageSrc} alt={user.userName} className="h-full w-full object-cover" />
                     ) : (
-                        <span className="text-xl">🧑‍🎓</span>
+                        <span className="text-2xl font-black text-stone-300">{user.userName[0]?.toUpperCase() || "👤"}</span>
                     )}
                 </div>
-                <div className="truncate">
-                    <span className="font-bold text-slate-700 truncate block">{user.userName}</span>
-                    {isMutual(user.userId) ? (
-                        <span className="text-[10px] font-bold text-emerald-500 bg-emerald-100 px-2 py-0.5 rounded-md mt-0.5 inline-block uppercase tracking-wider">Mutuo</span>
-                    ) : isFollowerVal ? (
-                        <span className="text-[10px] font-bold text-sky-500 bg-sky-100 px-2 py-0.5 rounded-md mt-0.5 inline-block uppercase tracking-wider">Segue-te</span>
-                    ) : null}
+                <div className="flex-1 min-w-0">
+                    <p className="font-black text-stone-700 text-lg truncate">{user.userName}</p>
+                    <div className="flex items-center gap-2 truncate">
+                        <span className="font-bold text-stone-400 text-sm">@{user.userName.toLowerCase().replace(/\s/g, '')}</span>
+                        <span className="flex items-center gap-1 text-sm font-bold text-orange-500">
+                            <span className="text-base">🔥</span> 12 Dias
+                        </span>
+                    </div>
                 </div>
             </Link>
-            <div className="w-[140px] shrink-0">
+            <div className="w-32 shrink-0">
                 <FollowButton userId={user.userId} isFollowing={amFollowingVal} />
             </div>
         </div>
     );
 
-    return (
-        <div className="flex flex-col gap-6 p-4 sm:p-6 pb-24 max-w-4xl mx-auto w-full">
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">Social Hub</h1>
+    const followingUsers = following
+        .filter(f => f.following)
+        .map(f => f.following!);
+    const followerUsers = followers
+        .filter(f => f.follower)
+        .map(f => f.follower!);
 
-            {/* Sticky Tab Navigation */}
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-2 rounded-2xl bg-white p-2 shadow-sm border-2 border-slate-200 overflow-x-auto hide-scrollbar">
-                <TabButton 
-                    id="search" 
-                    icon={<Search className="w-5 h-5" />} 
-                    label="Procurar" 
-                    active={activeTab === 'search'} 
-                    onClick={() => setActiveTab('search')} 
-                />
-                <TabButton 
-                    id="my-code" 
-                    icon={<QrCode className="w-5 h-5" />} 
-                    label="O Meu Código" 
-                    active={activeTab === 'my-code'} 
-                    onClick={() => setActiveTab('my-code')} 
-                />
-                <TabButton 
-                    id="social" 
-                    icon={<Users className="w-5 h-5" />} 
-                    label="Amigos" 
-                    active={activeTab === 'social'} 
-                    onClick={() => setActiveTab('social')} 
-                />
+    return (
+        <div className="max-w-3xl mx-auto w-full p-4 sm:p-6 pb-24">
+            <h1 className="text-3xl font-black text-stone-700 mb-6">Amigos</h1>
+            
+            <div className="flex flex-wrap gap-4 mb-8">
+                <button
+                    onClick={() => setActiveTab('following')}
+                    className={cn(
+                        "px-4 py-2 font-bold uppercase rounded-xl transition-all border-2",
+                        activeTab === 'following'
+                            ? "bg-[#1CB0F6] text-white border-[#0092d6] border-b-4 active:translate-y-1 active:border-b-2 mb-[4px] active:mb-[6px]"
+                            : "bg-transparent text-stone-500 hover:bg-stone-100 border-transparent"
+                    )}
+                >
+                    A Seguir
+                </button>
+                <button
+                    onClick={() => setActiveTab('followers')}
+                    className={cn(
+                        "px-4 py-2 font-bold uppercase rounded-xl transition-all border-2",
+                        activeTab === 'followers'
+                            ? "bg-[#1CB0F6] text-white border-[#0092d6] border-b-4 active:translate-y-1 active:border-b-2 mb-[4px] active:mb-[6px]"
+                            : "bg-transparent text-stone-500 hover:bg-stone-100 border-transparent"
+                    )}
+                >
+                    Seguidores
+                </button>
+                <button
+                    onClick={() => setActiveTab('search')}
+                    className={cn(
+                        "px-4 py-2 font-bold uppercase rounded-xl transition-all border-2",
+                        activeTab === 'search'
+                            ? "bg-[#1CB0F6] text-white border-[#0092d6] border-b-4 active:translate-y-1 active:border-b-2 mb-[4px] active:mb-[6px]"
+                            : "bg-transparent text-stone-500 hover:bg-stone-100 border-transparent"
+                    )}
+                >
+                    Encontrar Amigos
+                </button>
+                <button
+                    onClick={() => setActiveTab('my-code')}
+                    className={cn(
+                        "px-4 py-2 font-bold uppercase rounded-xl transition-all border-2",
+                        activeTab === 'my-code'
+                            ? "bg-[#1CB0F6] text-white border-[#0092d6] border-b-4 active:translate-y-1 active:border-b-2 mb-[4px] active:mb-[6px]"
+                            : "bg-transparent text-stone-500 hover:bg-stone-100 border-transparent"
+                    )}
+                >
+                    O Meu Código
+                </button>
             </div>
 
-            {/* TAB CONTENT: SEARCH (DISCOVERY) */}
             {activeTab === 'search' && (
-                <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="rounded-3xl bg-white border-2 border-slate-200 p-2 shadow-sm relative">
-                        {/* Wrapper to inject the magnifying glass into the existing UserSearch */}
-                        <div className="relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
-                            <div className="[&>div>input]:pl-12 [&>div>input]:rounded-2xl [&>div>input]:border-0 [&>div>input]:bg-transparent [&>div>input]:shadow-none">
-                                <UserSearch />
-                            </div>
-                        </div>
-                    </div>
-
-                    {query ? (
-                        <div className="flex flex-col gap-4">
-                            <h2 className="text-xl font-bold text-slate-600">Resultados para "{query}"</h2>
+                <div className="flex flex-col gap-4">
+                    <UserSearch />
+                    {query && (
+                        <div className="mt-4">
+                            <h2 className="text-xl font-bold text-stone-600 mb-4">Resultados para "{query}"</h2>
                             {searchResults.length === 0 ? (
-                                <div className="p-8 text-center rounded-3xl border-2 border-dashed border-slate-200 bg-white">
-                                    <p className="text-slate-500 font-medium">Ninguém encontrado.</p>
-                                </div>
+                                <p className="text-stone-500 font-bold text-center py-6">Ninguém encontrado.</p>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {searchResults.map((user) => renderUser(user, amIFollowing(user.userId), followerSet.has(user.userId)))}
-                                </div>
+                                searchResults.map((user) => renderUser(user, amIFollowing(user.userId), followerSet.has(user.userId)))
                             )}
                         </div>
-                    ) : (
-                        <div className="flex flex-col gap-4 mt-2">
-                            <h2 className="text-xl font-bold text-slate-600 flex items-center gap-2">
-                                <span className="text-2xl">✨</span> Sugestões para ti
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {suggestions.filter(s => s.userId !== currentUserId).map((user) => 
-                                    renderUser(user, amIFollowing(user.userId), followerSet.has(user.userId))
-                                )}
-                            </div>
+                    )}
+                    {!query && suggestions.length > 0 && (
+                        <div className="mt-4">
+                            <h2 className="text-xl font-black uppercase text-stone-400 tracking-widest mb-4">Sugestões</h2>
+                            {suggestions.filter(s => s.userId !== currentUserId).map((user) => 
+                                renderUser(user, amIFollowing(user.userId), followerSet.has(user.userId))
+                            )}
                         </div>
                     )}
                 </div>
             )}
 
-            {/* TAB CONTENT: MY CODE */}
-            {activeTab === 'my-code' && (
-                <div className="flex flex-col items-center justify-center gap-8 py-8 animate-in fade-in zoom-in-95 duration-300">
-                    <div className="relative p-8 bg-white rounded-[2rem] shadow-xl border-4 border-slate-100 flex flex-col items-center">
-                        <div className="absolute -top-6 bg-sky-500 text-white font-black px-6 py-2 rounded-full shadow-md tracking-wider uppercase">
-                            @{currentUserName}
-                        </div>
-                        <div className="mt-4 bg-white p-4 rounded-xl border-2 border-slate-50">
-                            <QRCode
-                                value={profileLink || "https://myduolingo.com"}
-                                size={220}
-                                level="M"
-                                fgColor="#334155" // slate-700
-                            />
-                        </div>
-                        <p className="mt-6 text-slate-500 font-medium text-center max-w-[200px]">
-                            Lê o código com a câmara para encontrar o meu perfil!
-                        </p>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-sm">
-                        <button
-                            onClick={handleCopy}
-                            className="flex-1 flex items-center justify-center gap-2 bg-white text-slate-600 font-bold border-2 border-slate-200 py-4 px-6 rounded-2xl hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 w-full"
-                        >
-                            <Copy className="h-5 w-5" />
-                            Copiar Link
-                        </button>
-                        <button
-                            onClick={handleShare}
-                            className="flex-1 flex items-center justify-center gap-2 bg-sky-500 text-white font-bold border-b-4 border-sky-600 py-4 px-6 rounded-2xl hover:bg-sky-400 hover:border-b-sky-500 transition-all active:translate-y-1 active:border-b-0 w-full"
-                        >
-                            <Share2 className="h-5 w-5" />
-                            Partilhar
-                        </button>
-                    </div>
+            {activeTab === 'following' && (
+                <div>
+                    {followingUsers.length === 0 ? (
+                        <p className="text-stone-500 font-bold text-center py-6">Não estás a seguir ninguém.</p>
+                    ) : (
+                        followingUsers.map((user) => renderUser(user, amIFollowing(user.userId), followerSet.has(user.userId)))
+                    )}
                 </div>
             )}
 
-            {/* TAB CONTENT: SOCIAL GRAPHS (FOLLOWERS/FOLLOWING) */}
-            {activeTab === 'social' && (
-                <div className="grid gap-8 md:grid-cols-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                    {/* Following */}
-                    <div className="flex flex-col gap-4">
-                        <h2 className="text-xl font-bold text-slate-600 px-2">A Seguir ({followingSet.size})</h2>
-                        {following.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-12 px-6 rounded-3xl border-2 border-dashed border-slate-200 bg-white text-center text-slate-400">
-                                <Search className="h-8 w-8 mb-4 text-slate-300" />
-                                <p className="font-medium">Não estás a seguir ninguém.</p>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col gap-3">
-                                {following.filter((f) => f.following).map((f) => 
-                                    renderUser(f.following!, true, followerSet.has(f.following!.userId))
-                                )}
-                            </div>
-                        )}
-                    </div>
+            {activeTab === 'followers' && (
+                <div>
+                    {followerUsers.length === 0 ? (
+                        <p className="text-stone-500 font-bold text-center py-6">Ainda não tens seguidores.</p>
+                    ) : (
+                        followerUsers.map((user) => renderUser(user, amIFollowing(user.userId), followerSet.has(user.userId)))
+                    )}
+                </div>
+            )}
 
-                    {/* Followers */}
-                    <div className="flex flex-col gap-4">
-                        <h2 className="text-xl font-bold text-slate-600 px-2">Seguidores ({followerSet.size})</h2>
-                        {followers.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-12 px-6 rounded-3xl border-2 border-dashed border-slate-200 bg-white text-center text-slate-400">
-                                <Users className="h-8 w-8 mb-4 text-slate-300" />
-                                <p className="font-medium">Ainda não tens seguidores.</p>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col gap-3">
-                                {followers.filter((f) => f.follower).map((f) => 
-                                    renderUser(f.follower!, amIFollowing(f.follower!.userId), true)
-                                )}
-                            </div>
-                        )}
+            {activeTab === 'my-code' && (
+                <div className="flex flex-col items-center justify-center p-8 bg-white border-2 border-stone-200 border-b-4 rounded-2xl">
+                    <h2 className="text-xl font-bold text-stone-700 mb-6">Convida Amigos</h2>
+                    <div className="bg-white p-4 rounded-2xl border-4 border-stone-200 mb-8 max-w-fit shadow-sm">
+                        <QRCode
+                            value={profileLink}
+                            size={200}
+                            className="h-auto max-w-full"
+                            style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                        />
+                    </div>
+                    
+                    <p className="text-stone-500 font-bold text-center mb-8 px-4">
+                        A partilha de conhecimento é mais divertida! Mostra o teu código aos teus amigos para eles te adicionarem.
+                    </p>
+
+                    <div className="flex gap-4 w-full sm:w-auto">
+                        <button
+                            onClick={handleCopy}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-stone-100 text-stone-600 font-bold uppercase rounded-xl border-2 border-stone-200 border-b-4 active:translate-y-1 active:border-b-2 transition-all hover:bg-stone-200"
+                        >
+                            <Copy className="w-5 h-5" />
+                            Copiar
+                        </button>
+                        <button
+                            onClick={handleShare}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-[#58CC02] text-white font-bold uppercase rounded-xl border-2 border-[#58AA02] border-b-4 active:translate-y-1 active:border-b-2 transition-all hover:bg-[#46A302]"
+                        >
+                            <Share2 className="w-5 h-5" />
+                            Partilhar
+                        </button>
                     </div>
                 </div>
             )}
         </div>
     );
 };
-
-const TabButton = ({
-    id,
-    icon,
-    label,
-    active,
-    onClick
-}: {
-    id: string;
-    icon: React.ReactNode;
-    label: string;
-    active: boolean;
-    onClick: () => void;
-}) => (
-    <button
-        onClick={onClick}
-        className={cn(
-            "flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm sm:text-base font-bold rounded-xl whitespace-nowrap transition-all",
-            active 
-                ? "bg-slate-100 text-slate-800 shadow-sm" 
-                : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-        )}
-    >
-        {icon}
-        <span className="hidden sm:inline">{label}</span>
-    </button>
-);
