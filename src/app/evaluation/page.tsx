@@ -184,12 +184,19 @@ export default function EvaluationPage() {
 
     const activeQuestion = lockedQuestion || getNextQuestion();
 
-    const handleGrammarAnswer = (optionIndex: number) => {
+    const handleGrammarSelect = (optionIndex: number) => {
         if (showFeedback || !activeQuestion) return;
-
-        const correct = activeQuestion.options[optionIndex]?.is_correct || false;
-        setLockedQuestion(activeQuestion);
         setSelectedOption(optionIndex);
+    };
+
+    const handleGrammarVerify = () => {
+        if (selectedOption === null || showFeedback || !activeQuestion) return;
+
+        
+
+        const correct = activeQuestion.options[selectedOption]?.is_correct || false;
+        setLockedQuestion(activeQuestion);
+        
         setIsCorrect(correct);
         setShowFeedback(true);
 
@@ -256,16 +263,24 @@ export default function EvaluationPage() {
     const currentReadingEx = readingExercises[readingExIdx] || null;
     const currentReadingQ = currentReadingEx?.questions[readingQIdx] || null;
 
-    const handleReadingAnswer = (optionIndex: number) => {
+    const handleReadingSelect = (optionIndex: number) => {
         if (readingShowFeedback || !currentReadingQ) return;
+        setSelectedOption(optionIndex);
+    };
 
-        const correct = currentReadingQ.options[optionIndex]?.is_correct || false;
+    const handleReadingVerify = () => {
+        if (selectedOption === null || readingShowFeedback || !currentReadingQ) return;
+
+        
+
+        const correct = currentReadingQ.options[selectedOption]?.is_correct || false;
         const newAnswers = [...readingAnswers, correct];
         setReadingAnswers(newAnswers);
         setReadingIsCorrect(correct);
         setReadingShowFeedback(true);
 
         pendingContinue.current = () => {
+            setSelectedOption(null);
             setReadingShowFeedback(false);
 
             const nextQIdx = readingQIdx + 1;
@@ -326,16 +341,24 @@ export default function EvaluationPage() {
         window.speechSynthesis.speak(utterance);
     };
 
-    const handleListeningAnswer = (optionIndex: number) => {
+    const handleListeningSelect = (optionIndex: number) => {
         if (listeningShowFeedback || !currentListeningQ) return;
+        setSelectedOption(optionIndex);
+    };
 
-        const correct = currentListeningQ.options[optionIndex]?.is_correct || false;
+    const handleListeningVerify = () => {
+        if (selectedOption === null || listeningShowFeedback || !currentListeningQ) return;
+
+        
+
+        const correct = currentListeningQ.options[selectedOption]?.is_correct || false;
         const newAnswers = [...listeningAnswers, correct];
         setListeningAnswers(newAnswers);
         setListeningIsCorrect(correct);
         setListeningShowFeedback(true);
 
         pendingContinue.current = () => {
+            setSelectedOption(null);
             setListeningShowFeedback(false);
             window.speechSynthesis.cancel();
             setIsSpeaking(false);
@@ -440,40 +463,67 @@ export default function EvaluationPage() {
     // ============================================================
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
-            {/* Top Bar */}
-            {phase !== "results" && (
-                <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/60 h-16 flex items-center px-4 md:px-8">
-                    <div className="max-w-2xl mx-auto w-full flex items-center gap-4">
-                        <Link
-                            href="/learn"
-                            className="p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
-                        >
-                            <ArrowLeft className="h-5 w-5" />
-                        </Link>
-                        {phase !== "welcome" && (
-                            <>
-                                <div className="flex-1">
-                                    <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-700 ease-out"
-                                            style={{ width: `${progress}%` }}
-                                        />
-                                    </div>
-                                </div>
-                                <span className="text-sm font-bold text-slate-500 min-w-[60px] text-right">
-                                    {Math.round(progress)}%
-                                </span>
-                            </>
-                        )}
-                        {phase === "welcome" && (
-                            <div className="flex-1" />
-                        )}
-                    </div>
-                </div>
-            )}
+        <div className="min-h-screen bg-[#f7f7f8] flex flex-col font-sans overflow-x-hidden">
+            {/* SUPER ADVANCED GAMIFIED HEADER */}
+              {phase !== "results" && (
+                  <div className="sticky top-[0px] z-50 bg-[#f7f7f8]/90 backdrop-blur-xl border-b-[3px] border-slate-200/60 pt-4 sm:pt-6 pb-4 px-4 md:px-8 w-full shadow-[0_15px_40px_-15px_rgba(0,0,0,0.05)]">
+                      <div className="max-w-4xl mx-auto w-full flex items-center gap-4 sm:gap-6">
+                          
+                          {/* Close / Back Button */}
+                          <Link
+                              href="/learn"
+                              className="shrink-0 p-3 sm:p-4 bg-white rounded-[1.25rem] border-2 border-slate-200 border-b-4 text-slate-400 hover:text-slate-500 hover:bg-slate-50 active:translate-y-1 active:border-b-2 transition-all flex items-center justify-center shadow-sm group"
+                          >
+                              <XCircle className="h-6 w-6 sm:h-7 sm:w-7 stroke-[3] group-hover:text-red-400 transition-colors" />
+                          </Link>
 
-            {/* Loading Overlay */}
+                          {/* Massive 3D Progress Bar System */}
+                          {phase !== "welcome" && (
+                              <div className="flex-1 relative flex items-center gap-3 sm:gap-5">
+                                  
+                                  {/* Floating Phase Icon */}
+                                  <div className="hidden sm:flex shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-2xl border-2 border-slate-200 border-b-[4px] items-center justify-center shadow-sm z-10 relative">
+                                      {phase === "grammar" && <GraduationCap className="h-6 w-6 sm:h-7 sm:w-7 text-[#58CC02] stroke-[2.5]" />}
+                                      {phase === "reading" && <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 text-[#1CB0F6] stroke-[2.5]" />}
+                                      {phase === "listening" && <Headphones className="h-6 w-6 sm:h-7 sm:w-7 text-[#CE82FF] stroke-[2.5]" />}
+                                      {phase === "writing" && <PenTool className="h-6 w-6 sm:h-7 sm:w-7 text-[#FF9600] stroke-[2.5]" />}
+                                  </div>
+
+                                  {/* Main Bar Wrapper */}
+                                  <div className="flex-1 h-6 sm:h-[24px] bg-slate-200/90 rounded-full relative overflow-hidden border-2 border-slate-200/50 shadow-inner">
+                                      {/* Color track */}
+                                      <div
+                                          className={cn(
+                                              "absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out border-r-[3px] border-white/20",
+                                              phase === "grammar" && "bg-[#58CC02]",
+                                              phase === "reading" && "bg-[#1CB0F6]",
+                                              phase === "listening" && "bg-[#CE82FF]",
+                                              phase === "writing" && "bg-[#FF9600]"
+                                          )}
+                                          style={{ width: `${progress}%` }}
+                                      >
+                                          {/* Shiny Top Reflection */}
+                                          <div className="absolute top-1 left-3 right-3 h-[6px] sm:h-[8px] bg-white/30 rounded-full" />
+                                          {/* Animated Gradient Stripes overlay */}
+                                          <div className="absolute inset-0 opacity-40 bg-[linear-gradient(45deg,rgba(255,255,255,0.4)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.4)_50%,rgba(255,255,255,0.4)_75%,transparent_75%,transparent)] bg-[length:24px_24px] animate-[pushScroll_2s_linear_infinite]" />
+                                      </div>
+                                  </div>
+
+                                  {/* Percentage Pill */}
+                                  <div className="px-3 sm:px-5 py-2 sm:py-2.5 bg-white rounded-xl border-2 border-slate-200 border-b-4 font-black text-slate-500 text-sm sm:text-base shadow-sm shrink-0 tabular-nums min-w-[3.5rem] sm:min-w-[4.5rem] text-center">
+                                      {Math.round(progress)}%
+                                  </div>
+                              </div>
+                          )}
+                          
+                          {phase === "welcome" && (
+                              <div className="flex-1" />
+                          )}
+                      </div>
+                  </div>
+              )}
+
+              {/* Loading Overlay */}
             {isLoading && (
                 <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex items-center justify-center">
                     <div className="flex flex-col items-center gap-4 animate-pulse">
@@ -494,86 +544,100 @@ export default function EvaluationPage() {
             )}
 
             {/* Content */}
-            <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
-                <div className="w-full max-w-2xl">
+            <div className="flex-1 flex flex-col p-4 sm:p-8 pt-6 sm:pt-10 w-full max-w-5xl mx-auto">
+                <div className="w-full max-w-3xl mx-auto flex flex-col gap-6 pb-24 sm:pb-36 pt-2">
 
                     {/* ====================== WELCOME ====================== */}
                     {phase === "welcome" && (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            {/* Hero Section with Lottie */}
-                            <div className="text-center mb-10">
-                                <div className="w-40 h-40 mx-auto mb-4 drop-shadow-md">
+                        <div className="animate-in fade-in zoom-in-95 duration-500 w-full max-w-xl mx-auto flex flex-col gap-6">
+                            
+                            {/* Central Bento Box for Intro */}
+                            <div className="bg-white rounded-[2rem] border-2 border-b-[8px] border-slate-200 p-8 pt-10 text-center relative shadow-sm mt-8">
+                                {/* Floating Lottie Mascot */}
+                                <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-36 h-36 drop-shadow-xl select-none pointer-events-none">
                                     <LottieAnimation className="w-full h-full" />
                                 </div>
-                                <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight mb-3">
-                                    Teste de Nível CEFR
+
+                                <h1 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight mt-10 mb-4 leading-tight">
+                                    Avaliação <span className="text-[#1CB0F6] block mt-1">CEFR Master</span>
                                 </h1>
-                                <p className="text-slate-500 text-lg max-w-md mx-auto leading-relaxed">
-                                    Descobre o teu nível de idioma em 4 fases. O teste adapta-se às tuas capacidades em tempo real.
+                                <p className="text-slate-500 text-lg md:text-xl font-medium max-w-sm mx-auto leading-relaxed">
+                                    Descobre a tua fluência em 4 fases interativas. Um teste inteligente em tempo real.
                                 </p>
                             </div>
 
-                            {/* Language Selector */}
-                            <div className="bg-white rounded-2xl border-2 border-slate-100 p-6 mb-6 shadow-sm">
-                                <div className="flex items-center gap-2 mb-3 text-sky-500">
-                                    <Globe className="h-4 w-4" />
-                                    <span className="text-xs font-bold uppercase tracking-wider">Idioma Alvo</span>
-                                </div>
-                                {languageLoaded ? (
-                                    <select
-                                        value={selectedLanguage}
-                                        onChange={(e) => setSelectedLanguage(e.target.value)}
-                                        className="w-full p-3 rounded-xl border-2 border-slate-200 bg-slate-50 text-lg font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all cursor-pointer"
-                                    >
-                                        {SUPPORTED_LANGUAGES.map((lang) => (
-                                            <option key={lang.value} value={lang.value}>
-                                                {lang.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                ) : (
-                                    <div className="w-full h-12 rounded-xl bg-slate-100 animate-pulse" />
-                                )}
-                                <p className="text-xs text-slate-400 mt-2">
-                                    Detetado automaticamente do teu curso ativo. Podes alterá-lo.
-                                </p>
-                            </div>
-
-                            {/* Gamified Skill Cards Grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            {/* Gamified Bento Grid for Skills */}
+                            <div className="grid grid-cols-2 gap-3">
                                 {[
-                                    { icon: GraduationCap, label: "Gramática", desc: "15 questões", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", iconColor: "text-emerald-600" },
-                                    { icon: BookOpen, label: "Leitura", desc: "3 textos", bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-700", iconColor: "text-blue-600" },
-                                    { icon: Headphones, label: "Audição", desc: "3 áudios", bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-700", iconColor: "text-purple-600" },
-                                    { icon: PenTool, label: "Escrita", desc: "1 redação", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", iconColor: "text-amber-600" },
-                                ].map(({ icon: Icon, label, desc, bg, border, text, iconColor }) => (
-                                    <div
-                                        key={label}
-                                        className={cn(
-                                            "flex flex-col items-center justify-center text-center gap-2.5 p-5 rounded-2xl border transition-transform hover:-translate-y-1 cursor-default",
-                                            bg, border, text
-                                        )}
-                                    >
-                                        <Icon className={cn("h-7 w-7 stroke-[2.5]", iconColor)} />
-                                        <span className="text-sm font-bold">{label}</span>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider opacity-60">{desc}</span>
+                                    { icon: GraduationCap, label: "Gramática", desc: "15 questões", bg: "bg-[#58CC02]", border: "border-[#46A302]", iconCol: "text-white", ring: "ring-[#58CC02]/30" },
+                                    { icon: BookOpen, label: "Leitura", desc: "3 textos", bg: "bg-[#1CB0F6]", border: "border-[#0092D6]", iconCol: "text-white", ring: "ring-[#1CB0F6]/30" },
+                                    { icon: Headphones, label: "Audição", desc: "3 áudios", bg: "bg-[#CE82FF]", border: "border-[#A547D9]", iconCol: "text-white", ring: "ring-[#CE82FF]/30" },
+                                    { icon: PenTool, label: "Escrita", desc: "1 redação", bg: "bg-[#FF9600]", border: "border-[#D67B00]", iconCol: "text-white", ring: "ring-[#FF9600]/30" },
+                                ].map(({ icon: Icon, label, desc, bg, border, iconCol, ring }) => (
+                                    <div key={label} className={cn("bg-white rounded-2xl border-2 border-slate-200 p-4 transition-all hover:bg-slate-50 hover:border-slate-300 hover:shadow-md flex items-center gap-4 cursor-default group active:translate-y-1 relative overflow-hidden")}>
+                                        <div className={cn("w-12 h-12 shrink-0 rounded-xl flex items-center justify-center border-b-[4px] shadow-sm transition-transform group-active:translate-y-[2px] group-hover:scale-105 group-active:border-b-2", bg, border)}>
+                                            <Icon className={cn("h-6 w-6 stroke-[2.5]", iconCol)} />
+                                        </div>
+                                        <div className="flex flex-col items-start pr-2">
+                                            <span className="text-[15px] font-black text-slate-700 leading-tight">{label}</span>
+                                            <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 opacity-80">{desc}</span>
+                                        </div>
                                     </div>
                                 ))}
+                            </div>
+
+                            {/* Language Selector Bento */}
+                            <div className="bg-white rounded-3xl border-2 border-b-[6px] border-slate-200 p-3 pl-5 flex items-center justify-between gap-4 transition-all focus-within:border-sky-300 focus-within:border-b-sky-400 focus-within:ring-4 ring-sky-300/30 shadow-sm relative group hover:border-sky-200">
+                                <div className="flex items-center gap-4 shrink-0">
+                                    <div className="w-12 h-12 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-500 border-2 border-sky-200 group-hover:border-sky-300 transition-colors">
+                                        <Globe className="h-6 w-6 stroke-[2.5]" />
+                                    </div>
+                                    <div className="hidden sm:block text-left">
+                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-0.5">Língua Alvo</p>
+                                        <p className="text-sm font-bold text-slate-700 leading-none">O teu Idioma</p>
+                                    </div>
+                                </div>
+                                
+                                {languageLoaded ? (
+                                    <div className="flex-1 relative h-full">
+                                        <select
+                                            value={selectedLanguage}
+                                            onChange={(e) => setSelectedLanguage(e.target.value)}
+                                            className="w-full h-14 bg-slate-50 hover:bg-slate-100 px-5 rounded-[1.25rem] text-lg font-black text-slate-700 cursor-pointer outline-none border-2 border-slate-200 hover:border-slate-300 transition-all appearance-none"
+                                        >
+                                            {SUPPORTED_LANGUAGES.map((lang) => (
+                                                <option key={lang.value} value={lang.value}>
+                                                    {lang.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 h-14 rounded-[1.25rem] bg-slate-100 border-2 border-slate-200 animate-pulse" />
+                                )}
                             </div>
 
                             {/* 3D Gamified CTA Button */}
                             <button
                                 onClick={handleStartTest}
                                 disabled={isLoading || !languageLoaded}
-                                className="w-full py-4 text-lg font-bold bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl border-b-4 border-emerald-600 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className={cn(
+                                    "w-full mt-2 py-5 text-xl font-black uppercase tracking-wider text-white rounded-2xl border-b-[6px] active:border-b-0 active:translate-y-[6px] transition-all flex items-center justify-center gap-3 shadow-sm",
+                                    (isLoading || !languageLoaded) 
+                                        ? "bg-[#e5e5e5] border-[#d4d4d4] text-[#a3a3a3] cursor-not-allowed" 
+                                        : "bg-[#58CC02] hover:bg-[#46a302] border-[#46a302] cursor-pointer"
+                                )}
                             >
                                 {isLoading ? (
                                     <>
-                                        <Loader2 className="h-5 w-5 animate-spin" /> A gerar o teste...
+                                        <Loader2 className="h-7 w-7 animate-spin" /> A PREPARAR...
                                     </>
                                 ) : (
                                     <>
-                                        <Rocket className="h-5 w-5" /> Começar Teste
+                                        COMEÇAR TESTE <Rocket className="h-6 w-6 stroke-[3]" />
                                     </>
                                 )}
                             </button>
@@ -589,13 +653,13 @@ export default function EvaluationPage() {
                                         <GraduationCap className="h-5 w-5 text-emerald-600" />
                                     </div>
                                     <div>
-                                        <h2 className="font-bold text-slate-700">Fase 1: Gramática e Vocabulário</h2>
+                                        <h2 className="border-2 border-slate-200 rounded-full px-3 py-1 font-semibold text-xs text-slate-600 tracking-wide uppercase">Fase 1: Gramática / Vocabulário</h2>
                                         <p className="text-xs text-slate-400">
                                             Questão {questionsAnswered + 1} de {GRAMMAR_QUESTION_COUNT}
                                         </p>
                                     </div>
                                 </div>
-                                <div className={cn("px-3 py-1 rounded-full text-xs font-bold", `bg-gradient-to-r ${LEVEL_COLORS[currentLevel]} text-white`)}>
+                                <div className={cn("px-4 py-2 rounded-xl text-sm font-black border-2 border-b-4 shadow-sm", `bg-gradient-to-r ${LEVEL_COLORS[currentLevel]} border-blue-500 text-white`)}>
                                     {currentLevel}
                                 </div>
                             </div>
@@ -615,39 +679,48 @@ export default function EvaluationPage() {
                                 ))}
                             </div>
 
-                            <div className="bg-white rounded-2xl border-2 border-slate-100 p-6 shadow-sm mb-6">
+                            <div className="bg-white rounded-3xl border-2 border-b-8 border-slate-200 p-8 shadow-sm mb-6">
                                 <div className="text-xl font-bold text-slate-800 text-center leading-relaxed">
                                     <InteractiveText text={activeQuestion.question} language={targetLanguage} />
                                 </div>
                             </div>
 
-                            <div className="grid gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {activeQuestion.options.map((option, idx) => {
                                     const isSelected = selectedOption === idx;
                                     const isCorrectOption = option.is_correct;
-                                    let optionStyle = "border-slate-200 bg-white hover:border-sky-300 hover:bg-sky-50 active:scale-[0.98]";
+                                    
+                                    let optionStyle = "border-slate-200 border-b-[8px] bg-white hover:border-slate-300 active:translate-y-[6px] active:border-b-[2px] hover:bg-slate-50 text-slate-600";
+
+                                    if (isSelected) {
+                                        optionStyle = "border-[#1899D6] border-b-[#1899D6] bg-[#DDF4FF] text-[#1CB0F6] active:translate-y-[6px] active:border-b-[2px] ring-2 ring-[#1CB0F6]/20";
+                                    }
 
                                     if (showFeedback) {
-                                        if (isCorrectOption) optionStyle = "border-green-400 bg-green-50 ring-2 ring-green-200";
-                                        else if (isSelected && !isCorrectOption) optionStyle = "border-red-400 bg-red-50 ring-2 ring-red-200";
-                                        else optionStyle = "border-slate-100 bg-slate-50 opacity-50";
+                                        if (isCorrectOption) optionStyle = "border-[#58CC02] border-b-[#46A302] bg-[#D7FFB8] text-[#58CC02] scale-[1.02] shadow-xl z-10 border-b-[8px]";
+                                        else if (isSelected && !isCorrectOption) optionStyle = "border-[#EA2B2B] border-b-[#EA2B2B] bg-[#FFDFE0] text-[#EA2B2B] opacity-60 border-b-[8px]";
+                                        else optionStyle = "border-slate-200 bg-white opacity-40 scale-[0.96] border-b-[8px]";
                                     }
 
                                     return (
                                         <button
                                             key={idx}
-                                            onClick={() => handleGrammarAnswer(idx)}
+                                            onClick={() => handleGrammarSelect(idx)}
                                             disabled={showFeedback}
-                                            className={cn("w-full p-4 rounded-xl border-2 border-b-4 text-left font-medium text-slate-700 transition-all", optionStyle)}
+                                            className={cn("relative w-full p-5 sm:p-7 rounded-[2rem] border-2 text-left font-bold transition-all flex items-center gap-6 group outline-none", optionStyle)}
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-500 shrink-0">
-                                                    {String.fromCharCode(65 + idx)}
-                                                </span>
-                                                <span>{option.text}</span>
-                                                {showFeedback && isCorrectOption && <CheckCircle2 className="h-5 w-5 text-green-500 ml-auto shrink-0" />}
-                                                {showFeedback && isSelected && !isCorrectOption && <XCircle className="h-5 w-5 text-red-500 ml-auto shrink-0" />}
-                                            </div>
+                                            <span className={cn(
+                                                "shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-base sm:text-lg font-black border-2 border-b-[4px] transition-all group-active:border-b-[0px] group-active:translate-y-[4px]",
+                                                isSelected && !showFeedback ? "bg-[#1CB0F6] border-[#0092d6] text-white" : 
+                                                (showFeedback && isCorrectOption) ? "bg-green-500 border-green-600 text-white" :
+                                                (showFeedback && isSelected && !isCorrectOption) ? "bg-red-500 border-red-600 text-white" :
+                                                "bg-white border-slate-200 text-slate-400 group-hover:border-slate-300 group-hover:text-slate-500"
+                                            )}>
+                                                {String.fromCharCode(65 + idx)}
+                                            </span>
+                                            <span className="text-lg flex-1 leading-snug">{option.text}</span>
+                                            {showFeedback && isCorrectOption && <CheckCircle2 className="h-7 w-7 shrink-0 text-green-500 absolute right-4 drop-shadow-md" />}
+                                            {showFeedback && isSelected && !isCorrectOption && <XCircle className="h-7 w-7 shrink-0 text-red-500 absolute right-4 drop-shadow-md" />}
                                         </button>
                                     );
                                 })}
@@ -685,32 +758,42 @@ export default function EvaluationPage() {
                                 <InteractiveText text={currentReadingQ.question} language={targetLanguage} />
                             </div>
 
-                            <div className="grid gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {currentReadingQ.options.map((option, idx) => {
-                                    const isSelected = readingShowFeedback && readingAnswers.length > 0;
-                                    const lastAnswer = readingAnswers[readingAnswers.length - 1];
+                                    const isSelected = selectedOption === idx;
                                     const isCorrectOption = option.is_correct;
-                                    let optionStyle = "border-slate-200 bg-white hover:border-sky-300 hover:bg-sky-50 active:scale-[0.98]";
+                                    
+                                    let optionStyle = "border-slate-200 border-b-[8px] bg-white hover:border-slate-300 active:translate-y-[6px] active:border-b-[2px] hover:bg-slate-50 text-slate-600";
+
+                                    if (isSelected) {
+                                        optionStyle = "border-[#1899D6] border-b-[#1899D6] bg-[#DDF4FF] text-[#1CB0F6] active:translate-y-[6px] active:border-b-[2px] ring-2 ring-[#1CB0F6]/20";
+                                    }
 
                                     if (readingShowFeedback) {
-                                        if (isCorrectOption) optionStyle = "border-green-400 bg-green-50 ring-2 ring-green-200";
-                                        else optionStyle = "border-slate-100 bg-slate-50 opacity-50";
+                                        if (isCorrectOption) optionStyle = "border-[#58CC02] border-b-[#46A302] bg-[#D7FFB8] text-[#58CC02] scale-[1.02] shadow-xl z-10 border-b-[8px]";
+                                        else if (isSelected && !isCorrectOption) optionStyle = "border-[#EA2B2B] border-b-[#EA2B2B] bg-[#FFDFE0] text-[#EA2B2B] opacity-60 border-b-[8px]";
+                                        else optionStyle = "border-slate-200 bg-white opacity-40 scale-[0.96] border-b-[8px]";
                                     }
 
                                     return (
                                         <button
                                             key={idx}
-                                            onClick={() => handleReadingAnswer(idx)}
+                                            onClick={() => handleReadingSelect(idx)}
                                             disabled={readingShowFeedback}
-                                            className={cn("w-full p-4 rounded-xl border-2 border-b-4 text-left font-medium text-slate-700 transition-all", optionStyle)}
+                                            className={cn("relative w-full p-5 sm:p-7 rounded-[2rem] border-2 text-left font-bold transition-all flex items-center gap-6 group outline-none", optionStyle)}
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-500 shrink-0">
-                                                    {String.fromCharCode(65 + idx)}
-                                                </span>
-                                                <span>{option.text}</span>
-                                                {readingShowFeedback && isCorrectOption && <CheckCircle2 className="h-5 w-5 text-green-500 ml-auto shrink-0" />}
-                                            </div>
+                                            <span className={cn(
+                                                "shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-base sm:text-lg font-black border-2 border-b-[4px] transition-all group-active:border-b-[0px] group-active:translate-y-[4px]",
+                                                isSelected && !readingShowFeedback ? "bg-[#1CB0F6] border-[#0092d6] text-white" : 
+                                                (readingShowFeedback && isCorrectOption) ? "bg-green-500 border-green-600 text-white" :
+                                                (readingShowFeedback && isSelected && !isCorrectOption) ? "bg-red-500 border-red-600 text-white" :
+                                                "bg-white border-slate-200 text-slate-400 group-hover:border-slate-300 group-hover:text-slate-500"
+                                            )}>
+                                                {String.fromCharCode(65 + idx)}
+                                            </span>
+                                            <span className="text-lg flex-1 leading-snug">{option.text}</span>
+                                            {readingShowFeedback && isCorrectOption && <CheckCircle2 className="h-7 w-7 shrink-0 text-green-500 absolute right-4 drop-shadow-md" />}
+                                            {readingShowFeedback && isSelected && !isCorrectOption && <XCircle className="h-7 w-7 shrink-0 text-red-500 absolute right-4 drop-shadow-md" />}
                                         </button>
                                     );
                                 })}
@@ -768,30 +851,42 @@ export default function EvaluationPage() {
                                 <InteractiveText text={currentListeningQ.question} language={targetLanguage} />
                             </div>
 
-                            <div className="grid gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {currentListeningQ.options.map((option, idx) => {
+                                    const isSelected = selectedOption === idx;
                                     const isCorrectOption = option.is_correct;
-                                    let optionStyle = "border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50 active:scale-[0.98]";
+                                    
+                                    let optionStyle = "border-slate-200 border-b-[8px] bg-white hover:border-slate-300 active:translate-y-[6px] active:border-b-[2px] hover:bg-slate-50 text-slate-600";
+
+                                    if (isSelected) {
+                                        optionStyle = "border-[#1899D6] border-b-[#1899D6] bg-[#DDF4FF] text-[#1CB0F6] active:translate-y-[6px] active:border-b-[2px] ring-2 ring-[#1CB0F6]/20";
+                                    }
 
                                     if (listeningShowFeedback) {
-                                        if (isCorrectOption) optionStyle = "border-green-400 bg-green-50 ring-2 ring-green-200";
-                                        else optionStyle = "border-slate-100 bg-slate-50 opacity-50";
+                                        if (isCorrectOption) optionStyle = "border-[#58CC02] border-b-[#46A302] bg-[#D7FFB8] text-[#58CC02] scale-[1.02] shadow-xl z-10 border-b-[8px]";
+                                        else if (isSelected && !isCorrectOption) optionStyle = "border-[#EA2B2B] border-b-[#EA2B2B] bg-[#FFDFE0] text-[#EA2B2B] opacity-60 border-b-[8px]";
+                                        else optionStyle = "border-slate-200 bg-white opacity-40 scale-[0.96] border-b-[8px]";
                                     }
 
                                     return (
                                         <button
                                             key={idx}
-                                            onClick={() => handleListeningAnswer(idx)}
+                                            onClick={() => handleListeningSelect(idx)}
                                             disabled={listeningShowFeedback}
-                                            className={cn("w-full p-4 rounded-xl border-2 border-b-4 text-left font-medium text-slate-700 transition-all", optionStyle)}
+                                            className={cn("relative w-full p-5 sm:p-7 rounded-[2rem] border-2 text-left font-bold transition-all flex items-center gap-6 group outline-none", optionStyle)}
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-500 shrink-0">
-                                                    {String.fromCharCode(65 + idx)}
-                                                </span>
-                                                <span>{option.text}</span>
-                                                {listeningShowFeedback && isCorrectOption && <CheckCircle2 className="h-5 w-5 text-green-500 ml-auto shrink-0" />}
-                                            </div>
+                                            <span className={cn(
+                                                "shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-base sm:text-lg font-black border-2 border-b-[4px] transition-all group-active:border-b-[0px] group-active:translate-y-[4px]",
+                                                isSelected && !listeningShowFeedback ? "bg-[#1CB0F6] border-[#0092d6] text-white" : 
+                                                (listeningShowFeedback && isCorrectOption) ? "bg-green-500 border-green-600 text-white" :
+                                                (listeningShowFeedback && isSelected && !isCorrectOption) ? "bg-red-500 border-red-600 text-white" :
+                                                "bg-white border-slate-200 text-slate-400 group-hover:border-slate-300 group-hover:text-slate-500"
+                                            )}>
+                                                {String.fromCharCode(65 + idx)}
+                                            </span>
+                                            <span className="text-lg flex-1 leading-snug">{option.text}</span>
+                                            {listeningShowFeedback && isCorrectOption && <CheckCircle2 className="h-7 w-7 shrink-0 text-green-500 absolute right-4 drop-shadow-md" />}
+                                            {listeningShowFeedback && isSelected && !isCorrectOption && <XCircle className="h-7 w-7 shrink-0 text-red-500 absolute right-4 drop-shadow-md" />}
                                         </button>
                                     );
                                 })}
@@ -927,8 +1022,34 @@ export default function EvaluationPage() {
                             </div>
                         </div>
                     )}
+                                            {/* Massive Spacer to Guarantee Scroll clearance */}
+                            <div className="h-48 sm:h-64 w-full shrink-0 pointer-events-none" />
+                        </div>
+                    </div>
+
+                    {/* ====================== VERIFY BUTTON ====================== */}
+            {!feedbackActive && (phase === "grammar" || phase === "reading" || phase === "listening") && (
+                <div className="fixed bottom-0 left-0 right-0 p-5 sm:p-8 pt-6 bg-white border-t-2 border-slate-200 z-40 shadow-[0_-20px_30px_rgba(0,0,0,0.03)]">
+                    <div className="max-w-2xl mx-auto flex justify-center">
+                        <button
+                            onClick={() => {
+                                if (phase === "grammar") handleGrammarVerify();
+                                else if (phase === "reading") handleReadingVerify();
+                                else if (phase === "listening") handleListeningVerify();
+                            }}
+                            disabled={selectedOption === null}
+                            className={cn(
+                                "w-full py-5 rounded-[1.5rem] font-black text-white text-xl tracking-wider uppercase transition-all duration-150",
+                                selectedOption !== null 
+                                    ? "bg-[#58CC02] hover:bg-[#46a302] border-b-[8px] border-[#46a302] active:translate-y-[8px] active:border-b-0 shadow-sm" 
+                                    : "bg-[#E5E5E5] text-[#AFAFAF] border-b-[8px] border-[#d4d4d4] pointer-events-none"
+                            )}
+                        >
+                            Verificar
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* ====================== FEEDBACK BAR ====================== */}
             {feedbackActive && (
@@ -949,7 +1070,7 @@ export default function EvaluationPage() {
                         </div>
                         <button
                             onClick={handleContinue}
-                            className={cn("shrink-0 px-6 py-3 rounded-2xl font-extrabold text-white shadow-md border-b-4 transition-all hover:scale-[1.03] active:scale-[0.97] active:border-b-2", feedbackIsCorrect ? "bg-green-500 border-green-700 hover:bg-green-600" : "bg-red-500 border-red-700 hover:bg-red-600")}
+                            className={cn("w-full sm:w-auto px-8 py-4 sm:py-5 rounded-2xl font-black text-xl text-white outline-none active:translate-y-[6px] active:border-b-0 uppercase tracking-widest transition-all", feedbackIsCorrect ? "bg-[#58CC02] border-b-[6px] border-[#46a302]" : "bg-[#EA2B2B] border-b-[6px] border-[#cb2222]")}
                         >
                             Continuar <span className="hidden sm:inline text-xs ml-1 opacity-70">↵</span>
                         </button>

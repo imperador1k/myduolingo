@@ -8,7 +8,7 @@
 html,
 body,
 :root {
-  @apply h-full;
+  min-height: 100vh;
   font-family: 'Nunito', sans-serif;
 }
 
@@ -288,4 +288,8 @@ body,
   background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
   z-index: 0;
   pointer-events: none;
+}
+@keyframes pushScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(24px); }
 }
