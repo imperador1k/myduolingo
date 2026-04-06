@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { UnitSearchModal } from "@/components/modals/unit-search-modal";
 import Link from "next/link";
 import Image from "next/image";
 import { getUnits, getUserProgress, getCourses } from "@/db/queries";
@@ -180,8 +181,16 @@ export default async function LearnPage() {
     const progressPct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
     const streak = userProgress.streak || 0;
 
+    const searchableUnits = processedUnits.map(u => ({
+        id: u.id,
+        title: u.title,
+        order: u.order
+    }));
+
     return (
         <>
+            <UnitSearchModal units={searchableUnits} />
+            
             {/* V2 Abstract Ambient Backgrounds */}
             <div className="absolute bg-shape w-[1000px] h-[1000px] -top-[200px] -left-[200px] opacity-70 -z-10 pointer-events-none mix-blend-overlay"></div>
             <div className="absolute bg-shape w-[800px] h-[800px] bottom-[-200px] right-[-100px] opacity-50 -z-10 pointer-events-none mix-blend-overlay"></div>
@@ -209,13 +218,13 @@ export default async function LearnPage() {
                     </div>
 
                     {/* Atmospheric Bottom Fade Overlay */}
-                    <div className="fixed bottom-0 left-0 lg:left-[256px] right-0 h-48 bg-gradient-to-t from-[#f3f6f8] via-[#f3f6f8]/90 to-transparent pointer-events-none z-40 flex items-end justify-center pb-6">
+                    <div className="fixed bottom-0 left-0 lg:left-[88px] right-0 h-48 bg-gradient-to-t from-[#f3f6f8] via-[#f3f6f8]/90 to-transparent pointer-events-none z-40 flex items-end justify-center pb-6">
                         <div className="bg-white/60 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-white/50 shadow-sm flex items-center gap-2">
                             <span className="text-xs font-bold text-slate-400">Pressiona</span>
-                            <kbd className="px-2 py-1 bg-white border-2 border-slate-200 border-b-4 rounded-lg text-xs font-black text-slate-500">CMD</kbd>
+                            <kbd className="px-2 py-1 bg-white border-2 border-slate-200 border-b-4 rounded-lg text-xs font-black text-slate-500">CTRL</kbd>
                             <span className="text-xs font-bold text-slate-400">+</span>
-                            <kbd className="px-2 py-1 bg-white border-2 border-slate-200 border-b-4 rounded-lg text-xs font-black text-slate-500">K</kbd>
-                            <span className="text-xs font-bold text-slate-400 ml-1">para explorar</span>
+                            <kbd className="px-2 py-1 bg-white border-2 border-slate-200 border-b-4 rounded-lg text-xs font-black text-slate-500">M</kbd>
+                            <span className="text-xs font-bold text-slate-400 ml-1">Para Navegar</span>
                         </div>
                     </div>
                 </div>

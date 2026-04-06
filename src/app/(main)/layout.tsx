@@ -20,14 +20,11 @@ export default async function MainLayout({ children }: Props) {
         <div className="flex h-screen overflow-hidden bg-[#f3f6f8]">
             <MobileHeader />
             
-            {/* Locked Sidebar Wrapper */}
-            <div className="hidden lg:flex w-[256px] h-full border-r border-gray-200 bg-white flex-shrink-0 z-20">
-                <Sidebar 
-                    className="w-full h-full border-none" 
-                    notificationCount={unreadNotifications} 
-                    unreadMessageCount={unreadMessages} 
-                />
-            </div>
+            {/* Sidebar handling its own flexible width state now */}
+            <Sidebar 
+                notificationCount={unreadNotifications} 
+                unreadMessageCount={unreadMessages} 
+            />
             
             {/* Independent Scrolling Main Area */}
             <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative lg:pt-0 z-10">

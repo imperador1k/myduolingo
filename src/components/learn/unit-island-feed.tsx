@@ -34,7 +34,7 @@ export const UnitIslandFeed = ({ processedUnits, noHearts }: { processedUnits: U
         <>
             <div className="relative w-full flex flex-col items-center gap-12 sm:gap-16 pb-0">
                 {processedUnits.map((unit: Unit, unitIndex: number) => (
-                    <div key={unit.id} className="relative w-full flex flex-col items-center">
+                    <div id={`unit-${unit.id}`} key={unit.id} className="relative w-full flex flex-col items-center scroll-mt-24">
                         <UnitCardIsland
                             unitIndex={unitIndex}
                             unitTitle={unit.title}
