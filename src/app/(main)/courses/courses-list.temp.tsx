@@ -7,7 +7,13 @@ import { cn } from "@/lib/utils";
 import { onSelectCourse } from "@/actions/user-progress";
 import { updateCourseDetails } from "@/actions/courses";
 import { toast } from "sonner";
-
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 type Course = {
     id: number;
@@ -188,3 +194,4 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
         </div>
     );
 };
+
