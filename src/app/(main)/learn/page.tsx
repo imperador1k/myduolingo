@@ -131,6 +131,8 @@ const DesktopSidebar = ({
                     </div>
                 </Link>
 
+                {/* Mock Admin / Elite Stats removed completely per user request */}
+
             </div>
         </div>
     );
@@ -181,12 +183,12 @@ export default async function LearnPage() {
     return (
         <>
             {/* V2 Abstract Ambient Backgrounds */}
-            <div className="absolute bg-shape w-[800px] h-[800px] -top-[200px] -left-[200px] opacity-60 -z-10 pointer-events-none"></div>
-            <div className="absolute bg-shape w-[600px] h-[600px] bottom-[-200px] right-[-100px] opacity-40 -z-10 pointer-events-none"></div>
+            <div className="absolute bg-shape w-[1000px] h-[1000px] -top-[200px] -left-[200px] opacity-70 -z-10 pointer-events-none mix-blend-overlay"></div>
+            <div className="absolute bg-shape w-[800px] h-[800px] bottom-[-200px] right-[-100px] opacity-50 -z-10 pointer-events-none mix-blend-overlay"></div>
             
-            <div className="flex flex-col-reverse lg:flex-row gap-6 lg:gap-[48px] px-4 lg:px-6 pb-28 lg:pb-8 w-full max-w-[1056px] mx-auto">
+            <div className="flex flex-col-reverse lg:flex-row gap-6 lg:gap-[48px] px-4 lg:px-6 pb-6 w-full max-w-[1056px] mx-auto z-10 relative">
                 {/* ── Main Column (The Feed/Island World) ── */}
-                <div className="flex-1 w-full relative overflow-x-hidden pb-10">
+                <div className="flex-1 w-full relative overflow-x-hidden pb-0 mt-8">
                     <div className="flex flex-col gap-8 lg:gap-12 items-center w-full">
 
 
@@ -207,7 +209,15 @@ export default async function LearnPage() {
                     </div>
 
                     {/* Atmospheric Bottom Fade Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#f3f6f8] via-[#f3f6f8]/80 to-transparent pointer-events-none z-50" />
+                    <div className="fixed bottom-0 left-0 lg:left-[256px] right-0 h-48 bg-gradient-to-t from-[#f3f6f8] via-[#f3f6f8]/90 to-transparent pointer-events-none z-40 flex items-end justify-center pb-6">
+                        <div className="bg-white/60 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-white/50 shadow-sm flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-400">Pressiona</span>
+                            <kbd className="px-2 py-1 bg-white border-2 border-slate-200 border-b-4 rounded-lg text-xs font-black text-slate-500">CMD</kbd>
+                            <span className="text-xs font-bold text-slate-400">+</span>
+                            <kbd className="px-2 py-1 bg-white border-2 border-slate-200 border-b-4 rounded-lg text-xs font-black text-slate-500">K</kbd>
+                            <span className="text-xs font-bold text-slate-400 ml-1">para explorar</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* ── Desktop Sidebar ── */}

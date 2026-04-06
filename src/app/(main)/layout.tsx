@@ -31,7 +31,7 @@ export default async function MainLayout({ children }: Props) {
             
             {/* Independent Scrolling Main Area */}
             <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative lg:pt-0 z-10">
-                <div className="max-w-[1056px] mx-auto pt-6 px-6 pb-48 lg:pb-8 relative min-h-full">
+                <div className="max-w-[1056px] mx-auto pt-6 px-6 pb-24 lg:pb-8 relative min-h-full">
                     {children}
                 </div>
             </main>

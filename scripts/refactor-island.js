@@ -1,54 +1,12 @@
-import { Cat, Mic, Pencil, Book, Leaf, Check, Lock, Star, Crown } from 'lucide-react';
-import { cn } from "@/lib/utils";
-import Link from 'next/link';
+const fs = require('fs');
 
-interface Challenge {
-    id: number;
-    challengeProgress?: { completed: boolean }[];
-}
+let code = fs.readFileSync('src/components/shared/unit-card-island.tsx', 'utf8');
 
-interface Lesson {
-    id: number;
-    title: string;
-    completed: boolean;
-    isCurrent: boolean;
-    isLocked: boolean;
-    challenges?: Challenge[];
-}
+// We need to replace the UnitCardIsland function body
+// Let's find: `export function UnitCardIsland({` and the end of the file.
 
-interface LessonInfo {
-    id: number;
-    title: string;
-    unitTitle: string;
-    challengeCount: number;
-    completedCount: number;
-    xpReward: number;
-}
-
-interface UnitCardIslandProps {
-    unitIndex: number;
-    unitTitle: string;
-    title: string;
-    description: string;
-    lessons: Lesson[];
-    isActive: boolean;
-    isCompleted: boolean;
-    align: 'left' | 'right';
-    noHearts: boolean;
-    onLessonClick: (lessonInfo: LessonInfo) => void;
-}
-
-const NODE_POSITIONS = [
-    { left: "8%", top: "25%" },
-    { left: "33%", top: "65%" },
-    { left: "58%", top: "25%" },
-    { right: "8%", top: "15%" },
-    { right: "15%", top: "80%" },
-];
-
-const ICONS = [Mic, Pencil, Book, Star];
-
-export function UnitCardIsland({ 
+const functionStart = `export function UnitCardIsland({`;
+const newFunction = `export function UnitCardIsland({ 
     unitIndex, unitTitle, title, description, lessons, 
     isActive, isCompleted, align, noHearts, onLessonClick 
 }: UnitCardIslandProps) {
@@ -75,44 +33,36 @@ export function UnitCardIsland({
         const leftPercent = 50 + Math.sin(index * 0.8) * 20; // 20% swing from center
         
         return {
-            left: `${leftPercent}%`,
-            top: `${topPercent}%`
+            left: \`\${leftPercent}%\`,
+            top: \`\${topPercent}%\`
         };
     };
 
     // Calculate dynamic container height based on total nodes to ensure they don't overlap
-    // Added +100 to base height to accommodate the COMEÇAR bubble on the first node
-    const containerHeight = Math.max(lessons.length * 150 + 100, 450);
+    const containerHeight = Math.max(lessons.length * 150, 400);
 
     return (
         <div 
             className={cn(
-                "w-full relative flex flex-col items-center pb-20 sm:pb-24 transition-colors duration-500 rounded-[32px] shadow-inner mb-6",
+                "w-full relative flex flex-col items-center pt-12 sm:pt-16 pb-20 sm:pb-24 transition-colors duration-500",
                 isLockedUnit ? "opacity-75 grayscale sepia-[.3]" : ""
             )}
-            style={{ 
-                background: `linear-gradient(180deg, ${theme.bg}80 0%, ${theme.bg}20 100%)`, 
-                backgroundColor: theme.bg // base fallback
-            }}
+            style={{ backgroundColor: theme.bg }}
         >
-            {/* The Vibrant Banner */}
-            <div 
-                className={cn(
-                    "w-full px-6 sm:px-12 py-6 sm:py-8 mb-4 z-10 flex flex-col items-start text-left rounded-t-[32px] rounded-b-[16px] shadow-md border-b-4",
-                    align === 'right' ? "items-end text-right" : "items-start text-left"
-                )}
-                style={{ backgroundColor: theme.text, borderColor: theme.dark }}
-            >
-                <div className="flex items-center gap-3 mb-2">
-                    <span 
-                        className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full bg-white/20 text-white shadow-sm"
-                    >
-                        Capítulo {unitIndex + 1}
-                    </span>
-                </div>
+            {/* Integrated Full-Bleed Header */}
+            <div className={cn(
+                "w-full max-w-[800px] px-6 sm:px-12 mb-10 z-10",
+                align === 'right' ? "text-right" : "text-left"
+            )}>
+                <h2 
+                    className="text-sm sm:text-base font-black mb-3 tracking-[0.25em] uppercase opacity-80"
+                    style={{ color: theme.dark }}
+                >
+                    Capítulo {unitIndex + 1}
+                </h2>
                 <h3 
-                    className="text-3xl sm:text-4xl font-black leading-tight tracking-tight text-white drop-shadow-md max-w-[80%]"
-                    style={{ textShadow: `0 2px 4px ${theme.dark}80` }}
+                    className="text-3xl sm:text-4xl font-black leading-tight tracking-tight drop-shadow-sm"
+                    style={{ color: theme.text }}
                 >
                     {title}
                 </h3>
@@ -120,17 +70,21 @@ export function UnitCardIsland({
 
             {/* The Path Container */}
             <div 
-                className="relative w-full max-w-[800px] mx-auto mt-16 sm:mt-24"
+                className="relative w-full max-w-[800px] mx-auto"
                 style={{
-                    minHeight: `${containerHeight}px`,
+                    minHeight: \`\${containerHeight}px\`,
                 }}
             >
-                {/* The Recessed Track (Line) */}
+                {/* Subtle Dashed Center Trail (z-0) */}
                 <div className="absolute inset-0 pointer-events-none flex justify-center z-0">
-                    <div 
-                        className="h-full w-0 border-l-[8px] border-dashed"
-                        style={{ borderColor: `${theme.dark}40` }}
-                    />
+                    <svg width="12" height="100%">
+                        <line x1="6" y1="0" x2="6" y2="100%" 
+                            stroke={theme.trail} 
+                            strokeWidth="6" 
+                            strokeDasharray="16 16" 
+                            strokeLinecap="round" 
+                        />
+                    </svg>
                 </div>
 
                 {/* Interactive Nodes Overlay (z-10) */}
@@ -153,7 +107,7 @@ export function UnitCardIsland({
                         return (
                             <div 
                                 key={lesson.id}
-                                className="absolute z-20 pointer-events-auto animate-in fade-in zoom-in duration-500 delay-100"
+                                className="absolute z-20 pointer-events-auto"
                                 style={{
                                     left: pos.left, top: pos.top,
                                     transform: "translate(-50%, -50%)", 
@@ -163,21 +117,29 @@ export function UnitCardIsland({
                                 {lesson.isCurrent && (
                                     <div className="relative group cursor-pointer z-40 flex flex-col items-center justify-center">
                                         
-                                        {/* Massive COMEÇAR Directional Bubble */}
+                                        {/* Accessory Stack (Centered above the node) */}
                                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 flex flex-col items-center mb-2 pointer-events-none">
+                                            
+                                            {/* Massive COMEÇAR Directional Bubble */}
                                             {!noHearts && (
                                                 <div 
-                                                    className="relative flex bg-white font-black text-[#58CC02] text-sm uppercase tracking-wider px-6 py-4 rounded-2xl border-2 border-stone-200 border-b-[6px] shadow-lg transition-transform hover:scale-105 active:scale-95 animate-bounce z-50 whitespace-nowrap mb-6 pointer-events-auto cursor-pointer"
+                                                    className="relative flex bg-white font-black text-sm uppercase tracking-[0.15em] px-6 py-4 rounded-2xl shadow-[0_10px_20px_rgba(0,0,0,0.15)] border-2 border-slate-200 transition-transform hover:scale-105 active:scale-95 animate-bounce z-50 whitespace-nowrap mb-6 pointer-events-auto cursor-pointer"
+                                                    style={{ color: theme.text }}
                                                 >
                                                     COMEÇAR
-                                                    {/* CSS Triangle Tail */}
-                                                    <div className="absolute -bottom-[12px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-[12px] border-x-transparent border-t-[12px] border-t-stone-200"></div>
-                                                    <div className="absolute -bottom-[8px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-[10px] border-x-transparent border-t-[10px] border-t-white"></div>
+                                                    {/* Pointer Tail */}
+                                                    <div className="absolute -bottom-[10px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-[10px] border-x-transparent border-t-[10px] border-t-slate-200"></div>
+                                                    <div className="absolute -bottom-[8px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-[8px] border-x-transparent border-t-[8px] border-t-white"></div>
                                                 </div>
                                             )}
+
+                                            {/* Golden Crown */}
+                                            <div className="z-40 -mb-6">
+                                                 <Crown className="w-9 h-9 text-amber-400 fill-amber-300 drop-shadow-md" strokeWidth={2} />
+                                            </div>
                                         </div>
                                         
-                                        {/* Physical Active Node Button - Golden Jewel */}
+                                        {/* Physical Active Node Button */}
                                         <div 
                                             onClick={() => !noHearts && onLessonClick({
                                                 id: lesson.id, title: lesson.title, unitTitle,
@@ -185,10 +147,11 @@ export function UnitCardIsland({
                                                 completedCount: lesson.challenges?.filter(c => c.challengeProgress?.some(p => p.completed)).length || 0,
                                                 xpReward: (lesson.challenges?.length || 0) * 10
                                             })}
-                                            className="w-[84px] h-[84px] sm:w-[96px] sm:h-[96px] bg-yellow-400 rounded-full border-4 border-yellow-500 border-b-[10px] border-b-yellow-600 shadow-[0_10px_20px_rgba(250,204,21,0.5)] ring-4 ring-yellow-400/50 flex flex-col items-center justify-center hover:-translate-y-2 hover:scale-105 active:scale-95 active:translate-y-2 active:border-b-[4px] transition-all relative z-20 mx-auto"
+                                            className="w-[84px] h-[84px] sm:w-[96px] sm:h-[96px] bg-white rounded-full border-4 border-b-[12px] shadow-[0_15px_20px_-5px_rgba(0,0,0,0.2)] flex flex-col items-center justify-center hover:-translate-y-2 hover:scale-105 active:scale-95 active:translate-y-2 active:border-b-[4px] transition-all relative z-20 mx-auto"
+                                            style={{ borderColor: theme.dark }}
                                         >
-                                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center relative z-10">
-                                                <IconComponent className="w-7 h-7 sm:w-9 sm:h-9 text-white drop-shadow-sm" strokeWidth={3} fill="currentColor" />
+                                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-inner border-2" style={{ backgroundColor: theme.bg, borderColor: theme.dark }}>
+                                                <IconComponent className="w-7 h-7 sm:w-8 sm:h-8" fill="currentColor" style={{ color: theme.dark }} />
                                             </div>
                                         </div>
 
@@ -197,7 +160,7 @@ export function UnitCardIsland({
                                             {/* Active Node XP Floating Text */}
                                             <div className="opacity-100 group-hover:translate-y-1 transition-transform z-30 pointer-events-auto">
                                                 <div 
-                                                    className="bg-white px-3 py-1.5 rounded-2xl text-[11px] font-black tracking-widest uppercase shadow-md flex items-center gap-1.5 border-2 border-stone-200 whitespace-nowrap cursor-default"
+                                                    className="bg-white px-3 py-1.5 rounded-2xl text-[11px] font-black tracking-widest uppercase shadow-md flex items-center gap-1.5 border-2 border-slate-200 whitespace-nowrap cursor-default"
                                                     style={{ color: theme.text }}
                                                 >
                                                     <Leaf className="w-3.5 h-3.5" fill="currentColor" style={{ color: theme.text }} /> +10 XP
@@ -207,7 +170,7 @@ export function UnitCardIsland({
                                     </div>
                                 )}
 
-                                {/* Completed Node - Fully pressed down */}
+                                {/* Completed Node */}
                                 {lesson.completed && !lesson.isCurrent && (
                                     <div className="relative group cursor-pointer z-20 flex flex-col items-center">
                                         <div 
@@ -217,7 +180,7 @@ export function UnitCardIsland({
                                                 completedCount: lesson.challenges?.filter(c => c.challengeProgress?.some(p => p.completed)).length || 0,
                                                 xpReward: (lesson.challenges?.length || 0) * 10
                                             })}
-                                            className="w-[64px] h-[64px] sm:w-[72px] sm:h-[72px] rounded-full border-4 border-b-2 shadow-sm flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all"
+                                            className="w-[72px] h-[72px] sm:w-[84px] sm:h-[84px] rounded-full border-4 border-b-[8px] shadow-lg flex flex-col items-center justify-center hover:-translate-y-1 hover:scale-105 active:scale-95 active:translate-y-1 active:border-b-4 transition-all"
                                             style={{ backgroundColor: theme.text, borderColor: theme.dark }}
                                         >
                                             <Check className="text-white w-8 h-8 sm:w-10 sm:h-10 drop-shadow-sm" strokeWidth={5} />
@@ -225,10 +188,10 @@ export function UnitCardIsland({
                                     </div>
                                 )}
 
-                                {/* Locked Node - Polished Stone */}
+                                {/* Locked Node */}
                                 {lesson.isLocked && !isLockedUnit && !lesson.isCurrent && !lesson.completed && (
-                                    <div className="w-[64px] h-[64px] sm:w-[72px] sm:h-[72px] bg-stone-200 rounded-full border-4 border-white shadow-sm border-b-[6px] border-b-stone-300 flex flex-col items-center justify-center cursor-not-allowed">
-                                        <IconComponent className="text-stone-400 w-6 h-6 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={3} fill="currentColor" />
+                                    <div className="w-[72px] h-[72px] sm:w-[84px] sm:h-[84px] bg-slate-200 rounded-full border-4 border-slate-300 border-b-[8px] flex flex-col items-center justify-center opacity-90 cursor-not-allowed">
+                                        <IconComponent className="text-slate-400 w-7 h-7 sm:w-9 sm:h-9" fill="currentColor" />
                                     </div>
                                 )}
                             </div>
@@ -238,4 +201,10 @@ export function UnitCardIsland({
             </div>
         </div>
     );
-}
+}`;
+
+const idx = code.indexOf(functionStart);
+const head = code.slice(0, idx);
+
+fs.writeFileSync('src/components/shared/unit-card-island.tsx', head + newFunction);
+console.log('LEARN ISLAND REFACTORED TO MODERN FLAT UI!');
