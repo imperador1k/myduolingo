@@ -58,10 +58,11 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
 
     // Generate Multiple Choice Options
     useEffect(() => {
-        if (!currentCard) return;
+        const card = deck[currentIndex];
+        if (!card) return;
         
-        const answer = currentCard.translation;
-        const others = words.filter(c => c.translation !== answer).map(c => c.translation);
+        const answer = card.translation;
+        const others = deck.filter(c => c.translation !== answer).map(c => c.translation);
         
         // Shuffle and pick up to 3 distractors
         const shuffledOthers = [...others].sort(() => 0.5 - Math.random());
@@ -84,7 +85,9 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
         setIsRevealed(false);
         setFeedback('idle');
         setSelectedOption(null);
-    }, [currentIndex, currentCard, words]);
+        
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentIndex]);
 
     const animateAndNext = useCallback(
         (direction: "left" | "right") => {
@@ -131,21 +134,11 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
             startTransition(async () => {
                 try { await updateWordStrength(currentCard.id, false); } catch {}
             });
-
-            setTimeout(() => {
-                animateAndNext("left");
-                setTimeout(() => {
-                    setDeck((prev) => {
-                        const newDeck = [...prev];
-                        const card = newDeck[currentIndex];
-                        newDeck.push(card);
-                        return newDeck;
-                    });
-                    setCurrentIndex((prev) => prev + 1);
-                }, 300);
-            }, 3000); // Wait longer so they can read the explanation
+            
+            // Note: We deliberately do NOT auto-advance here. 
+            // The user must manually click 'CONTINUAR' to read the explanation and proceed.
         }
-    }, [currentCard, currentIndex, deck.length, feedback, playReward, playWhoosh, startTransition, animateAndNext]);
+    }, [currentCard, feedback, playReward, playWhoosh, startTransition, animateAndNext, deck.length, currentIndex]);
 
     const handleGetHint = async () => {
         if (!currentCard || isLoadingHint) return;
@@ -406,6 +399,7 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
 
                             <button
                                 onClick={() => {
+                                    if (slideDirection) return; // Prevent double clicks
                                     animateAndNext("left");
                                     setTimeout(() => {
                                         setDeck((prev) => {
@@ -417,8 +411,8 @@ export const VocabularySprint = ({ words, language }: VocabularySprintProps) => 
                                         setCurrentIndex((prev) => prev + 1);
                                     }, 300);
                                 }}
-                                disabled={isPending}
-                                className="w-full mt-6 flex flex-col items-center justify-center gap-1 font-black text-xl px-8 py-5 rounded-[24px] bg-[#1CB0F6] text-white border-2 border-transparent border-b-[6px] border-b-[#0092d6] shadow-sm hover:translate-y-[2px] hover:border-b-[4px] active:translate-y-[6px] active:border-b-0 transition-all duration-150"
+                                disabled={isPending || slideDirection !== null}
+                                className="w-full mt-6 flex flex-col items-center justify-center gap-1 font-black text-xl px-8 py-5 rounded-[24px] bg-[#1CB0F6] text-white border-2 border-transparent border-b-[6px] border-b-[#0092d6] shadow-sm hover:translate-y-[2px] hover:border-b-[4px] active:translate-y-[6px] active:border-b-0 transition-all duration-150 disabled:opacity-70 disabled:pointer-events-none"
                             >
                                 CONTINUAR
                             </button>

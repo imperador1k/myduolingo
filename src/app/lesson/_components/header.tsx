@@ -3,25 +3,27 @@ import { cn } from "@/lib/utils";
 
 const ProgressBar = ({ value }: { value: number }) => {
     return (
-        <div className="h-4 w-full rounded-full bg-slate-200">
+        <div className="h-5 w-full rounded-full bg-stone-200 relative overflow-hidden">
             <div
-                className="h-full rounded-full bg-green-500 transition-all duration-300"
+                className="absolute top-0 left-0 h-full rounded-full bg-[#58CC02] transition-all duration-300"
                 style={{ width: `${value}%` }}
-            />
+            >
+                <div className="absolute top-1 left-2 right-2 h-1.5 rounded-full bg-white/25" />
+            </div>
         </div>
     );
 };
 
 const Hearts = ({ hearts }: { hearts: number }) => {
     return (
-        <div className="flex items-center gap-x-1">
+        <div className="flex items-center gap-2 bg-white border-2 border-stone-200 border-b-4 rounded-xl px-4 py-2 font-bold text-rose-500">
             <Heart
                 className={cn(
                     "h-6 w-6",
-                    hearts > 0 ? "fill-rose-500 text-rose-500" : "text-slate-300"
+                    hearts > 0 ? "fill-rose-500 text-rose-500" : "text-stone-300"
                 )}
             />
-            <span className="font-bold text-rose-500">{hearts}</span>
+            <span>{hearts}</span>
         </div>
     );
 };
@@ -69,16 +71,16 @@ export const LessonHeader = ({
                 </button>
 
                 {xpBoostLessons > 0 && (
-                    <div className="flex items-center gap-2 rounded-xl border-2 border-purple-200 bg-purple-100 px-4 py-2 text-purple-600">
+                    <div className="flex items-center gap-2 bg-white border-2 border-stone-200 border-b-4 rounded-xl px-4 py-2 font-bold text-purple-600">
                         <Zap className="h-5 w-5 fill-current" />
-                        <span className="font-bold">{xpBoostLessons}</span>
+                        <span>{xpBoostLessons}</span>
                     </div>
                 )}
 
                 {heartShields > 0 && (
-                    <div className="flex items-center gap-2 rounded-xl border-2 border-sky-200 bg-sky-100 px-4 py-2 text-sky-600">
+                    <div className="flex items-center gap-2 bg-white border-2 border-stone-200 border-b-4 rounded-xl px-4 py-2 font-bold text-sky-600">
                         <Shield className="h-5 w-5 fill-current" />
-                        <span className="font-bold">{heartShields}</span>
+                        <span>{heartShields}</span>
                     </div>
                 )}
 

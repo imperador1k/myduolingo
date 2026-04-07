@@ -116,7 +116,6 @@ export const onChallengeComplete = async (challengeId: number) => {
     await updateStreak();
 
     revalidatePath("/learn");
-    revalidatePath("/lesson");
     revalidatePath("/leaderboard");
     revalidatePath("/shop");
 
@@ -237,7 +236,6 @@ export const onChallengeWrong = async (challengeId?: number) => {
     if (shieldResult.shieldUsed) {
         // Shield protected the heart!
         revalidatePath("/learn");
-        revalidatePath("/lesson");
         revalidatePath("/shop");
 
         const userProgressData = await getUserProgress();
@@ -252,7 +250,6 @@ export const onChallengeWrong = async (challengeId?: number) => {
     const result = await reduceHearts();
 
     revalidatePath("/learn");
-    revalidatePath("/lesson");
 
     return { ...result, shieldUsed: false };
 };

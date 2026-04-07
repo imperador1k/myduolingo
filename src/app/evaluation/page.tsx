@@ -38,6 +38,7 @@ import { SUPPORTED_LANGUAGES, getLocaleForLanguage } from "@/lib/constants";
 import Link from "next/link";
 import { InteractiveText } from "@/components/ui/interactive-text";
 import { LottieAnimation } from "@/components/ui/lottie-animation";
+import { AITutorFeedback } from "@/components/shared/ai-tutor-feedback";
 
 // ============================================================
 // TYPES
@@ -1052,31 +1053,62 @@ export default function EvaluationPage() {
             )}
 
             {/* ====================== FEEDBACK BAR ====================== */}
-            {feedbackActive && (
-                <div className={cn("fixed bottom-0 left-0 right-0 z-[90] animate-in slide-in-from-bottom duration-300", feedbackIsCorrect ? "bg-green-100 border-t-2 border-green-300" : "bg-red-100 border-t-2 border-red-300")}>
-                    <div className="max-w-2xl mx-auto px-4 py-4 sm:py-5 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 min-w-0">
-                            <div className={cn("shrink-0 w-10 h-10 rounded-full flex items-center justify-center", feedbackIsCorrect ? "bg-green-500" : "bg-red-500")}>
-                                {feedbackIsCorrect ? <CheckCircle2 className="h-6 w-6 text-white" /> : <XCircle className="h-6 w-6 text-white" />}
+            {feedbackActive && (() => {
+                let evalQuestion = "";
+                let evalUserAnswer = "";
+                let evalCorrectAnswer = "";
+
+                if (phase === "grammar" && activeQuestion) {
+                    evalQuestion = activeQuestion.question;
+                    evalUserAnswer = activeQuestion.options[selectedOption ?? 0]?.text || "";
+                    evalCorrectAnswer = activeQuestion.options.find((o: any) => o.is_correct)?.text || "";
+                } else if (phase === "reading" && currentReadingQ) {
+                    evalQuestion = currentReadingQ.question;
+                    evalUserAnswer = currentReadingQ.options[selectedOption ?? 0]?.text || "";
+                    evalCorrectAnswer = currentReadingQ.options.find((o: any) => o.is_correct)?.text || "";
+                } else if (phase === "listening" && currentListeningQ) {
+                    evalQuestion = currentListeningQ.question;
+                    evalUserAnswer = currentListeningQ.options[selectedOption ?? 0]?.text || "";
+                    evalCorrectAnswer = currentListeningQ.options.find((o: any) => o.is_correct)?.text || "";
+                }
+
+                return (
+                    <div className={cn("fixed bottom-0 left-0 right-0 z-[90] animate-in slide-in-from-bottom duration-300", feedbackIsCorrect ? "bg-green-100 border-t-2 border-green-300" : "bg-red-100 border-t-2 border-red-300")}>
+                        <div className="max-w-2xl mx-auto px-4 py-4 sm:py-5 flex flex-col gap-4">
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className={cn("shrink-0 w-10 h-10 rounded-full flex items-center justify-center", feedbackIsCorrect ? "bg-green-500" : "bg-red-500")}>
+                                        {feedbackIsCorrect ? <CheckCircle2 className="h-6 w-6 text-white" /> : <XCircle className="h-6 w-6 text-white" />}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className={cn("font-extrabold text-lg", feedbackIsCorrect ? "text-green-700" : "text-red-700")}>
+                                            {feedbackIsCorrect ? "Correto! 🎉" : "Incorreto 😔"}
+                                        </p>
+                                        <p className={cn("text-sm truncate", feedbackIsCorrect ? "text-green-600" : "text-red-600")}>
+                                            {feedbackIsCorrect ? "Bom trabalho! Continua!" : "Não te preocupes, continua!"}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleContinue}
+                                    className={cn("w-full sm:w-auto px-8 py-4 sm:py-5 rounded-2xl font-black text-xl text-white outline-none active:translate-y-[6px] active:border-b-0 uppercase tracking-widest transition-all shrink-0", feedbackIsCorrect ? "bg-[#58CC02] border-b-[6px] border-[#46a302]" : "bg-[#EA2B2B] border-b-[6px] border-[#cb2222]")}
+                                >
+                                    Continuar <span className="hidden sm:inline text-xs ml-1 opacity-70">↵</span>
+                                </button>
                             </div>
-                            <div className="min-w-0">
-                                <p className={cn("font-extrabold text-lg", feedbackIsCorrect ? "text-green-700" : "text-red-700")}>
-                                    {feedbackIsCorrect ? "Correto! 🎉" : "Incorreto 😔"}
-                                </p>
-                                <p className={cn("text-sm truncate", feedbackIsCorrect ? "text-green-600" : "text-red-600")}>
-                                    {feedbackIsCorrect ? "Bom trabalho! Continua!" : "Não te preocupes, continua!"}
-                                </p>
-                            </div>
+
+                            {!feedbackIsCorrect && evalQuestion && (
+                                <AITutorFeedback 
+                                    question={evalQuestion}
+                                    userAnswer={evalUserAnswer}
+                                    correctAnswer={evalCorrectAnswer}
+                                    targetLanguage={targetLanguage}
+                                />
+                            )}
                         </div>
-                        <button
-                            onClick={handleContinue}
-                            className={cn("w-full sm:w-auto px-8 py-4 sm:py-5 rounded-2xl font-black text-xl text-white outline-none active:translate-y-[6px] active:border-b-0 uppercase tracking-widest transition-all", feedbackIsCorrect ? "bg-[#58CC02] border-b-[6px] border-[#46a302]" : "bg-[#EA2B2B] border-b-[6px] border-[#cb2222]")}
-                        >
-                            Continuar <span className="hidden sm:inline text-xs ml-1 opacity-70">↵</span>
-                        </button>
                     </div>
-                </div>
-            )}
+                );
+            })()}
         </div>
     );
 }

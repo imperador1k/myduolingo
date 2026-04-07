@@ -147,6 +147,11 @@ export const LessonClient = ({
         const isDictation = currentChallenge.type === "DICTATION";
 
         if (isInsert || isDictation) {
+            if (status !== "none") {
+                handleContinue();
+                return;
+            }
+
             const correctText = isDictation ? currentChallenge.question : options.find((opt) => opt.correct)?.text || "";
             const result = isAnswerAcceptable(inputValue, correctText);
 
@@ -161,10 +166,12 @@ export const LessonClient = ({
                     setPoints((prev) => prev + 10);
                     setXpGained((prev) => prev + 10);
                 } else {
-                    onChallengeComplete(currentChallenge.id).then((res) => {
-                        const xp = res.xpGained || 10;
-                        setPoints((prev) => prev + xp);
-                        setXpGained((prev) => prev + xp);
+                    startTransition(() => {
+                        onChallengeComplete(currentChallenge.id).then((res) => {
+                            const xp = res.xpGained || 10;
+                            setPoints((prev) => prev + xp);
+                            setXpGained((prev) => prev + xp);
+                        });
                     });
                 }
             } else {
@@ -175,7 +182,9 @@ export const LessonClient = ({
                 setChallenges((prev) => [...prev, { ...currentChallenge, id: currentChallenge.id + Math.random() }]);
 
                 if (!isClinic) {
-                    onChallengeWrong().then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
+                    startTransition(() => {
+                        onChallengeWrong().then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
+                    });
                 }
             }
             return;
@@ -192,10 +201,12 @@ export const LessonClient = ({
                 setPoints((prev) => prev + 10);
                 setXpGained((prev) => prev + 10);
             } else {
-                onChallengeComplete(currentChallenge.id).then((result) => {
-                    const xp = result.xpGained || 10;
-                    setPoints((prev) => prev + xp);
-                    setXpGained((prev) => prev + xp);
+                startTransition(() => {
+                    onChallengeComplete(currentChallenge.id).then((result) => {
+                        const xp = result.xpGained || 10;
+                        setPoints((prev) => prev + xp);
+                        setXpGained((prev) => prev + xp);
+                    });
                 });
             }
         } else {
@@ -205,7 +216,9 @@ export const LessonClient = ({
             setChallenges((prev) => [...prev, { ...currentChallenge, id: currentChallenge.id + Math.random() }]);
 
             if (!isClinic) {
-                onChallengeWrong().then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
+                startTransition(() => {
+                    onChallengeWrong().then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
+                });
             }
         }
     };
@@ -311,6 +324,10 @@ export const LessonClient = ({
         return null;
     }
 
+    const isInsert = currentChallenge.type === "INSERT";
+    const isDictation = currentChallenge.type === "DICTATION";
+    const userAnswerText = isInsert || isDictation ? inputValue : options.find((opt) => opt.id === selectedOption)?.text || "";
+
     return (
         <>
             {showExitModal && (
@@ -344,28 +361,28 @@ export const LessonClient = ({
                 <main className="flex-1 overflow-y-auto min-h-0 w-full px-6 py-6 no-scrollbar">
                     <div className="mx-auto flex w-full max-w-[1140px] min-h-full flex-col items-center justify-center gap-y-6">
                     {currentChallenge.context && (
-                        <div className="w-full max-w-[600px] bg-sky-50/80 backdrop-blur-sm p-5 rounded-3xl border-2 border-sky-100/50 shadow-sm text-center mb-[-10px] relative transition-all duration-300">
-                            <span className="text-[11px] font-black text-sky-400 uppercase tracking-[0.2em] mb-2 block">Contexto</span>
-                            <Button variant="ghost" className="absolute top-3 right-3 rounded-xl w-10 h-10 p-0 text-sky-500 bg-white border-2 border-slate-100 shadow-sm transition-all hover:bg-sky-50 hover:border-sky-200 hover:scale-105 active:scale-95"
+                        <div className="w-full max-w-[600px] bg-blue-50 border-2 border-blue-100 border-b-4 rounded-2xl p-6 shadow-sm text-center mb-[-10px] relative transition-all duration-300">
+                            <span className="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 block">Contexto</span>
+                            <Button variant="ghost" className="absolute top-3 right-3 rounded-xl w-10 h-10 p-0 text-blue-500 bg-white border-2 border-slate-100 border-b-4 shadow-sm transition-all active:translate-y-1 active:border-b-2"
                                 onClick={() => playAudio(currentChallenge.context as string, 0.9, currentChallenge.contextAudioLang || languageCode)}>
-                                {isPlaying && playingText === currentChallenge.context ? <div className="w-4 h-4 bg-sky-500 rounded-sm animate-pulse" /> : <Volume2 className="h-5 w-5" />}
+                                {isPlaying && playingText === currentChallenge.context ? <div className="w-4 h-4 bg-blue-500 rounded-sm animate-pulse" /> : <Volume2 className="h-5 w-5" />}
                             </Button>
                             <div className="text-xl font-medium text-slate-700 mt-2 px-8 leading-relaxed">
                                 &quot;<InteractiveText text={currentChallenge.context} language={language} />&quot;
                             </div>
-                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-sky-50/80 border-r-2 border-b-2 border-sky-100/50 rotate-45 backdrop-blur-sm" />
+                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-blue-50 border-r-2 border-b-2 border-blue-100 rotate-45" />
                         </div>
                     )}
 
                     <div className="flex flex-col gap-6 mb-6 items-center justify-center mt-4">
                         <div className="flex items-center gap-4">
-                            <Button variant="ghost" className="bg-white border-2 border-slate-200 w-28 h-28 rounded-full shadow-md transition-all active:scale-95 hover:bg-slate-50 hover:border-sky-200 hover:shadow-lg"
+                            <Button variant="ghost" className="bg-[#1CB0F6] border-b-[8px] border-[#0092d6] w-20 h-20 rounded-full shadow-sm transition-all active:translate-y-2 active:border-b-0 hover:bg-[#159fdf] p-0"
                                 onClick={() => playAudio(currentChallenge.question, 0.9, currentChallenge.questionAudioLang || languageCode)}>
-                                {isPlaying && playingText === currentChallenge.question ? <div className="w-10 h-10 bg-sky-500 rounded-md animate-pulse" /> : <Volume2 className="h-14 w-14 text-sky-500" />}
+                                {isPlaying && playingText === currentChallenge.question ? <div className="w-8 h-8 bg-white rounded-md animate-pulse" /> : <Volume2 className="h-10 w-10 text-white" />}
                             </Button>
-                            <Button variant="ghost" className="bg-white border-2 border-slate-200 w-14 h-14 rounded-2xl shadow-sm hover:bg-slate-50 hover:border-sky-200 transition-all active:scale-95"
+                            <Button variant="ghost" className="bg-white border-2 border-stone-200 border-b-4 w-12 h-12 rounded-2xl shadow-sm hover:bg-stone-50 transition-all active:translate-y-1 active:border-b-2 p-0"
                                 onClick={() => playAudio(currentChallenge.question, 0.5, currentChallenge.questionAudioLang || languageCode)}>
-                                <span className="text-2xl">🐢</span>
+                                <span className="text-xl">🐢</span>
                             </Button>
                         </div>
                         <div className="text-center text-3xl font-extrabold lg:text-4xl text-slate-800 tracking-tight">
@@ -376,13 +393,13 @@ export const LessonClient = ({
                     {currentChallenge.type === "DICTATION" ? (
                         <div className="w-full max-w-[600px] flex flex-col items-center gap-6">
                             <button onClick={() => playAudio(currentChallenge.question, 0.85, currentChallenge.questionAudioLang || languageCode)}
-                                className={cn("w-32 h-32 rounded-full border-4 border-b-[8px] flex items-center justify-center transition-all duration-200 outline-none cursor-pointer", "bg-sky-50 border-sky-300 text-sky-500 hover:bg-sky-100 hover:scale-105 active:scale-95 active:border-b-4 active:translate-y-1", isPlaying && "animate-pulse bg-sky-100 border-sky-400 scale-105")}>
+                                className={cn("w-32 h-32 rounded-full border-4 border-b-[8px] flex items-center justify-center transition-all duration-200 outline-none cursor-pointer", "bg-sky-50 border-sky-300 text-sky-500 hover:bg-sky-100 active:translate-y-2 active:border-b-0", isPlaying && "animate-pulse bg-sky-100 border-sky-400")}>
                                 <Ear className="h-14 w-14" />
                             </button>
                             <p className="text-slate-400 text-sm font-medium">Ouve e escreve o que ouves</p>
                             <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && inputValue.trim() && status === "none") { e.preventDefault(); handleCheck(); } }}
                                 disabled={status !== "none" || isPending} placeholder="Escreve o que ouviste..." autoFocus
-                                className={cn("w-full p-4 border-2 rounded-xl text-lg font-medium transition-all outline-none text-center", status === "none" && "border-slate-200 bg-white focus:border-sky-400 focus:ring-2 focus:ring-sky-200 text-slate-800 placeholder:text-slate-400", status === "correct" && "border-green-400 bg-green-50 text-green-700", status === "wrong" && "border-rose-400 bg-rose-50 text-rose-700")} />
+                                className={cn("w-full bg-stone-100 border-2 border-stone-200 border-b-4 rounded-2xl p-4 text-xl font-bold text-stone-700 focus:outline-none focus:border-[#1CB0F6] focus:bg-white transition-all text-center", status === "correct" && "border-[#58CC02] bg-[#d7ffb8]/30 text-[#46a302] border-b-2 translate-y-0.5", status === "wrong" && "border-rose-400 bg-rose-50 text-rose-700 border-b-2 translate-y-0.5")} />
                             {typoMessage && status === "correct" && <p className="text-amber-600 text-sm font-medium bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 animate-in fade-in duration-300">✏️ {typoMessage}</p>}
                         </div>
                     ) : currentChallenge.type === "MATCH" ? (
@@ -418,7 +435,7 @@ export const LessonClient = ({
                         <div className="w-full max-w-[600px] flex flex-col gap-3">
                             <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && inputValue.trim() && status === "none") { e.preventDefault(); handleCheck(); } }}
                                 disabled={status !== "none" || isPending} placeholder="Escreve a tua resposta..." autoFocus
-                                className={cn("w-full p-4 border-2 rounded-xl text-lg font-medium transition-all outline-none", status === "none" && "border-slate-200 bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-slate-800 placeholder:text-slate-400", status === "correct" && "border-green-400 bg-green-50 text-green-700", status === "wrong" && "border-rose-400 bg-rose-50 text-rose-700")} />
+                                className={cn("w-full bg-stone-100 border-2 border-stone-200 border-b-4 rounded-2xl p-4 text-xl font-bold text-stone-700 focus:outline-none focus:border-[#1CB0F6] focus:bg-white transition-all text-center", status === "correct" && "border-[#58CC02] bg-[#d7ffb8]/30 text-[#46a302] border-b-2 translate-y-0.5", status === "wrong" && "border-rose-400 bg-rose-50 text-rose-700 border-b-2 translate-y-0.5")} />
                             {typoMessage && status === "correct" && <p className="text-amber-600 text-sm font-medium bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 animate-in fade-in duration-300">✏️ {typoMessage}</p>}
                         </div>
                     ) : (
@@ -430,6 +447,8 @@ export const LessonClient = ({
                             ))}
                         </div>
                     )}
+                    {/* Massive Spacer to Guarantee Scroll clearance for the new fixed footer */}
+                    <div className="h-40 w-full shrink-0 pointer-events-none" />
                     </div>
                 </main>
                 
@@ -444,6 +463,7 @@ export const LessonClient = ({
                     onContinue={handleContinue} 
                     onSkip={handleExit} 
                     playMixedSpeech={playMixedSpeech} 
+                    userAnswer={userAnswerText}
                 />
             </div>
         </>
