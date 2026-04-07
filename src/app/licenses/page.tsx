@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Code } from "lucide-react";
+import { Code, Atom, Layers, Palette, Database, Key, Sparkles } from "lucide-react";
 
 export default function LicensesPage() {
     return (
@@ -25,7 +25,10 @@ export default function LicensesPage() {
                         {/* React */}
                         <div className="bg-stone-50 border-2 border-stone-200 border-b-4 rounded-2xl p-5 hover:bg-stone-100 transition-colors">
                             <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-lg text-stone-700">React</h3>
+                                <div className="flex items-center gap-2">
+                                    <Atom className="w-6 h-6 text-[#1CB0F6]" />
+                                    <h3 className="font-bold text-lg text-stone-700">React</h3>
+                                </div>
                                 <span className="bg-[#1CB0F6]/10 text-[#1CB0F6] font-bold text-xs px-2 py-1 rounded-md">MIT</span>
                             </div>
                             <p className="text-sm text-stone-500 font-medium">A biblioteca principal para a construção da interface do utilizador iterativa e baseada em componentes.</p>
@@ -34,7 +37,10 @@ export default function LicensesPage() {
                         {/* Next.js */}
                         <div className="bg-stone-50 border-2 border-stone-200 border-b-4 rounded-2xl p-5 hover:bg-stone-100 transition-colors">
                             <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-lg text-stone-700">Next.js</h3>
+                                <div className="flex items-center gap-2">
+                                    <Layers className="w-6 h-6 text-stone-800" />
+                                    <h3 className="font-bold text-lg text-stone-700">Next.js</h3>
+                                </div>
                                 <span className="bg-[#1CB0F6]/10 text-[#1CB0F6] font-bold text-xs px-2 py-1 rounded-md">MIT</span>
                             </div>
                             <p className="text-sm text-stone-500 font-medium">Framework React que providencia renderização do lado do servidor (SSR) e estrutura da aplicação.</p>
@@ -43,7 +49,10 @@ export default function LicensesPage() {
                         {/* Tailwind CSS */}
                         <div className="bg-stone-50 border-2 border-stone-200 border-b-4 rounded-2xl p-5 hover:bg-stone-100 transition-colors">
                             <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-lg text-stone-700">Tailwind CSS</h3>
+                                <div className="flex items-center gap-2">
+                                    <Palette className="w-6 h-6 text-[#38BDF8]" />
+                                    <h3 className="font-bold text-lg text-stone-700">Tailwind CSS</h3>
+                                </div>
                                 <span className="bg-[#1CB0F6]/10 text-[#1CB0F6] font-bold text-xs px-2 py-1 rounded-md">MIT</span>
                             </div>
                             <p className="text-sm text-stone-500 font-medium">Framework CSS de classes utilitárias focado em designs extremamente rápidos e customizáveis.</p>
@@ -52,7 +61,10 @@ export default function LicensesPage() {
                         {/* Drizzle ORM */}
                         <div className="bg-stone-50 border-2 border-stone-200 border-b-4 rounded-2xl p-5 hover:bg-stone-100 transition-colors">
                             <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-lg text-stone-700">Drizzle ORM</h3>
+                                <div className="flex items-center gap-2">
+                                    <Database className="w-6 h-6 text-[#C4E456]" />
+                                    <h3 className="font-bold text-lg text-stone-700">Drizzle ORM</h3>
+                                </div>
                                 <span className="bg-[#1CB0F6]/10 text-[#1CB0F6] font-bold text-xs px-2 py-1 rounded-md">Apache 2.0</span>
                             </div>
                             <p className="text-sm text-stone-500 font-medium">A interface para a base de dados relacional, totalmente tipada com TypeScript.</p>
@@ -61,7 +73,10 @@ export default function LicensesPage() {
                         {/* Clerk */}
                         <div className="bg-stone-50 border-2 border-stone-200 border-b-4 rounded-2xl p-5 hover:bg-stone-100 transition-colors">
                             <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-lg text-stone-700">Clerk</h3>
+                                <div className="flex items-center gap-2">
+                                    <Key className="w-6 h-6 text-indigo-500" />
+                                    <h3 className="font-bold text-lg text-stone-700">Clerk</h3>
+                                </div>
                                 <span className="bg-stone-200 text-stone-600 font-bold text-xs px-2 py-1 rounded-md">Proprietário</span>
                             </div>
                             <p className="text-sm text-stone-500 font-medium">A plataforma de Gestão de Utilizadores e Autenticação (Login/Registo).</p>
@@ -70,7 +85,10 @@ export default function LicensesPage() {
                         {/* Gemini API */}
                         <div className="bg-stone-50 border-2 border-stone-200 border-b-4 rounded-2xl p-5 hover:bg-stone-100 transition-colors">
                             <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-lg text-stone-700">Google Gemini</h3>
+                                <div className="flex items-center gap-2">
+                                    <Sparkles className="w-6 h-6 text-blue-500" />
+                                    <h3 className="font-bold text-lg text-stone-700">Google Gemini</h3>
+                                </div>
                                 <span className="bg-stone-200 text-stone-600 font-bold text-xs px-2 py-1 rounded-md">Proprietário</span>
                             </div>
                             <p className="text-sm text-stone-500 font-medium">O modelo de inteligência artificial generativa subjacente ao mascote Marco AI.</p>

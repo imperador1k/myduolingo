@@ -22,7 +22,6 @@ import {
     BarChart,
     ShieldAlert,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 import { useUISounds } from "@/hooks/use-ui-sounds";
 import { useUser } from "@clerk/nextjs";
@@ -46,7 +45,7 @@ const MobileItem = ({ href, icon, label, isActive, onClick, badgeCount }: Mobile
                 if (onClick) onClick();
             }}
             className={cn(
-                "relative flex flex-col items-center gap-1 text-slate-500 hover:text-slate-600 transition",
+                "relative flex flex-col items-center gap-1 text-stone-400 hover:text-stone-500 active:scale-90 transition-transform",
                 isActive && "text-sky-500"
             )}
         >
@@ -63,14 +62,34 @@ const MobileItem = ({ href, icon, label, isActive, onClick, badgeCount }: Mobile
             >
                 {icon}
             </div>
-            {/* Label hidden on floating bar to save space if needed, but keeping for now */}
             <span className="text-[10px] font-bold uppercase">{label}</span>
         </Link>
     );
 };
 
-const ExpandedMobileItem = ({ href, icon, label, isActive, onClick, badgeCount }: MobileItemProps) => {
+type ExpandedTheme = "blue" | "purple" | "yellow" | "red" | "emerald" | "orange" | "indigo" | "stone" | "sky" | "pink";
+
+type ExpandedMobileItemProps = MobileItemProps & {
+    colorTheme?: ExpandedTheme;
+};
+
+const ExpandedMobileItem = ({ href, icon, label, isActive, onClick, badgeCount, colorTheme = "stone" }: ExpandedMobileItemProps) => {
     const { playClick } = useUISounds();
+    
+    // Toy Box Color Mapping
+    const themeStyles = {
+        blue: "bg-blue-100 text-blue-500 border-blue-200",
+        purple: "bg-purple-100 text-purple-500 border-purple-200",
+        yellow: "bg-yellow-100 text-yellow-500 border-yellow-200",
+        red: "bg-red-100 text-red-500 border-red-200",
+        emerald: "bg-emerald-100 text-emerald-500 border-emerald-200",
+        orange: "bg-orange-100 text-orange-500 border-orange-200",
+        indigo: "bg-indigo-100 text-indigo-500 border-indigo-200",
+        stone: "bg-stone-100 text-stone-500 border-stone-200",
+        sky: "bg-sky-100 text-sky-500 border-sky-200",
+        pink: "bg-pink-100 text-pink-500 border-pink-200",
+    }[colorTheme];
+
     return (
         <Link
             href={href}
@@ -78,20 +97,17 @@ const ExpandedMobileItem = ({ href, icon, label, isActive, onClick, badgeCount }
                 playClick();
                 if (onClick) onClick();
             }}
-            className={cn(
-                "relative flex flex-col items-center justify-center gap-2 p-2 rounded-2xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors",
-                isActive && "text-sky-500 bg-sky-50 hover:bg-sky-100 hover:text-sky-600 border border-sky-100"
-            )}
+            className="relative flex flex-col items-center justify-center gap-2 p-2 rounded-2xl hover:bg-stone-50 active:scale-95 transition-all cursor-pointer group"
         >
             {badgeCount && badgeCount > 0 ? (
-                <div className="absolute top-1 right-2 translate-x-1/2 -translate-y-1/2 z-10 bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white animate-pulse">
+                <div className="absolute top-0 right-2 translate-x-1/2 -translate-y-1/2 z-10 bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white animate-pulse">
                     {badgeCount > 99 ? "99+" : badgeCount}
                 </div>
             ) : null}
-            <div className="flex h-8 w-8 items-center justify-center">
+            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border-b-4 group-active:border-b-0 group-active:translate-y-1 transition-all", themeStyles)}>
                 {icon}
             </div>
-            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center">{label}</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-stone-600 uppercase tracking-wider mt-1 text-center">{label}</span>
         </Link>
     );
 };
@@ -133,141 +149,153 @@ const MobileNavContent = ({ notificationCount, unreadMessageCount }: MobileNavPr
             {/* Backdrop overlay to close menu when clicking outside */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 z-40 lg:hidden"
+                    className="fixed inset-0 z-40 bg-stone-900/20 backdrop-blur-sm lg:hidden transition-opacity"
                     onClick={closeMenu}
                 />
             )}
 
-            <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center lg:hidden pointer-events-none">
-                {/* Expanded Menu */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-center justify-end lg:hidden pointer-events-none pb-4 px-4 w-full h-full">
+                
+                {/* Expanded Menu - Toy Box */}
                 <div
                     className={cn(
-                        "absolute bottom-24 flex flex-col gap-2 transition-all duration-300 pointer-events-auto",
+                        "w-full max-w-sm flex flex-col gap-2 transition-all duration-300 pointer-events-auto origin-bottom",
                         isOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-10 scale-95 pointer-events-none"
                     )}
                 >
-                    <div className="bg-white/95 backdrop-blur-md border border-slate-200 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 min-w-[320px]">
+                    <div className="bg-white border-2 border-stone-200 border-b-8 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 w-full mb-6 relative z-40">
                         <div className="grid grid-cols-3 gap-y-6 gap-x-2">
                             <ExpandedMobileItem
                                 href="/friends"
-                                icon={<Users className="h-7 w-7" />}
+                                icon={<Users strokeWidth={2.5} className="h-7 w-7" />}
                                 label="Amigos"
                                 isActive={pathname === "/friends"}
                                 onClick={closeMenu}
+                                colorTheme="blue"
                             />
                             <ExpandedMobileItem
                                 href="/courses"
-                                icon={<BookOpen className="h-7 w-7" />}
+                                icon={<BookOpen strokeWidth={2.5} className="h-7 w-7" />}
                                 label="Cursos"
                                 isActive={pathname === "/courses"}
                                 onClick={closeMenu}
+                                colorTheme="purple"
                             />
                             <ExpandedMobileItem
                                 href="/messages"
-                                icon={<MessageSquare className="h-7 w-7" />}
+                                icon={<MessageSquare strokeWidth={2.5} className="h-7 w-7" />}
                                 label="Msgs"
                                 isActive={pathname === "/messages"}
                                 onClick={closeMenu}
                                 badgeCount={unreadMessageCount}
+                                colorTheme="sky"
                             />
                             <ExpandedMobileItem
                                 href="/notifications"
-                                icon={<Bell className="h-7 w-7" />}
+                                icon={<Bell strokeWidth={2.5} className="h-7 w-7" />}
                                 label="Notif."
                                 isActive={pathname === "/notifications"}
                                 onClick={closeMenu}
                                 badgeCount={notificationCount}
+                                colorTheme="orange"
                             />
                             <ExpandedMobileItem
                                 href="/leaderboard"
-                                icon={<Trophy className="h-7 w-7" />}
+                                icon={<Trophy strokeWidth={2.5} className="h-7 w-7" />}
                                 label="Liga"
                                 isActive={pathname === "/leaderboard"}
                                 onClick={closeMenu}
+                                colorTheme="yellow"
                             />
                             <ExpandedMobileItem
                                 href="/settings"
-                                icon={<Settings className="h-7 w-7" />}
+                                icon={<Settings strokeWidth={2.5} className="h-7 w-7" />}
                                 label="Defin."
                                 isActive={pathname === "/settings"}
                                 onClick={closeMenu}
+                                colorTheme="stone"
                             />
                             <ExpandedMobileItem
                                 href="/vocabulary"
-                                icon={<Archive className="h-7 w-7" />}
+                                icon={<Archive strokeWidth={2.5} className="h-7 w-7" />}
                                 label="Cofre"
                                 isActive={pathname === "/vocabulary"}
                                 onClick={closeMenu}
+                                colorTheme="emerald"
                             />
                             <ExpandedMobileItem
                                 href="/analytics"
-                                icon={<BarChart className="h-7 w-7" />}
+                                icon={<BarChart strokeWidth={2.5} className="h-7 w-7" />}
                                 label="Estat."
                                 isActive={pathname === "/analytics"}
                                 onClick={closeMenu}
+                                colorTheme="pink"
                             />
                             <ExpandedMobileItem
                                 href="/evaluation"
-                                icon={<GraduationCap className="h-7 w-7" />}
-                                label="Avaliação"
+                                icon={<GraduationCap strokeWidth={2.5} className="h-7 w-7" />}
+                                label="Testes"
                                 isActive={pathname === "/evaluation"}
                                 onClick={closeMenu}
+                                colorTheme="indigo"
                             />
                             {isAdmin && (
                                 <ExpandedMobileItem
                                     href="/admin"
-                                    icon={<ShieldAlert className="h-7 w-7 text-rose-500" />}
+                                    icon={<ShieldAlert strokeWidth={2.5} className="h-7 w-7" />}
                                     label="Admin"
                                     isActive={pathname === "/admin"}
                                     onClick={closeMenu}
+                                    colorTheme="red"
                                 />
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* Main Floating Bar */}
-                <nav className="bg-white border-2 border-slate-200 rounded-full shadow-2xl px-6 py-3 flex items-center gap-6 pointer-events-auto">
+                {/* Main Floating Bar (The Pill) */}
+                <nav className="bg-white/95 backdrop-blur-md border border-stone-200 border-t-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] rounded-3xl md:rounded-full px-6 py-2 flex items-center justify-between pointer-events-auto relative w-full max-w-sm">
                     <MobileItem
                         href="/learn"
-                        icon={<Home className="h-6 w-6" />}
+                        icon={<Home strokeWidth={2.5} className="h-6 w-6" />}
                         label="Início"
                         isActive={pathname === "/learn" || pathname === "/"}
                     />
                     <MobileItem
                         href="/practice"
-                        icon={<Dumbbell className="h-6 w-6" />}
+                        icon={<Dumbbell strokeWidth={2.5} className="h-6 w-6" />}
                         label="Praticar"
                         isActive={pathname.startsWith("/practice")}
                     />
 
                     {/* Central Toggle Button */}
-                    <div className="">
-                        <Button
+                    <div className="relative z-50 flex items-center justify-center -mt-8">
+                        <button
                             onClick={toggleMenu}
-                            size="icon"
                             className={cn(
-                                "h-14 w-14 rounded-full shadow-lg transition-all duration-300",
-                                isOpen ? "bg-slate-800 hover:bg-slate-900 rotate-90 scale-105" : "bg-sky-500 hover:bg-sky-600"
+                                "w-16 h-16 rounded-full flex items-center justify-center text-white transition-all duration-300 outline-none",
+                                isOpen 
+                                    ? "bg-stone-800 border-2 border-stone-900 rotate-90 scale-105"
+                                    : "bg-[#58CC02] border-2 border-[#46a302] border-b-8 active:translate-y-2 active:border-b-0 hover:bg-[#58CC02]"
                             )}
                         >
                             {isOpen ? (
-                                <X className="h-5 w-5 text-white" />
+                                <X className="h-7 w-7 stroke-[3px]" />
                             ) : (
-                                <Menu className="h-5 w-5 text-white" />
+                                <Menu className="h-7 w-7 stroke-[3px]" />
                             )}
-                        </Button>
+                        </button>
                     </div>
 
                     <MobileItem
                         href="/shop"
-                        icon={<ShoppingBag className="h-6 w-6" />}
+                        icon={<ShoppingBag strokeWidth={2.5} className="h-6 w-6" />}
                         label="Loja"
                         isActive={pathname === "/shop"}
                     />
                     <MobileItem
                         href="/profile"
-                        icon={<User className="h-6 w-6" />}
+                        icon={<User strokeWidth={2.5} className="h-6 w-6" />}
                         label="Perfil"
                         isActive={pathname === "/profile"}
                     />

@@ -30,6 +30,11 @@ export const FloatingMarco = () => {
 
     // CRITICAL: Route Protection (Moved after hooks to avoid "Rendered more hooks" error)
     if (
+        pathname === "/" ||
+        pathname.startsWith("/login") ||
+        pathname.startsWith("/register") ||
+        pathname.startsWith("/sign-in") ||
+        pathname.startsWith("/sign-up") ||
         pathname.startsWith("/lesson") ||
         pathname.startsWith("/evaluation") ||
         pathname.startsWith("/practice") ||
@@ -79,16 +84,18 @@ export const FloatingMarco = () => {
             >
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="pointer-events-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-b from-sky-50 to-white border-2 border-[#1CB0F6] border-b-8 rounded-full shadow-2xl shadow-sky-500/20 active:translate-y-2 active:border-b-2 hover:from-sky-100 hover:to-sky-50 transition-all flex items-center justify-center relative outline-none overflow-hidden group"
+                    className="pointer-events-auto w-16 h-16 bg-[#58CC02] rounded-full border-2 border-[#46A302] border-b-8 flex items-center justify-center text-white shadow-[0_10px_25px_rgba(88,204,2,0.4)] hover:-translate-y-1 hover:shadow-[0_15px_35px_rgba(88,204,2,0.5)] active:translate-y-2 active:border-b-0 active:shadow-none transition-all duration-200 group cursor-pointer relative"
                     aria-label="Abrir chat do Marco"
                 >
-                    <Image 
-                        src="/marco.png" 
-                        alt="Marco Mascot" 
-                        fill
-                        className="object-contain p-2 md:p-3 group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute top-1 right-1 md:top-2 md:right-2 w-4 h-4 md:w-5 md:h-5 bg-red-500 rounded-full border-2 border-white animate-pulse shadow-sm" />
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-200 relative z-10">
+                        <path d="M12 2C6.477 2 2 6.002 2 10.942c0 2.805 1.455 5.3 3.75 6.953l-1.373 3.658a.498.498 0 0 0 .638.64l3.774-1.424A10.82 10.82 0 0 0 12 19.884c5.523 0 10-4.002 10-8.942S17.523 2 12 2zM15.5 13h-7a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1zm0-3h-7a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1z" />
+                        <path d="M19.5 2.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" className="animate-pulse" fill="#FFDC80" />
+                    </svg>
+
+                    <span className="absolute top-0 right-0 flex h-4 w-4">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4B4B] opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-4 w-4 bg-[#FF4B4B] border-2 border-white shadow-sm"></span>
+                    </span>
                 </button>
             </div>
 
@@ -102,8 +109,10 @@ export const FloatingMarco = () => {
                 )}
             >
                 {/* Header */}
-                <div className="bg-[#1CB0F6] text-white p-4 flex justify-between items-center shrink-0">
-                    <div className="flex items-center gap-3">
+                <div className="bg-[#58CC02] border-b-4 border-[#46A302] text-white p-4 flex justify-between items-center shrink-0 relative overflow-hidden">
+                    {/* Glossy highlight effect on header */}
+                    <div className="absolute top-0 inset-x-0 h-1/2 bg-white/10 pointer-events-none" />
+                    <div className="flex items-center gap-3 relative z-10">
                         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden border-2 border-white/20 shadow-sm relative">
                             <Image 
                                 src="/marco.png" 
@@ -142,7 +151,7 @@ export const FloatingMarco = () => {
                             <h3 className="font-extrabold text-2xl text-stone-700">Salut! 🥖</h3>
                             <p className="text-stone-500 font-medium px-4 text-sm leading-relaxed max-w-[280px]">
                                 Sou o Marco. Precisas de ajuda com uma palavra? Bateu a curiosidade sobre outra cultura?
-                                <br/><span className="text-[#1CB0F6] font-bold mt-2 inline-block">Estou aqui para ti!</span>
+                                <br/><span className="text-[#58CC02] font-black text-lg mt-2 inline-block drop-shadow-sm">Estou aqui para ti!</span>
                             </p>
                         </div>
                     )}
@@ -181,17 +190,17 @@ export const FloatingMarco = () => {
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Escreve a tua dúvida..."
-                            className="w-full bg-stone-100 border-2 border-stone-200 border-b-4 rounded-2xl px-4 py-3 text-stone-700 font-bold focus:outline-none focus:border-[#1CB0F6] focus:bg-white transition-all pr-12"
+                            className="w-full bg-stone-100 border-2 border-stone-200 border-b-4 rounded-2xl px-4 py-3 text-stone-700 font-bold focus:outline-none focus:border-[#58CC02] focus:ring-4 focus:ring-[#58CC02]/20 focus:bg-white transition-all pr-12"
                         />
                     </div>
                     <button
                         onClick={handleSend}
                         disabled={!input.trim() || isLoading}
                         className={cn(
-                            "w-12 h-12 rounded-full flex items-center justify-center transition-all outline-none border-b-4 shrink-0",
+                            "w-12 h-12 rounded-full flex items-center justify-center transition-all outline-none shrink-0",
                             input.trim() && !isLoading
-                                ? "bg-[#1CB0F6] border-[#0092d6] text-white active:translate-y-1 active:border-b-0"
-                                : "bg-stone-200 border-stone-300 text-stone-400 cursor-not-allowed"
+                                ? "bg-[#58CC02] border-2 border-[#46A302] border-b-4 text-white active:translate-y-1 active:border-b-0 shadow-sm"
+                                : "bg-stone-200 border-2 border-stone-300 border-b-4 text-stone-400 cursor-not-allowed"
                         )}
                     >
                         {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-1" />}
