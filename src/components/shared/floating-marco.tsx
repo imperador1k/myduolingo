@@ -127,10 +127,23 @@ export const FloatingMarco = () => {
                 {/* Chat Area */}
                 <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
                     {messages.length === 0 && (
-                        <div className="text-center text-stone-500 mt-10">
-                            <div className="text-5xl mb-4">🇫🇷</div>
-                            <h3 className="font-bold text-lg mb-2">Bonjour!</h3>
-                            <p className="text-sm">Eu sou o Marco. Tens alguma dúvida sobre as tuas lições?</p>
+                        <div className="flex flex-col items-center justify-center text-center mt-8 md:mt-12 space-y-4 animate-in fade-in zoom-in-95 duration-700">
+                            <div className="relative w-24 h-24 md:w-32 md:h-32 mb-2">
+                                {/* Subtle bouncing shadow */}
+                                <div className="absolute inset-x-4 -bottom-2 h-3 bg-stone-300/50 rounded-[100%] blur-sm animate-pulse" />
+                                {/* Floating avatar */}
+                                <Image 
+                                    src="/marco.png" 
+                                    alt="Marco" 
+                                    fill
+                                    className="object-contain drop-shadow-xl animate-[bounce_3s_ease-in-out_infinite]"
+                                />
+                            </div>
+                            <h3 className="font-extrabold text-2xl text-stone-700">Salut! 🥖</h3>
+                            <p className="text-stone-500 font-medium px-4 text-sm leading-relaxed max-w-[280px]">
+                                Sou o Marco. Precisas de ajuda com uma palavra? Bateu a curiosidade sobre outra cultura?
+                                <br/><span className="text-[#1CB0F6] font-bold mt-2 inline-block">Estou aqui para ti!</span>
+                            </p>
                         </div>
                     )}
                     {messages.map((msg) => (

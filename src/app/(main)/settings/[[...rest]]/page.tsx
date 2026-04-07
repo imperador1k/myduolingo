@@ -5,6 +5,8 @@ import { EditProfileButton } from "@/components/shared/edit-profile-button";
 import { NotificationToggle } from "@/components/shared/notification-toggle";
 import { getUserProgress } from "@/db/queries";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Info, ChevronRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +76,23 @@ export default async function SettingsPage() {
                 <h3 className="mb-4 mt-8 text-xl font-bold text-slate-700">Notificações</h3>
                 <div className="space-y-4">
                     <NotificationToggle initialEnabled={userProgress.notificationsEnabled} />
+                </div>
+
+                {/* Extras Panel */}
+                <h3 className="mb-4 mt-8 text-xl font-bold text-slate-700">Acerca de</h3>
+                <div className="space-y-4">
+                    <Link href="/settings/about" className="flex items-center justify-between rounded-3xl border-2 border-sky-100 bg-sky-50 shadow-sm border-b-4 transition-all hover:bg-sky-100 hover:border-b-4 active:border-b-2 active:translate-y-1 group p-4 cursor-pointer">
+                        <div className="flex items-center gap-4">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border-2 border-sky-100 shadow-sm text-sky-500 transition-transform group-hover:scale-110">
+                                <Info className="h-6 w-6" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-lg font-bold text-sky-800">Sobre o MyDuolingo</span>
+                                <span className="text-sm font-medium text-sky-600">Versões, Termos de uso e Privacidade</span>
+                            </div>
+                        </div>
+                        <ChevronRight className="h-6 w-6 text-sky-400 group-hover:text-sky-600 transition-transform group-hover:translate-x-1" />
+                    </Link>
                 </div>
             </div>
 

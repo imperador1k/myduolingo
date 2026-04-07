@@ -42,8 +42,8 @@ export default function RootLayout({
             </ClerkLoading>
             <ClerkLoaded>
               {children}
+              <FloatingMarco />
             </ClerkLoaded>
-            <FloatingMarco />
           </CustomToastProvider>
         </body>
       </html>
