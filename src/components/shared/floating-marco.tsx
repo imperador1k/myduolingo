@@ -21,7 +21,14 @@ export const FloatingMarco = () => {
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // CRITICAL: Route Protection
+    // Auto-scroll to bottom of chat
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [messages, isLoading, isOpen]);
+
+    // CRITICAL: Route Protection (Moved after hooks to avoid "Rendered more hooks" error)
     if (
         pathname.startsWith("/lesson") ||
         pathname.startsWith("/evaluation") ||
@@ -30,14 +37,6 @@ export const FloatingMarco = () => {
     ) {
         return null;
     }
-
-    // Auto-scroll to bottom of chat
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [messages, isLoading, isOpen]);
 
     const handleSend = async () => {
         if (!input.trim() || isLoading) return;
@@ -70,39 +69,48 @@ export const FloatingMarco = () => {
     };
 
     return (
-        <div className="fixed z-50 bottom-6 right-6 md:bottom-10 md:right-10 flex flex-col items-end pointer-events-none">
+        <>
             {/* The Trigger Button (FAB) */}
             <div
                 className={cn(
-                    "pointer-events-auto transition-all duration-300 transform",
-                    isOpen ? "scale-0 opacity-0 absolute" : "scale-100 opacity-100 relative"
+                    "fixed z-50 bottom-32 right-4 md:bottom-10 md:right-10 flex flex-col items-end pointer-events-none transition-all duration-300 transform",
+                    isOpen ? "scale-0 opacity-0" : "scale-100 opacity-100"
                 )}
             >
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="w-16 h-16 bg-white border-2 border-stone-200 border-b-8 rounded-full shadow-lg active:translate-y-2 active:border-b-2 hover:bg-stone-50 transition-all flex items-center justify-center relative outline-none"
+                    className="pointer-events-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-b from-sky-50 to-white border-2 border-[#1CB0F6] border-b-8 rounded-full shadow-2xl shadow-sky-500/20 active:translate-y-2 active:border-b-2 hover:from-sky-100 hover:to-sky-50 transition-all flex items-center justify-center relative outline-none overflow-hidden group"
                     aria-label="Abrir chat do Marco"
                 >
-                    {/* Placeholder for Marco's French Owl avatar */}
-                    <div className="text-3xl">🦉</div>
-                    <div className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+                    <Image 
+                        src="/marco.png" 
+                        alt="Marco Mascot" 
+                        fill
+                        className="object-contain p-2 md:p-3 group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute top-1 right-1 md:top-2 md:right-2 w-4 h-4 md:w-5 md:h-5 bg-red-500 rounded-full border-2 border-white animate-pulse shadow-sm" />
                 </button>
             </div>
 
             {/* The Bento Box Chat */}
             <div
                 className={cn(
-                    "pointer-events-auto origin-bottom-right transition-all duration-300 ease-out transform",
-                    "fixed inset-x-0 bottom-0 w-full h-[80vh] rounded-t-3xl border-t-8 border-stone-200 bg-[#fbf9f8] shadow-2xl flex flex-col",
-                    "md:relative md:inset-auto md:w-[400px] md:h-[600px] md:rounded-3xl md:border-2 md:border-stone-200 md:border-b-8 overflow-hidden",
+                    "pointer-events-auto z-50 origin-bottom-right transition-all duration-300 ease-out transform",
+                    "fixed inset-x-0 bottom-0 w-full h-[85vh] rounded-t-3xl border-t-8 border-stone-200 bg-[#fbf9f8] shadow-2xl flex flex-col",
+                    "md:fixed md:bottom-10 md:right-10 md:left-auto md:w-[420px] md:h-[650px] md:rounded-3xl md:border-2 md:border-stone-200 md:border-b-8 overflow-hidden",
                     isOpen ? "scale-100 opacity-100 translate-y-0" : "scale-95 opacity-0 translate-y-20 pointer-events-none"
                 )}
             >
                 {/* Header */}
                 <div className="bg-[#1CB0F6] text-white p-4 flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-2xl">
-                            🦉
+                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden border-2 border-white/20 shadow-sm relative">
+                            <Image 
+                                src="/marco.png" 
+                                alt="Marco" 
+                                fill
+                                className="object-contain p-1"
+                            />
                         </div>
                         <div className="font-extrabold text-lg tracking-wide uppercase">
                             Marco <span className="text-white/60 text-xs">(Beta)</span>
@@ -152,7 +160,7 @@ export const FloatingMarco = () => {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-4 bg-white border-t-2 border-stone-100 flex items-center gap-3 shrink-0">
+                <div className="p-4 bg-white border-t-2 border-stone-100 flex items-center gap-3 shrink-0 mb-safe">
                     <div className="flex-1 relative">
                         <input
                             type="text"
@@ -177,6 +185,6 @@ export const FloatingMarco = () => {
                     </button>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
