@@ -85,34 +85,32 @@ export function UnitCardIsland({
     const containerHeight = Math.max(lessons.length * 150 + 100, 450);
 
     return (
-        <div 
-            className={cn(
-                "w-full relative flex flex-col items-center pb-20 sm:pb-24 transition-colors duration-500 rounded-[32px] shadow-inner mb-6",
-                isLockedUnit ? "opacity-75 grayscale sepia-[.3]" : ""
-            )}
-            style={{ 
-                background: `linear-gradient(180deg, ${theme.bg}80 0%, ${theme.bg}20 100%)`, 
-                backgroundColor: theme.bg // base fallback
-            }}
-        >
+        <div className="w-full relative flex flex-col items-center mb-8">
             {/* The Vibrant Banner */}
             <div 
                 className={cn(
-                    "w-full px-6 sm:px-12 py-6 sm:py-8 mb-4 z-10 flex flex-col items-start text-left rounded-t-[32px] rounded-b-[16px] shadow-md border-b-4",
+                    "relative z-10 w-full flex flex-col p-6 text-left",
+                    isLockedUnit 
+                        ? "bg-stone-200 border-2 border-stone-300 border-b-8 rounded-3xl opacity-80" 
+                        : "bg-gradient-to-b from-[#58CC02] to-[#4eb801] border-2 border-[#46a302] border-b-8 rounded-t-3xl",
                     align === 'right' ? "items-end text-right" : "items-start text-left"
                 )}
-                style={{ backgroundColor: theme.text, borderColor: theme.dark }}
             >
                 <div className="flex items-center gap-3 mb-2">
                     <span 
-                        className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full bg-white/20 text-white shadow-sm"
+                        className={cn(
+                            "font-bold tracking-widest text-sm uppercase mb-2",
+                            isLockedUnit ? "text-stone-400" : "text-white/80"
+                        )}
                     >
                         Capítulo {unitIndex + 1}
                     </span>
                 </div>
                 <h3 
-                    className="text-3xl sm:text-4xl font-black leading-tight tracking-tight text-white drop-shadow-md max-w-[80%]"
-                    style={{ textShadow: `0 2px 4px ${theme.dark}80` }}
+                    className={cn(
+                        "font-black leading-tight max-w-[80%]",
+                        isLockedUnit ? "text-stone-500 text-xl md:text-2xl" : "text-white text-2xl md:text-3xl drop-shadow-sm"
+                    )}
                 >
                     {title}
                 </h3>
@@ -120,7 +118,10 @@ export function UnitCardIsland({
 
             {/* The Path Container */}
             <div 
-                className="relative w-full max-w-[800px] mx-auto mt-16 sm:mt-24"
+                className={cn(
+                    "relative mx-auto flex flex-col items-center w-full",
+                    !isLockedUnit ? "bg-white border-x-2 border-b-2 border-[#e5e7eb] rounded-b-3xl shadow-[0_10px_30px_rgba(0,0,0,0.05)] pb-10" : "pb-10"
+                )}
                 style={{
                     minHeight: `${containerHeight}px`,
                 }}
@@ -164,14 +165,14 @@ export function UnitCardIsland({
                                     <div className="relative group cursor-pointer z-40 flex flex-col items-center justify-center">
                                         
                                         {/* Massive COMEÇAR Directional Bubble */}
-                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 flex flex-col items-center mb-2 pointer-events-none">
+                                        <div className="absolute -top-16 left-1/2 -translate-x-1/2 flex flex-col items-center z-20 pointer-events-none mb-4">
                                             {!noHearts && (
-                                                <div 
-                                                    className="relative flex bg-white font-black text-[#58CC02] text-sm uppercase tracking-wider px-6 py-4 rounded-2xl border-2 border-stone-200 border-b-[6px] shadow-lg transition-transform hover:scale-105 active:scale-95 animate-bounce z-50 whitespace-nowrap mb-6 pointer-events-auto cursor-pointer"
-                                                >
-                                                    COMEÇAR
+                                                <div className="bg-white border-2 border-[#e5e7eb] border-b-4 rounded-2xl p-3 shadow-xl animate-bounce pointer-events-auto flex flex-col items-center relative">
+                                                    <div className="bg-[#58CC02] text-white font-black uppercase text-sm px-4 py-2 rounded-xl border-b-4 border-[#46a302] active:translate-y-1 active:border-b-0 transition-all cursor-pointer whitespace-nowrap">
+                                                        COMEÇAR
+                                                    </div>
                                                     {/* CSS Triangle Tail */}
-                                                    <div className="absolute -bottom-[12px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-[12px] border-x-transparent border-t-[12px] border-t-stone-200"></div>
+                                                    <div className="absolute -bottom-[12px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-[12px] border-x-transparent border-t-[12px] border-t-[#e5e7eb]"></div>
                                                     <div className="absolute -bottom-[8px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-[10px] border-x-transparent border-t-[10px] border-t-white"></div>
                                                 </div>
                                             )}

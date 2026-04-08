@@ -25,6 +25,7 @@ import {
     ChevronRight,
     Target,
     Gamepad2,
+    LifeBuoy
 } from "lucide-react";
 import { useUISounds } from "@/hooks/use-ui-sounds";
 import { useUser } from "@clerk/nextjs";
@@ -268,6 +269,12 @@ export const Sidebar = ({ className, notificationCount, unreadMessageCount }: Pr
                             isCollapsed={isCollapsed}
                             iconSrc={<Mail className="h-5 w-5 lg:w-6 lg:h-6 shrink-0" />}
                             notificationCount={unreadMessageCount}
+                        />
+                        <SidebarItem
+                            label="Ajuda"
+                            href="/support"
+                            isCollapsed={isCollapsed}
+                            iconSrc={<LifeBuoy className="h-5 w-5 lg:w-6 lg:h-6 shrink-0" />}
                         />
                         <SidebarItem
                             label="Definições"

@@ -164,7 +164,8 @@ export default async function LearnPage() {
                 title: lesson.title,
                 completed: isCompleted,
                 isCurrent,
-                isLocked: !isCompleted && !isCurrent
+                isLocked: !isCompleted && !isCurrent,
+                challenges: lesson.challenges
             };
         });
         

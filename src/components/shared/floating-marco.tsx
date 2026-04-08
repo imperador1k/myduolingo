@@ -6,12 +6,21 @@ import Image from "next/image";
 import { X, Send, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { askMarco } from "@/actions/marco-chat";
+import ReactMarkdown from "react-markdown";
+import Link from "next/link";
 
 type Message = {
     id: string;
     role: "user" | "marco";
     content: string;
 };
+
+const SLASH_COMMANDS = [
+    { cmd: "/suporte", icon: "🛠️", desc: "Reportar um erro", color: "blue" },
+    { cmd: "/cultura", icon: "🌍", desc: "Curiosidade cultural", color: "purple" },
+    { cmd: "/dica", icon: "🧠", desc: "Dica de estudo rápida", color: "yellow" },
+    { cmd: "/traduzir", icon: "🗣️", desc: "Traduzir...", color: "green" },
+];
 
 export const FloatingMarco = () => {
     const pathname = usePathname();
@@ -20,6 +29,7 @@ export const FloatingMarco = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     // Auto-scroll to bottom of chat
     useEffect(() => {
@@ -44,19 +54,19 @@ export const FloatingMarco = () => {
         return null;
     }
 
-    const handleSend = async () => {
-        if (!input.trim() || isLoading) return;
+    const handleSend = async (overrideInput?: string) => {
+        const textToSend = overrideInput || input;
+        if (!textToSend.trim() || isLoading) return;
 
-        const userMsg = input.trim();
         setInput("");
         
-        const newMessage: Message = { id: Date.now().toString(), role: "user", content: userMsg };
+        const newMessage: Message = { id: Date.now().toString(), role: "user", content: textToSend };
         setMessages((prev) => [...prev, newMessage]);
         setIsLoading(true);
 
         try {
             const contextLanguage = "Vários Idiomas"; // You can make this dynamic if needed
-            const response = await askMarco(userMsg, contextLanguage);
+            const response = await askMarco(textToSend, contextLanguage);
             const marcoMessage: Message = { id: (Date.now() + 1).toString(), role: "marco", content: response };
             setMessages((prev) => [...prev, marcoMessage]);
         } catch (error) {
@@ -72,6 +82,25 @@ export const FloatingMarco = () => {
             e.preventDefault();
             handleSend();
         }
+    };
+
+    const handleCommandClick = (cmd: typeof SLASH_COMMANDS[0]) => {
+        setInput(cmd.cmd + " ");
+        inputRef.current?.focus();
+    };
+
+    const renderUserMessage = (text: string) => {
+        const foundCmd = SLASH_COMMANDS.find(c => text.startsWith(c.cmd));
+        if (!foundCmd) return text;
+        const rest = text.slice(foundCmd.cmd.length).trim();
+        return (
+            <>
+                <span className="inline-block bg-white/20 text-white font-bold px-2 py-0.5 rounded-md mr-1 shadow-sm">
+                    {foundCmd.cmd}
+                </span>
+                {rest}
+            </>
+        );
     };
 
     return (
@@ -110,10 +139,8 @@ export const FloatingMarco = () => {
                 )}
             >
                 {/* Header */}
-                <div className="bg-[#58CC02] border-b-4 border-[#46A302] text-white p-4 flex justify-between items-center shrink-0 relative overflow-hidden">
-                    {/* Glossy highlight effect on header */}
-                    <div className="absolute top-0 inset-x-0 h-1/2 bg-white/10 pointer-events-none" />
-                    <div className="flex items-center gap-3 relative z-10">
+                <div className="bg-[#58CC02] border-b-4 border-[#46a302] px-4 py-3 flex items-center justify-between shadow-sm relative z-20 shrink-0">
+                    <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden border-2 border-white/20 shadow-sm relative">
                             <Image 
                                 src="/marco.png" 
@@ -122,8 +149,8 @@ export const FloatingMarco = () => {
                                 className="object-contain p-1"
                             />
                         </div>
-                        <div className="font-extrabold text-lg tracking-wide uppercase">
-                            Marco <span className="text-white/60 text-xs">(Beta)</span>
+                        <div className="text-white font-black tracking-wide text-lg">
+                            MARCO <span className="text-xs opacity-80">(BETA)</span>
                         </div>
                     </div>
                     <button
@@ -150,10 +177,27 @@ export const FloatingMarco = () => {
                                 />
                             </div>
                             <h3 className="font-extrabold text-2xl text-stone-700">Salut! 🥖</h3>
-                            <p className="text-stone-500 font-medium px-4 text-sm leading-relaxed max-w-[280px]">
-                                Sou o Marco. Precisas de ajuda com uma palavra? Bateu a curiosidade sobre outra cultura?
-                                <br/><span className="text-[#58CC02] font-black text-lg mt-2 inline-block drop-shadow-sm">Estou aqui para ti!</span>
-                            </p>
+                            
+                            <div className="mt-6 w-full max-w-sm mx-auto bg-stone-50 border-2 border-stone-200 rounded-2xl p-4 text-left">
+                                <h4 className="text-sm font-bold text-stone-400 uppercase tracking-wider mb-3">Como usar o Marco:</h4>
+                                
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="bg-blue-100 text-blue-600 font-bold px-2 py-1 rounded-lg text-xs border-b-2 border-blue-200">/suporte</span> 
+                                    <span className="text-sm font-bold text-stone-600">Reportar um erro</span>
+                                </div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="bg-purple-100 text-purple-600 font-bold px-2 py-1 rounded-lg text-xs border-b-2 border-purple-200">/cultura</span> 
+                                    <span className="text-sm font-bold text-stone-600">Curiosidade cultural</span>
+                                </div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="bg-amber-100 text-amber-600 font-bold px-2 py-1 rounded-lg text-xs border-b-2 border-amber-200">/dica</span> 
+                                    <span className="text-sm font-bold text-stone-600">Dica de estudo</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className="bg-[#ddf4ff] text-[#1CB0F6] font-bold px-2 py-1 rounded-lg text-xs border-b-2 border-[#1CB0F6]/20">/traduzir</span> 
+                                    <span className="text-sm font-bold text-stone-600">Traduzir frase</span>
+                                </div>
+                            </div>
                         </div>
                     )}
                     {messages.map((msg) => (
@@ -162,10 +206,30 @@ export const FloatingMarco = () => {
                                 className={cn(
                                     msg.role === "user"
                                         ? "bg-[#58CC02] border-[#46a302] border-b-4 text-white rounded-2xl rounded-tr-none px-4 py-3 max-w-[85%] font-medium"
-                                        : "bg-white border-2 border-stone-200 border-b-4 rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%] text-stone-700 shadow-sm font-medium whitespace-pre-wrap"
+                                        : "bg-white border-2 border-stone-200 border-b-4 rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%] text-stone-700 shadow-sm font-medium whitespace-pre-wrap prose prose-sm prose-stone"
                                 )}
                             >
-                                {msg.content}
+                                    {msg.role === "user" ? renderUserMessage(msg.content) : (
+                                        <ReactMarkdown
+                                            components={{
+                                                a: ({ node, ...props }) => {
+                                                    if (props.href === "/support" && props.children?.toString() === "ABRIR TICKET DE SUPORTE") {
+                                                        return (
+                                                            <Link 
+                                                                href="/support" 
+                                                                className="block mt-4 bg-[#ea2b2b] text-white font-black text-center py-3 px-6 rounded-2xl border-2 border-[#b21c1c] border-b-[6px] active:translate-y-1 active:border-b-0 transition-all no-underline w-full shadow-sm"
+                                                            >
+                                                                🛠️ CONTACTAR O MIGUEL
+                                                            </Link>
+                                                        );
+                                                    }
+                                                    return <a {...props} className="text-[#1CB0F6] hover:underline font-bold" />;
+                                                }
+                                            }}
+                                        >
+                                            {msg.content}
+                                        </ReactMarkdown>
+                                    )}
                             </div>
                         </div>
                     ))}
@@ -183,9 +247,30 @@ export const FloatingMarco = () => {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-4 bg-white border-t-2 border-stone-100 flex items-center gap-3 shrink-0 mb-safe">
-                    <div className="flex-1 relative">
-                        <input
+                <div className="p-4 bg-white border-t-2 border-stone-100 flex flex-col shrink-0 mb-safe relative">
+                    {/* Slash Commands Pop-over */}
+                    {input === "/" && (
+                        <div className="absolute bottom-full left-4 mb-2 bg-white border-2 border-stone-200 rounded-2xl shadow-xl overflow-hidden z-30 w-64 animate-in slide-in-from-bottom-2 fade-in">
+                            {SLASH_COMMANDS.map((cmd) => (
+                                <button
+                                    key={cmd.cmd}
+                                    onClick={() => handleCommandClick(cmd)}
+                                    className="flex items-center gap-3 p-3 hover:bg-stone-50 text-left w-full transition-colors border-b-2 border-stone-100 last:border-0 outline-none"
+                                >
+                                    <span className="text-xl">{cmd.icon}</span>
+                                    <div className="flex flex-col">
+                                        <span className="font-extrabold text-stone-700">{cmd.cmd}</span>
+                                        <span className="text-stone-400 font-bold text-xs">{cmd.desc}</span>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                    
+                    <div className="flex items-center gap-3 relative">
+                        <div className="flex-1 relative">
+                            <input
+                            ref={inputRef}
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
@@ -195,7 +280,7 @@ export const FloatingMarco = () => {
                         />
                     </div>
                     <button
-                        onClick={handleSend}
+                        onClick={() => handleSend()}
                         disabled={!input.trim() || isLoading}
                         className={cn(
                             "w-12 h-12 rounded-full flex items-center justify-center transition-all outline-none shrink-0",
@@ -206,6 +291,7 @@ export const FloatingMarco = () => {
                     >
                         {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-1" />}
                     </button>
+                    </div>
                 </div>
             </div>
         </>

@@ -6,7 +6,8 @@ import { Command } from "cmdk";
 import {
     Home, BookOpen, Dumbbell, GraduationCap, 
     User, BarChart, Trophy, Archive, 
-    Users, Bell, Mail, ShoppingBag, Settings, Search
+    Users, Bell, Mail, ShoppingBag, Settings, Search,
+    Gamepad2, Target
 } from "lucide-react";
 
 export function CommandMenu() {
@@ -67,6 +68,7 @@ export function CommandMenu() {
                             <CommandItem onSelect={() => runCommand(() => router.push("/learn"))} icon={<Home className="w-5 h-5" />} color="text-sky-500" bgColor="bg-sky-50">Início / Aprender</CommandItem>
                             <CommandItem onSelect={() => runCommand(() => router.push("/practice"))} icon={<Dumbbell className="w-5 h-5" />} color="text-emerald-500" bgColor="bg-emerald-50">Praticar AI</CommandItem>
                             <CommandItem onSelect={() => runCommand(() => router.push("/courses"))} icon={<BookOpen className="w-5 h-5" />} color="text-amber-500" bgColor="bg-amber-50">Meus Cursos</CommandItem>
+                            <CommandItem onSelect={() => runCommand(() => router.push("/arcade"))} icon={<Gamepad2 className="w-5 h-5" />} color="text-pink-500" bgColor="bg-pink-50">Arcade / Jogos</CommandItem>
                             <CommandItem onSelect={() => runCommand(() => router.push("/evaluation"))} icon={<GraduationCap className="w-5 h-5" />} color="text-indigo-500" bgColor="bg-indigo-50">Avaliação</CommandItem>
                         </Command.Group>
 
@@ -74,6 +76,7 @@ export function CommandMenu() {
                             <CommandItem onSelect={() => runCommand(() => router.push("/profile"))} icon={<User className="w-5 h-5" />} color="text-orange-500" bgColor="bg-orange-50">O meu Perfil</CommandItem>
                             <CommandItem onSelect={() => runCommand(() => router.push("/analytics"))} icon={<BarChart className="w-5 h-5" />} color="text-purple-500" bgColor="bg-purple-50">Estatísticas Detalhadas</CommandItem>
                             <CommandItem onSelect={() => runCommand(() => router.push("/leaderboard"))} icon={<Trophy className="w-5 h-5" />} color="text-yellow-500" bgColor="bg-yellow-50">Ranking / Classificação</CommandItem>
+                            <CommandItem onSelect={() => runCommand(() => router.push("/quests"))} icon={<Target className="w-5 h-5" />} color="text-rose-500" bgColor="bg-rose-50">Missões / Quests</CommandItem>
                             <CommandItem onSelect={() => runCommand(() => router.push("/vocabulary"))} icon={<Archive className="w-5 h-5" />} color="text-rose-500" bgColor="bg-rose-50">Cofre de Vocabulário</CommandItem>
                         </Command.Group>
 

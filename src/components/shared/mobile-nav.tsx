@@ -23,6 +23,7 @@ import {
     ShieldAlert,
     Target,
     Gamepad2,
+    LifeBuoy
 } from "lucide-react";
 
 import { useUISounds } from "@/hooks/use-ui-sounds";
@@ -69,7 +70,7 @@ const MobileItem = ({ href, icon, label, isActive, onClick, badgeCount }: Mobile
     );
 };
 
-type ExpandedTheme = "blue" | "purple" | "yellow" | "red" | "emerald" | "orange" | "indigo" | "stone" | "sky" | "pink" | "amber";
+type ExpandedTheme = "blue" | "purple" | "yellow" | "red" | "emerald" | "orange" | "indigo" | "stone" | "sky" | "pink" | "amber" | "teal";
 
 type ExpandedMobileItemProps = MobileItemProps & {
     colorTheme?: ExpandedTheme;
@@ -91,6 +92,7 @@ const ExpandedMobileItem = ({ href, icon, label, isActive, onClick, badgeCount, 
         sky: "bg-sky-100 text-sky-500 border-sky-200",
         pink: "bg-pink-100 text-pink-500 border-pink-200",
         amber: "bg-amber-100 text-amber-500 border-amber-200",
+        teal: "bg-teal-100 text-teal-600 border-teal-200",
     }[colorTheme];
 
     return (
@@ -268,6 +270,14 @@ const MobileNavContent = ({ notificationCount, unreadMessageCount }: MobileNavPr
                                     colorTheme="red"
                                 />
                             )}
+                            <ExpandedMobileItem
+                                href="/support"
+                                icon={<LifeBuoy strokeWidth={2.5} className="h-7 w-7" />}
+                                label="Ajuda"
+                                isActive={pathname === "/support"}
+                                onClick={closeMenu}
+                                colorTheme="teal"
+                            />
                         </div>
                     </div>
                 </div>
