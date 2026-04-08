@@ -100,7 +100,7 @@ export default function AboutPage() {
                     <div className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white border-2 border-stone-200 border-b-4 hover:bg-stone-50 transition-colors shadow-sm">
                         <span className="text-stone-400 font-black tracking-widest text-xs uppercase">Concebido com</span>
                         <Heart className="w-5 h-5 text-rose-500 fill-rose-500 animate-[bounce_2s_ease-in-out_infinite]" />
-                        <span className="text-stone-400 font-black tracking-widest text-xs uppercase">por Lendas</span>
+                        <span className="text-stone-400 font-black tracking-widest text-xs uppercase">por Miguel</span>
                     </div>
                 </div>
             </div>

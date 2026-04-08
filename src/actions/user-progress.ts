@@ -23,9 +23,10 @@ import {
 import { recordDailyStatsAction } from "@/actions/daily-stats";
 import { z } from "zod";
 import { db } from "@/db/drizzle";
-import { challenges, userProgress } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { challenges, userProgress, userDailyStats } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import { gameplayRateLimit } from "@/lib/ratelimit";
+import { getDailyQuests, getQuestProgress } from "@/lib/quests";
 
 /**
  * Toggles global notification preferences.
@@ -486,4 +487,109 @@ export const onClinicComplete = async () => {
     revalidatePath("/shop");
 
     return result;
+};
+
+// ============ DAILY QUESTS ============
+
+/**
+ * Reclama o baú diário após completar 3 missões.
+ * Atribui +50 XP (Pontos) e marca todayStats.chestClaimed = true.
+ */
+export const claimDailyChestReward = async () => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    // 🛡️ ANTI-CHEAT: Rate Limiting
+    const { success } = await gameplayRateLimit.limit(userId);
+    if (!success) {
+        throw new Error("Estás a ir rápido demais!");
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Check today stats
+    const todayStats = await db.query.userDailyStats.findFirst({
+        where: and(
+            eq(userDailyStats.userId, userId),
+            eq(userDailyStats.date, todayStr)
+        )
+    });
+
+    if (!todayStats) {
+        throw new Error("Nenhum progresso encontrado para hoje.");
+    }
+
+    if (todayStats.chestClaimed) {
+        throw new Error("O Baú Diário já foi aberto hoje.");
+    }
+
+    // Verify 3 quests are completed
+    const dailyQuests = getDailyQuests(userId, todayStr).map(quest => {
+        const current = getQuestProgress(quest.type, todayStats);
+        return {
+            ...quest,
+            current
+        };
+    });
+
+    const completedQuestsCount = dailyQuests.filter(q => q.current >= q.target).length;
+
+    if (completedQuestsCount < 3) {
+        throw new Error("Ainda não completaste as 3 missões necessárias.");
+    }
+
+    // Mark as claimed
+    await db.update(userDailyStats)
+        .set({ chestClaimed: true })
+        .where(eq(userDailyStats.id, todayStats.id));
+
+    // Award 50 XP
+    await addPoints(50);
+
+    createNotification(
+        userId,
+        "system",
+        "Abriste o Baú Diário! Parabéns, ganhaste 50 XP extra! 🎁",
+        "/quests"
+    ).catch(console.error);
+
+    revalidatePath("/quests");
+    revalidatePath("/learn");
+
+    return { success: true, reward: 50 };
+};
+// ============ ARCADE ============
+
+/**
+ * Adds points earned in the Arcade.
+ * Similar to regular points, but skips the strict challenge rate limit 
+ * because Arcade is fast-paced (e.g. 1 point every 2-3 seconds).
+ */
+export const addArcadePoints = async (amount: number) => {
+    const { userId } = await auth();
+
+    if (!userId) {
+        throw new Error("Unauthorized");
+    }
+
+    // Must be a small amount to prevent abuse
+    if (amount > 10) {
+        throw new Error("Invalid arcade points amount.");
+    }
+
+    await addPoints(amount);
+    
+    // Log XP for daily stats
+    await recordDailyStatsAction(amount, 0);
+
+    // We don't strictly revalidate leaderboards on every single point to save server load, 
+    // it will eventually be fresh when they visit the page, but let's revalidate profile/header.
+    // However, revalidating here is fine for now.
+    revalidatePath("/leaderboard");
+    revalidatePath("/profile");
+
+    return { success: true };
 };

@@ -293,3 +293,8 @@ body,
   from { transform: translateX(0); }
   to { transform: translateX(24px); }
 }
+
+/* Hide Buy Me A Coffee Default Widget Button */
+#bmc-wbtn {
+  display: none !important;
+}

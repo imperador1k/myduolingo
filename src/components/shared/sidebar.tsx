@@ -23,6 +23,8 @@ import {
     ShieldAlert,
     ChevronLeft,
     ChevronRight,
+    Target,
+    Gamepad2,
 } from "lucide-react";
 import { useUISounds } from "@/hooks/use-ui-sounds";
 import { useUser } from "@clerk/nextjs";
@@ -154,6 +156,18 @@ export const Sidebar = ({ className, notificationCount, unreadMessageCount }: Pr
                     href="/leaderboard"
                     isCollapsed={isCollapsed}
                     iconSrc={<Trophy className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />}
+                />
+                <SidebarItem
+                    label="Missões"
+                    href="/quests"
+                    isCollapsed={isCollapsed}
+                    iconSrc={<Target className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />}
+                />
+                <SidebarItem
+                    label="Arcade"
+                    href="/arcade"
+                    isCollapsed={isCollapsed}
+                    iconSrc={<Gamepad2 className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />}
                 />
                 <SidebarItem
                     label="Shop"

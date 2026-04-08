@@ -293,6 +293,7 @@ export const userDailyStats = pgTable("user_daily_stats", {
     date: text("date").notNull(), // Format YYYY-MM-DD
     xpGained: integer("xp_gained").notNull().default(0),
     lessonsCompleted: integer("lessons_completed").notNull().default(0),
+    chestClaimed: boolean("chest_claimed").notNull().default(false),
 }, (t) => ({
     userDateUnq: unique("user_id_date_unique").on(t.userId, t.date),
 }));

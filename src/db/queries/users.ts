@@ -17,10 +17,7 @@ export const getUserAnalytics = cache(async () => {
     const last7Days = Array.from({ length: 7 }).map((_, i) => format(subDays(today, 6 - i), 'yyyy-MM-dd'));
 
     const dailyData = await db.query.userDailyStats.findMany({
-        where: and(
-            eq(userDailyStats.userId, userId),
-            inArray(userDailyStats.date, last7Days)
-        )
+        where: eq(userDailyStats.userId, userId)
     });
 
     const weeklyData = last7Days.map(dateStr => {
@@ -29,6 +26,16 @@ export const getUserAnalytics = cache(async () => {
             date: dateStr,
             xp: found ? found.xpGained : 0,
             lessons: found ? found.lessonsCompleted : 0
+        };
+    });
+
+    const heatmapData = Array.from({ length: 364 }).map((_, i) => {
+        // We start from today and go back 363 days
+        const dateStr = format(subDays(today, 363 - i), 'yyyy-MM-dd');
+        const found = dailyData.find(d => d.date === dateStr);
+        return {
+            date: dateStr,
+            xp: found ? found.xpGained : 0
         };
     });
 
@@ -66,6 +73,9 @@ export const getUserAnalytics = cache(async () => {
         lessonsCompleted: weeklyData.reduce((acc, curr) => acc + curr.lessons, 0),
         activeDays,
         weeklyData,
+        heatmapData,
+        streak: progress.streak,
+        longestStreak: progress.longestStreak,
         wordsMastered,
         accuracy
     };

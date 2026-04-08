@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { getUserProgress } from "@/db/queries";
-import { Heart, Zap, Shield, Snowflake } from "lucide-react";
+import { Heart, Zap, Shield, Snowflake, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ShopItems } from "./shop-items";
 import { PracticeButton } from "./practice-button";
 import { LottieBlock } from "@/components/ui/lottie-block";
+import { SupportCard } from "./support-card";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +32,8 @@ export default async function ShopPage() {
 
             {/* Inventory & Hearts Dashboard (Os Teus Itens) */}
             <div className="mb-12 space-y-6">
-                <h2 className="text-lg font-black uppercase tracking-widest text-stone-400 mb-6 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center border-2 border-stone-200 border-b-4"><Zap className="w-4 h-4 fill-stone-400 text-stone-400" /></div>
+                <h2 className="text-2xl font-black text-stone-700 mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center border-2 border-amber-200 border-b-4"><Zap className="w-5 h-5 fill-amber-500 text-amber-500" /></div>
                     Os Teus Itens
                 </h2>
 
@@ -87,9 +88,9 @@ export default async function ShopPage() {
             </div>
 
             {/* Shop Items Storefront */}
-            <div>
-                <h2 className="text-lg font-black uppercase tracking-widest text-stone-400 mb-6 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center border-2 border-stone-200 border-b-4"><Zap className="w-4 h-4 fill-stone-400 text-stone-400" /></div>
+            <div className="mb-12">
+                <h2 className="text-2xl font-black text-stone-700 mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center border-2 border-sky-200 border-b-4"><ShoppingBag className="w-5 h-5 fill-sky-500 text-sky-500" /></div>
                     Para Comprar
                 </h2>
                 <ShopItems
@@ -100,6 +101,9 @@ export default async function ShopPage() {
                     streakFreezes={userProgress.streakFreezes || 0}
                 />
             </div>
+
+            {/* Support the Developer */}
+            <SupportCard />
         </div>
     );
 }
