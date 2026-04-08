@@ -121,3 +121,13 @@ export const onMarkNotificationAsRead = async (id: number) => {
         console.error("Mark notification as read error:", error);
     }
 };
+
+export const onGiveHighFive = async (activityId: number) => {
+    try {
+        const { giveHighFive } = await import("@/db/queries");
+        await giveHighFive(activityId);
+        revalidatePath("/friends");
+    } catch (error) {
+        console.error("Give high five error:", error);
+    }
+};

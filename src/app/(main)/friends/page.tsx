@@ -1,4 +1,4 @@
-import { getFollowers, getFollowing, searchUsers, getTopUsers } from "@/db/queries";
+import { getFollowers, getFollowing, searchUsers, getTopUsers, getFeedActivities } from "@/db/queries";
 import { getUserProgress } from "@/db/queries";
 import { FriendsClient } from "./friends-client";
 import { redirect } from "next/navigation";
@@ -39,6 +39,22 @@ export default async function FriendsPage({ searchParams }: Props) {
         userImageSrc: u.userImageSrc
     }));
 
+    const rawFeedActivities = await getFeedActivities();
+    // Serialize to pass to Client Component safely
+    const safeFeedActivities = rawFeedActivities.map(fa => ({
+        id: fa.id,
+        userId: fa.userId,
+        type: fa.type,
+        metadata: fa.metadata,
+        createdAt: fa.createdAt ? fa.createdAt.toISOString() : new Date().toISOString(),
+        user: {
+            userName: fa.user.userName,
+            userImageSrc: fa.user.userImageSrc
+        },
+        highFiveCount: fa.highFiveCount,
+        hasHighFived: fa.hasHighFived
+    }));
+
     return (
         <FriendsClient 
             currentUserId={userProgress.userId}
@@ -48,6 +64,7 @@ export default async function FriendsPage({ searchParams }: Props) {
             suggestions={safeSuggestions}
             followers={followers as any}
             following={following as any}
+            feedActivities={safeFeedActivities}
         />
     );
 }

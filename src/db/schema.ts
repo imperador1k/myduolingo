@@ -311,3 +311,51 @@ export const adminAuthAttempts = pgTable("admin_auth_attempts", {
     attempts: integer("attempts").notNull().default(0),
     lockoutUntil: timestamp("lockout_until"),
 });
+
+// ===== FEED & HIGH FIVES (Social) =====
+
+export const feedActivities = pgTable("feed_activities", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    type: text("type").notNull(), // e.g., "STREAK", "LEAGUE", "PERFECT_LESSON", "NEW_FOLLOWER"
+    metadata: text("metadata").notNull(), // Extra info e.g., "10", "Rubi", "5"
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const feedActivitiesRelations = relations(feedActivities, ({ one, many }) => ({
+    user: one(userProgress, {
+        fields: [feedActivities.userId],
+        references: [userProgress.userId],
+    }),
+    highFives: many(highFives),
+}));
+
+export const highFives = pgTable("high_fives", {
+    id: serial("id").primaryKey(),
+    senderId: text("sender_id").notNull(),
+    receiverId: text("receiver_id").notNull(),
+    activityId: integer("activity_id")
+        .references(() => feedActivities.id, { onDelete: "cascade" })
+        .notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+}, (t) => ({
+    // A user can only high-five a specific activity once
+    unq: unique("high_five_unique").on(t.senderId, t.activityId),
+}));
+
+export const highFivesRelations = relations(highFives, ({ one }) => ({
+    sender: one(userProgress, {
+        fields: [highFives.senderId],
+        references: [userProgress.userId],
+        relationName: "highFiveSender",
+    }),
+    receiver: one(userProgress, {
+        fields: [highFives.receiverId],
+        references: [userProgress.userId],
+        relationName: "highFiveReceiver",
+    }),
+    activity: one(feedActivities, {
+        fields: [highFives.activityId],
+        references: [feedActivities.id],
+    }),
+}));
