@@ -19,7 +19,7 @@ type WordData = {
 
 export default function VocabularySprint() {
     const router = useRouter();
-    const { playClick, playReward, playPop } = useUISounds();
+    const { playClick, playReward, playPop, playFahh } = useUISounds();
     
     // Game State
     const [score, setScore] = useState(0);
@@ -138,7 +138,7 @@ export default function VocabularySprint() {
             }, 1000);
         } else {
             setStatus('wrong');
-            playPop();
+            playFahh();
             
             // Show correct answer by forcing it into inputs
             const correctInputs = currentWord.en.split('');
@@ -148,7 +148,7 @@ export default function VocabularySprint() {
                 loadNextWord();
             }, 2500);
         }
-    }, [status, currentWord, inputs, playReward, playPop, loadNextWord]);
+    }, [status, currentWord, inputs, playReward, playFahh, loadNextWord]);
 
     // Handle global Enter key
     useEffect(() => {

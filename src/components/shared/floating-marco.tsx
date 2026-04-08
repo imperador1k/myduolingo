@@ -38,7 +38,8 @@ export const FloatingMarco = () => {
         pathname.startsWith("/lesson") ||
         pathname.startsWith("/evaluation") ||
         pathname.startsWith("/practice") ||
-        pathname.startsWith("/admin")
+        pathname.startsWith("/admin") ||
+        pathname.startsWith("/arcade")
     ) {
         return null;
     }

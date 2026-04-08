@@ -30,3 +30,15 @@ export const gameplayRateLimit = new Ratelimit({
   analytics: true,
   prefix: "@upstash/ratelimit/gameplay",
 });
+
+/**
+ * Rate Limiter for AI Tutors (Marco Chat, Practice Generation)
+ * Prevents API bill exhaustion while allowing healthy usage.
+ * Allows 20 messages per 10 minutes per User.
+ */
+export const aiTutorRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(20, "10 m"),
+  analytics: true,
+  prefix: "@upstash/ratelimit/ai-tutor",
+});
