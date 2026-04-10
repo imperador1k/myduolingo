@@ -8,6 +8,7 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { CustomToastProvider } from "@/components/ui/custom-toast";
 import { FloatingMarco } from "@/components/shared/floating-marco";
 import { TTSUnlocker } from "@/components/shared/tts-unlocker";
+import { ReviewModal } from "@/components/modals/review-modal";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"] });
@@ -43,6 +44,7 @@ export default function RootLayout({
             </ClerkLoading>
             <ClerkLoaded>
               <TTSUnlocker />
+              <ReviewModal />
               {children}
               <FloatingMarco />
             </ClerkLoaded>

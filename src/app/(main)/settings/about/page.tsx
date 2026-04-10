@@ -2,9 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight, ShieldCheck, Mail, FileText, Code, ArrowLeft, UserCircle, Zap, Box, Server, Sparkles, Heart } from "lucide-react";
+import { ChevronRight, ShieldCheck, Mail, FileText, Code, ArrowLeft, UserCircle, Zap, Box, Server, Sparkles, Heart, Star } from "lucide-react";
+import { useReviewModal } from "@/store/use-review-modal-store";
 
 export default function AboutPage() {
+    const { open: openReviewModal } = useReviewModal();
+
     return (
         <div className="flex flex-col items-center py-6 px-4 pb-24">
             <div className="relative z-10 max-w-6xl w-full mx-auto space-y-8">
@@ -139,6 +142,25 @@ export default function AboutPage() {
                         </div>
                         <h3 className="text-lg font-black text-[#1CB0F6]">Contactar <br/> Suporte</h3>
                     </Link>
+
+                    {/* Community Reviews Link */}
+                    <Link href="/reviews" className="bg-purple-50 border-2 border-purple-200 border-b-8 rounded-3xl p-6 flex flex-col items-center justify-center text-center hover:bg-purple-100 active:translate-y-2 active:border-b-0 transition-all cursor-pointer group">
+                        <div className="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center mb-4 group-hover:-translate-y-1 transition-transform border-b-4 border-purple-600 shadow-md shadow-purple-500/30">
+                            <Heart className="w-8 h-8 text-white fill-white" />
+                        </div>
+                        <h3 className="text-lg font-black text-purple-600">Mural de <br/> Feedback</h3>
+                    </Link>
+
+                    {/* Give Feedback Button */}
+                    <button onClick={openReviewModal} className="outline-none focus:outline-none col-span-1 md:col-span-2 lg:col-span-2 bg-yellow-50 border-2 border-yellow-200 border-b-8 rounded-3xl p-6 flex flex-row items-center justify-center text-center gap-6 hover:bg-yellow-100 active:translate-y-2 active:border-b-0 transition-all cursor-pointer group">
+                        <div className="w-16 h-16 bg-[#FFC800] rounded-2xl flex items-center justify-center group-hover:-translate-y-1 transition-transform border-b-4 border-yellow-500 shadow-md shadow-[#FFC800]/30 shrink-0">
+                            <Star className="w-8 h-8 text-white fill-white" />
+                        </div>
+                        <div className="text-left">
+                            <h3 className="text-xl font-black text-yellow-600">Dar o teu Feedback</h3>
+                            <p className="text-yellow-600/70 font-bold text-sm">Ajuda a melhorar a app!</p>
+                        </div>
+                    </button>
 
                 </div>
 

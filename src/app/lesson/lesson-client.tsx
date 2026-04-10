@@ -11,6 +11,7 @@ import { isAnswerAcceptable } from "@/lib/string-matching";
 import { Button } from "@/components/ui/button";
 import { Ear, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useReviewModal } from "@/store/use-review-modal-store";
 
 import { LessonHeader } from "./_components/header";
 import { ChallengeOptionCard } from "./_components/challenge-card";
@@ -69,6 +70,7 @@ export const LessonClient = ({
 }: Props) => {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
+    const { open: openReviewModal, close: closeReviewModal } = useReviewModal();
 
     const [hearts, setHearts] = useState(initialHearts);
     const [points, setPoints] = useState(initialPoints);
@@ -274,11 +276,25 @@ export const LessonClient = ({
         startTransition(() => {
             const completeAction = isClinic ? onClinicComplete : onLessonComplete;
             completeAction().then((res: any) => {
+                const nextRoute = isClinic ? "/shop" : "/learn";
+                
+                // Smart Trigger: If streak is 3, 7, or multiples of 14, intercept with Review Modal
+                // We delay the redirect until the modal is dismissed.
+                const shouldAskReview = res?.streak === 3 || res?.streak === 7 || (res?.streak && res.streak > 0 && res.streak % 14 === 0);
+                
+                if (shouldAskReview && !isClinic) {
+                    openReviewModal();
+                    // We don't route immediately. The modal being global on layout would persist, 
+                    // but since the user is in /lesson, when they close the modal, where do they go?
+                    // Let's hook into the modal's close event if possible, or simpler: 
+                    // just redirect, and the modal stays open in the global layout!
+                }
+
                 if (res?.streakExtended) {
                     setStreakDays(res.streak ?? 0);
                     setShowStreakModal(true);
                 } else {
-                    router.push(isClinic ? "/shop" : "/learn");
+                    router.push(nextRoute);
                 }
             }).catch(() => router.push(isClinic ? "/shop" : "/learn"));
         });

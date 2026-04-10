@@ -378,3 +378,24 @@ export const adminAuditLogsRelations = relations(adminAuditLogs, ({ one }) => ({
         references: [userProgress.userId],
     }),
 }));
+
+// ===== USER REVIEWS (Wall of Love) =====
+export const userReviews = pgTable("user_reviews", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id")
+        .references(() => userProgress.userId, { onDelete: "cascade" })
+        .notNull()
+        .unique(),
+    userName: text("user_name").notNull(),
+    userImageSrc: text("user_image_src").notNull(),
+    rating: integer("rating").notNull(), // 1 to 5
+    comment: text("comment").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userReviewsRelations = relations(userReviews, ({ one }) => ({
+    user: one(userProgress, {
+        fields: [userReviews.userId],
+        references: [userProgress.userId],
+    }),
+}));
