@@ -44,6 +44,7 @@ export const getUserAnalytics = cache(async () => {
     // Calculate Palavras Dominadas (Mastered Words)
     const vocabularyList = await db.query.userVocabulary.findMany({
         where: eq(userVocabulary.userId, userId),
+        columns: { id: true }
     });
     const wordsMastered = vocabularyList.length;
 
@@ -52,12 +53,14 @@ export const getUserAnalytics = cache(async () => {
         where: and(
             eq(challengeProgress.userId, userId),
             eq(challengeProgress.completed, true)
-        )
+        ),
+        columns: { id: true }
     });
     const correctCount = completedChallenges.length;
 
     const mistakes = await db.query.challengeMistakes.findMany({
-        where: eq(challengeMistakes.userId, userId)
+        where: eq(challengeMistakes.userId, userId),
+        columns: { id: true }
     });
     const mistakeCount = mistakes.length;
 

@@ -1,5 +1,6 @@
 import { withSentryConfig } from "@sentry/nextjs";
 
+/* CSP (Content Security Policy) - Bloqueia iframes de domínios não confiáveis (Um dia futuro preciso colocar o link aqui)*/
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
@@ -42,6 +43,10 @@ const nextConfig = {
                     {
                         key: "Strict-Transport-Security",
                         value: "max-age=63072000; includeSubDomains; preload",
+                    },
+                    {
+                        key: "Content-Security-Policy",
+                        value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; img-src 'self' blob: data: https://*.clerk.com https://*.clerk.dev https://*.clerk.accounts.dev https://bjoddfyvixlyrhpyxylr.supabase.co https://res.cloudinary.com; font-src 'self' data:; connect-src 'self' https://*.clerk.com https://*.clerk.dev https://*.clerk.accounts.dev https://bjoddfyvixlyrhpyxylr.supabase.co wss://bjoddfyvixlyrhpyxylr.supabase.co https://*.sentry.io; frame-src 'self' https://challenges.cloudflare.com;",
                     },
                 ],
             },

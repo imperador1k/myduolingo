@@ -32,6 +32,8 @@ import { getDailyQuests, getQuestProgress } from "@/lib/quests";
  * Toggles global notification preferences.
  */
 export const updateNotificationPreference = async (enabled: boolean) => {
+    const parsed = z.boolean().safeParse(enabled);
+    if (!parsed.success) throw new Error("Invalid payload: enabled must be boolean");
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
     
@@ -267,6 +269,8 @@ export const onChallengeWrong = async (challengeId?: number) => {
  * @throws {Error} If the user is not authenticated or the course does not exist.
  */
 export const onSelectCourse = async (courseId: number) => {
+    const parsed = z.number().positive().safeParse(courseId);
+    if (!parsed.success) throw new Error("Invalid payload: courseId must be a positive number.");
     const { userId } = await auth();
     const user = await currentUser();
 
@@ -569,6 +573,10 @@ export const claimDailyChestReward = async () => {
  * because Arcade is fast-paced (e.g. 1 point every 2-3 seconds).
  */
 export const addArcadePoints = async (amount: number) => {
+    const parsed = z.number().int().min(1).max(10).safeParse(amount);
+    if (!parsed.success) {
+        throw new Error("Invalid arcade points amount: limit exceeded.");
+    }
     const { userId } = await auth();
 
     if (!userId) {

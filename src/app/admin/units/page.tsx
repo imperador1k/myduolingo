@@ -1,6 +1,7 @@
 import { db } from "@/db/drizzle";
 import { Layers } from "lucide-react";
 import { DeleteUnitButton } from "@/components/admin/delete-unit-button";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -40,9 +41,9 @@ export default async function AdminUnitsPage() {
                     <button className="hidden sm:flex items-center justify-center px-4 py-3 bg-stone-100 text-stone-500 font-black text-sm tracking-widest uppercase rounded-2xl border-2 border-transparent border-b-[4px] border-b-stone-200 hover:translate-y-[2px] hover:border-b-[2px] active:translate-y-[4px] active:border-b-0 transition-all cursor-pointer">
                         Exportar
                     </button>
-                    <button className="flex items-center justify-center px-6 py-3 bg-[#58CC02] text-white font-black text-sm tracking-widest uppercase rounded-2xl border-2 border-transparent border-b-[6px] border-b-[#46a302] hover:translate-y-[2px] hover:border-b-[4px] active:translate-y-[6px] active:border-b-0 transition-all cursor-pointer shadow-sm">
+                    <Link href="/admin/units/new" className="flex items-center justify-center px-6 py-3 bg-[#58CC02] text-white font-black text-sm tracking-widest uppercase rounded-2xl border-2 border-transparent border-b-[6px] border-b-[#46a302] hover:translate-y-[2px] hover:border-b-[4px] active:translate-y-[6px] active:border-b-0 transition-all cursor-pointer shadow-sm">
                         Nova Unidade
-                    </button>
+                    </Link>
                 </div>
             </div>
 
@@ -90,9 +91,9 @@ export default async function AdminUnitsPage() {
                                     </td>
                                     <td className="px-6 py-5 text-right">
                                         <div className="flex items-center justify-end gap-2 opacity-100 lg:opacity-50 lg:group-hover:opacity-100 transition-opacity">
-                                            <button className="p-2 bg-stone-100 text-stone-500 rounded-xl border-2 border-transparent border-b-[4px] border-b-stone-200 hover:-translate-y-1 hover:border-b-[6px] active:translate-y-1 active:border-b-[2px] transition-all">
+                                            <Link href={`/admin/units/${unit.id}/edit`} className="p-2 bg-stone-100 text-stone-500 rounded-xl border-2 border-transparent border-b-[4px] border-b-stone-200 hover:-translate-y-1 hover:border-b-[6px] active:translate-y-1 active:border-b-[2px] transition-all">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                                            </button>
+                                            </Link>
                                             <div className="scale-90 origin-right">
                                                 <DeleteUnitButton unitId={unit.id} unitTitle={unit.title} />
                                             </div>

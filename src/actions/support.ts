@@ -13,6 +13,17 @@ const supportSchema = z.object({
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function submitSupportTicket(prevState: any, formData: FormData) {
+    // 🍯 HONEYPOT TRAP: Bots vão preencher 'user_contact_number'. Humanos não o conseguem ver.
+    const honeypot = formData.get("user_contact_number") as string;
+    if (honeypot) {
+        console.warn("[SECURITY] Spam Bot detetado a atacar a página de Suporte. Ticket descartado silenciosamente.");
+        // Retornamos um sucesso "falso". O bot desiste, e as nossas caixas de correio agradecem.
+        return {
+            success: true,
+            message: "O teu bilhete voou até nós! Obrigado pelo feedback. 🕊️",
+        };
+    }
+
     const rawData = {
         subject: formData.get("subject") as string,
         message: formData.get("message") as string,

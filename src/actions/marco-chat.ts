@@ -4,7 +4,13 @@ import { auth } from "@clerk/nextjs/server";
 import { generateTextWithFallback } from "@/lib/ai-manager";
 import { aiTutorRateLimit } from "@/lib/ratelimit";
 
+import { z } from "zod";
+
 export async function askMarco(question: string, contextLanguage: string): Promise<string> {
+    const parsed = z.string().min(1).max(500).safeParse(question);
+    if (!parsed.success) {
+        return "Desculpa, a tua mensagem é demasiado longa! Tenta ser mais breve.";
+    }
     const { userId } = await auth();
     
     if (!userId) {

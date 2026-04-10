@@ -359,3 +359,22 @@ export const highFivesRelations = relations(highFives, ({ one }) => ({
         references: [feedActivities.id],
     }),
 }));
+
+// ===== ADMIN AUDIT LOGS =====
+export const adminAuditLogs = pgTable("admin_audit_logs", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id")
+        .references(() => userProgress.userId, { onDelete: "cascade" })
+        .notNull(),
+    action: text("action").notNull(),
+    entityId: text("entity_id"),
+    metadata: text("metadata"), // Stringified JSON info
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const adminAuditLogsRelations = relations(adminAuditLogs, ({ one }) => ({
+    user: one(userProgress, {
+        fields: [adminAuditLogs.userId],
+        references: [userProgress.userId],
+    }),
+}));

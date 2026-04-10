@@ -156,6 +156,16 @@ export default function SupportPage() {
                                     </div>
                                 )}
 
+                                {/* 🍯 HONEYPOT TRAP (Bot Catching) - Invisível para humanos */}
+                                <div 
+                                    className="absolute opacity-0 -z-50 select-none pointer-events-none w-0 h-0 overflow-hidden" 
+                                    aria-hidden="true" 
+                                    tabIndex={-1}
+                                >
+                                    <label htmlFor="user_contact_number">Número de Telefone Pessoal</label>
+                                    <input type="text" id="user_contact_number" name="user_contact_number" tabIndex={-1} autoComplete="off" />
+                                </div>
+
                                 <div className="space-y-2">
                                     <label htmlFor="subject" className="text-sm font-black uppercase text-stone-500 mb-2 block tracking-wider ml-1">Assunto Curto</label>
                                     <input

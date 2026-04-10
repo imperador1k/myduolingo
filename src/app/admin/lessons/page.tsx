@@ -31,10 +31,16 @@ export default async function AdminLessonsPage() {
                         </p>
                     </div>
                 </div>
-                <Link href="/admin/courses" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-md shadow-amber-500/20 transition-all hover:scale-105 active:scale-95">
-                    <Sparkles className="w-5 h-5" />
-                    <span className="hidden sm:inline">Gerar Novas Lições (IA)</span>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <Link href="/admin/lessons/new" className="bg-[#58CC02] hover:bg-[#68e003] text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-md border-b-4 border-[#46a302] hover:border-b-4 active:border-b-0 active:translate-y-1 transition-all">
+                        <Dumbbell className="w-5 h-5" />
+                        <span className="hidden sm:inline">Nova Lição Manual</span>
+                    </Link>
+                    <Link href="/admin/courses" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-md shadow-amber-500/20 border-b-4 border-orange-700 active:border-b-0 active:translate-y-1 transition-all">
+                        <Sparkles className="w-5 h-5" />
+                        <span className="hidden sm:inline">Gerar via IA</span>
+                    </Link>
+                </div>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-4">
@@ -72,7 +78,12 @@ export default async function AdminLessonsPage() {
                                     </td>
                                     <td className="px-6 py-5 text-right">
                                         <div className="flex items-center justify-end gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                                            <DeleteLessonButton lessonId={lesson.id} lessonTitle={lesson.title} />
+                                            <Link href={`/admin/lessons/${lesson.id}/edit`} className="p-2 bg-stone-100 text-stone-500 rounded-xl border-2 border-transparent border-b-[4px] border-b-stone-200 hover:-translate-y-1 hover:border-b-[6px] active:translate-y-1 active:border-b-[2px] transition-all">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                            </Link>
+                                            <div className="scale-90 origin-right">
+                                                <DeleteLessonButton lessonId={lesson.id} lessonTitle={lesson.title} />
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>

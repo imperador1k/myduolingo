@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import Image from "next/image";
 import { Users, Shield, UserIcon } from "lucide-react";
+import { DeleteUserButton } from "@/components/admin/delete-user-button";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,7 @@ export default async function AdminUsersPage() {
                                 <th className="px-6 py-4">Email</th>
                                 <th className="px-6 py-4">Função</th>
                                 <th className="px-6 py-4">Membro desde</th>
+                                <th className="px-6 py-4 text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -99,6 +101,15 @@ export default async function AdminUsersPage() {
                                         {/* Join Date */}
                                         <td className="px-6 py-4">
                                             <span className="text-sm font-medium text-slate-400">{joinedDate}</span>
+                                        </td>
+                                        
+                                        {/* Actions */}
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                                                {!isAdmin && (
+                                                    <DeleteUserButton userId={user.id} userName={fullName} />
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 );

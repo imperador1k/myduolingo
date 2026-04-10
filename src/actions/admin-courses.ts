@@ -10,10 +10,10 @@ import { redirect } from "next/navigation";
 
 // ── Helpers ──────────────────────────────────────────────
 
+import { validateAdmin, logAdminAction } from "@/lib/admin-guard";
+
 async function assertAdmin() {
-    const user = await currentUser();
-    const isAdmin = (user?.publicMetadata as any)?.role === "admin";
-    if (!isAdmin) throw new Error("Unauthorized: Admin access required.");
+    await validateAdmin();
 }
 
 function getSupabaseAdmin() {
@@ -83,18 +83,22 @@ export async function saveCourseAction(formData: FormData) {
         await db.update(courses)
             .set(updateData)
             .where(eq(courses.id, parseInt(id)));
+            
+        await logAdminAction("UPDATE_COURSE", id, JSON.stringify(updateData));
     } else {
         // ── CREATE ──
         if (!imageSrc) {
             throw new Error("Image is required when creating a new course.");
         }
 
-        await db.insert(courses).values({
+        const [newCourse] = await db.insert(courses).values({
             title,
             language,
             languageCode,
             imageSrc,
-        });
+        }).returning();
+
+        await logAdminAction("CREATE_COURSE", newCourse.id.toString(), JSON.stringify({ title, language, languageCode }));
     }
 
     revalidatePath("/admin/courses");

@@ -11,12 +11,11 @@ import { aiRateLimit } from "@/lib/ratelimit";
 
 // ── Helpers ──────────────────────────────────────────────
 
+import { validateAdmin, logAdminAction } from "@/lib/admin-guard";
+
 async function assertAdmin() {
-    const user = await currentUser();
-    if (!user) throw new Error("Unauthorized: No user found.");
-    const isAdmin = (user.publicMetadata as any)?.role === "admin";
-    if (!isAdmin) throw new Error("Unauthorized: Admin access required.");
-    return user;
+    const { userId } = await validateAdmin();
+    return { id: userId };
 }
 
 function cleanText(text: any): string {
@@ -232,6 +231,17 @@ export async function generateCourseContent(
             }
         }
     });
+
+    await logAdminAction(
+        "AI_GENERATE_UNIT", 
+        courseId.toString(), 
+        JSON.stringify({ 
+            topicId, 
+            level, 
+            targetLang,
+            unitTitle: cleanText(data.unit_title) 
+        })
+    );
 
     // ── Revalidate Paths ──
     revalidatePath("/admin/courses");
