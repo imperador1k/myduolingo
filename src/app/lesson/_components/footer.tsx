@@ -19,6 +19,7 @@ type Challenge = {
     challengeOptions: ChallengeOption[];
     context?: string | null;
     explanation?: string | null;
+    skipCount?: number;
 };
 
 type FooterProps = {
@@ -33,6 +34,7 @@ type FooterProps = {
     onSkip: () => void;
     playMixedSpeech: (text: string, lang1: string, lang2: string) => void;
     userAnswer?: string;
+    canSkip?: boolean;
 };
 
 export const LessonFooter = ({
@@ -47,6 +49,7 @@ export const LessonFooter = ({
     onSkip,
     playMixedSpeech,
     userAnswer,
+    canSkip
 }: FooterProps) => {
     return (
         <footer
@@ -62,9 +65,22 @@ export const LessonFooter = ({
                     <div className="flex items-center justify-between w-full">
                         <button
                             onClick={onSkip}
-                            className="hidden sm:block uppercase font-bold text-stone-400 hover:bg-stone-100 rounded-xl px-5 py-3 transition-colors tracking-widest text-sm"
+                            disabled={!canSkip}
+                            className={cn(
+                                "hidden sm:block uppercase font-bold transition-colors tracking-widest text-sm px-5 py-3 rounded-xl leading-none",
+                                !canSkip 
+                                    ? "text-stone-300 cursor-not-allowed opacity-50 bg-stone-50" 
+                                    : "text-stone-400 hover:bg-stone-100 hover:text-stone-500"
+                            )}
                         >
-                            Saltar
+                            <div className="flex flex-col items-center">
+                                <span>Saltar</span>
+                                {currentChallenge.skipCount !== undefined && currentChallenge.skipCount > 0 && (
+                                    <span className="text-[10px] font-black opacity-60 mt-0.5">
+                                        {currentChallenge.skipCount}/2
+                                    </span>
+                                )}
+                            </div>
                         </button>
                         <button
                             onClick={onCheck}

@@ -205,7 +205,7 @@ export function UnitCardIsland({
                                         
                                         {/* Massive COMEÇAR Directional Bubble */}
                                         <div className="absolute -top-[72px] left-1/2 -translate-x-1/2 flex flex-col items-center z-40 mb-4">
-                                            {!noHearts && (
+                                            {lesson.isCurrent && (
                                                 <motion.div 
                                                     initial={{ opacity: 0, y: 10, scale: 0.9 }}
                                                     animate={{ 
@@ -256,7 +256,7 @@ export function UnitCardIsland({
                                         
                                         {/* Physical Active Node Button - Golden Jewel */}
                                         <div 
-                                            onClick={() => !noHearts && onLessonClick({
+                                            onClick={() => onLessonClick({
                                                 id: lesson.id, title: lesson.title, unitTitle,
                                                 challengeCount: lesson.challenges?.length || 0,
                                                 completedCount: lesson.challenges?.filter(c => c.challengeProgress?.some(p => p.completed)).length || 0,
@@ -288,7 +288,7 @@ export function UnitCardIsland({
                                 {lesson.completed && !lesson.isCurrent && (
                                     <div className="relative group cursor-pointer z-20 flex flex-col items-center">
                                         <div 
-                                            onClick={() => !noHearts && onLessonClick({
+                                            onClick={() => onLessonClick({
                                                 id: lesson.id, title: lesson.title, unitTitle,
                                                 challengeCount: lesson.challenges?.length || 0,
                                                 completedCount: lesson.challenges?.filter(c => c.challengeProgress?.some(p => p.completed)).length || 0,

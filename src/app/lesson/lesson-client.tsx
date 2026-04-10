@@ -40,6 +40,7 @@ export type Challenge = {
     explanation?: string | null;
     questionAudioLang?: string | null;
     contextAudioLang?: string | null;
+    skipCount?: number;
 };
 
 type Lesson = {
@@ -79,7 +80,9 @@ export const LessonClient = ({
 
     const [hearts, setHearts] = useState(initialHearts);
     const [points, setPoints] = useState(initialPoints);
-    const [challenges, setChallenges] = useState(initialLesson.challenges);
+    const [challenges, setChallenges] = useState(() => 
+        initialLesson.challenges.map((c) => ({ ...c, skipCount: 0 }))
+    );
     
     const [activeIndex, setActiveIndex] = useState(() => {
         if (initialQ) {
@@ -272,6 +275,38 @@ export const LessonClient = ({
         setLessonComplete(true);
     };
 
+    const resetChallengeState = () => {
+        setSelectedOption(null);
+        setStatus("none");
+        setInputValue("");
+        setTypoMessage(null);
+        setSelectedMatchIds([]);
+        setMatchedIds([]);
+        setWrongMatchFlash([]);
+        setShuffledLeft([]);
+        setShuffledRight([]);
+    };
+
+    const handleSkip = () => {
+        if (status !== "none") return;
+        
+        const currentSkipCount = currentChallenge.skipCount || 0;
+        if (currentSkipCount >= 2) return;
+
+        playWhoosh();
+        
+        // Push the current challenge back to the end of the deck with incremented skip count
+        setChallenges((prev) => [...prev, { 
+            ...currentChallenge, 
+            id: currentChallenge.id + Math.random(),
+            skipCount: currentSkipCount + 1
+        }]);
+        
+        // Move to the next index — the appended challenge will be at the very end
+        setActiveIndex((prev) => prev + 1);
+        resetChallengeState();
+    };
+
     const handleContinue = () => {
         if (hearts === 0 && !isClinic) {
             handleLessonComplete();
@@ -283,15 +318,7 @@ export const LessonClient = ({
             setTimeout(() => {
                 setShowTransition(false);
                 setActiveIndex((prev) => prev + 1);
-                setSelectedOption(null);
-                setStatus("none");
-                setInputValue("");
-                setTypoMessage(null);
-                setSelectedMatchIds([]);
-                setMatchedIds([]);
-                setWrongMatchFlash([]);
-                setShuffledLeft([]);
-                setShuffledRight([]);
+                resetChallengeState();
             }, 1200);
             return;
         }
@@ -625,7 +652,8 @@ export const LessonClient = ({
                     languageCode={languageCode} 
                     onCheck={handleCheck} 
                     onContinue={handleContinue} 
-                    onSkip={handleExit} 
+                    onSkip={handleSkip} 
+                    canSkip={(currentChallenge.skipCount || 0) < 2}
                     playMixedSpeech={playMixedSpeech} 
                     userAnswer={userAnswerText}
                 />

@@ -3,6 +3,7 @@
 import { Trophy } from "lucide-react";
 import { UnitCardIsland } from "@/components/shared/unit-card-island";
 import { useLessonModalStore } from "@/store/use-lesson-modal-store";
+import { useHeartsModalStore } from "@/store/use-hearts-modal-store";
 import { motion } from "framer-motion";
 
 type Challenge = {
@@ -30,6 +31,15 @@ type Unit = {
 
 export const UnitIslandFeed = ({ processedUnits, noHearts }: { processedUnits: Unit[], noHearts: boolean }) => {
     const { openModal } = useLessonModalStore();
+    const { openModal: openHeartsModal } = useHeartsModalStore();
+
+    const handleLessonClick = (lesson: any) => {
+        if (noHearts) {
+            openHeartsModal();
+        } else {
+            openModal(lesson);
+        }
+    };
 
     return (
         <motion.div 
@@ -66,7 +76,7 @@ export const UnitIslandFeed = ({ processedUnits, noHearts }: { processedUnits: U
                         isCompleted={unit.isCompleted}
                         align={unitIndex % 2 === 0 ? "left" : "right"}
                         noHearts={noHearts}
-                        onLessonClick={openModal}
+                        onLessonClick={handleLessonClick}
                     />
 
                     {/* 🏆 Course Completion Monument on the Final Unit */}
