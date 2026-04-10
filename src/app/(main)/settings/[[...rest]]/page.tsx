@@ -7,6 +7,7 @@ import { getUserProgress } from "@/db/queries";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Info, ChevronRight, BookOpen, ArrowRight } from "lucide-react";
+import { DangerZone } from "@/components/settings/danger-zone";
 
 export const dynamic = "force-dynamic";
 
@@ -121,6 +122,8 @@ export default async function SettingsPage() {
                     Terminar Sessão
                 </button>
             </SignOutButton>
+
+            <DangerZone />
         </div>
     );
 }

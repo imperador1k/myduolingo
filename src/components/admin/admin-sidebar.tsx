@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, BookOpen, Dumbbell, Users, LogOut, Layers } from "lucide-react";
+import { LayoutDashboard, BookOpen, Dumbbell, Users, LogOut, Layers, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const AdminSidebar = () => {
@@ -53,6 +53,10 @@ export const AdminSidebar = () => {
                 <Link href="/admin/users" className={cn("flex items-center gap-x-3 rounded-[16px] px-4 py-3.5 transition-all font-black text-[13px] uppercase tracking-wider", pathname === "/admin/users" ? "bg-[#1CB0F6] text-white border-2 border-transparent border-b-[4px] hover:border-b-[4px] border-b-[#0092d6] active:border-b-[2px] active:translate-y-[2px] shadow-sm cursor-default" : "text-stone-500 hover:bg-stone-50 border-2 border-transparent border-b-[4px] hover:translate-x-1 cursor-pointer")}>
                     <Users className="w-5 h-5" />
                     <span>Jogadores</span>
+                </Link>
+                <Link href="/admin/inbox" className={cn("flex items-center gap-x-3 rounded-[16px] px-4 py-3.5 transition-all font-black text-[13px] uppercase tracking-wider", pathname === "/admin/inbox" ? "bg-[#1CB0F6] text-white border-2 border-transparent border-b-[4px] hover:border-b-[4px] border-b-[#0092d6] active:border-b-[2px] active:translate-y-[2px] shadow-sm cursor-default" : "text-stone-500 hover:bg-stone-50 border-2 border-transparent border-b-[4px] hover:translate-x-1 cursor-pointer")}>
+                    <Inbox className="w-5 h-5" />
+                    <span>Inbox de Suporte</span>
                 </Link>
             </nav>
 

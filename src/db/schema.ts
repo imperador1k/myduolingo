@@ -390,12 +390,34 @@ export const userReviews = pgTable("user_reviews", {
     userImageSrc: text("user_image_src").notNull(),
     rating: integer("rating").notNull(), // 1 to 5
     comment: text("comment").notNull(),
+    read: boolean("read").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const userReviewsRelations = relations(userReviews, ({ one }) => ({
     user: one(userProgress, {
         fields: [userReviews.userId],
+        references: [userProgress.userId],
+    }),
+}));
+
+// ===== SUPPORT TICKETS =====
+export const supportTickets = pgTable("support_tickets", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id")
+        .references(() => userProgress.userId, { onDelete: "cascade" })
+        .notNull(),
+    userName: text("user_name").notNull(),
+    userEmail: text("user_email").notNull(),
+    subject: text("subject").notNull(),
+    message: text("message").notNull(),
+    status: text("status", { enum: ["open", "resolved", "ignored"] }).notNull().default("open"),
+    createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const supportTicketsRelations = relations(supportTickets, ({ one }) => ({
+    user: one(userProgress, {
+        fields: [supportTickets.userId],
         references: [userProgress.userId],
     }),
 }));
