@@ -5,6 +5,7 @@ import Link from "next/link";
 import { DOCS_ARTICLES, DocCategory } from "@/constants/docs";
 import * as LucideIcons from "lucide-react";
 import { Search, ArrowRight, LifeBuoy, Target, MessagesSquare } from "lucide-react";
+import { HappyStarLottie } from "@/components/ui/lottie-animation";
 
 function DynamicIcon({ name, className }: { name: string, className?: string }) {
     const Icon = (LucideIcons as any)[name] || LucideIcons.FileText;
@@ -53,7 +54,16 @@ export default function DocsHubPage() {
                 <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#d7ffb8]/30 blur-[100px] rounded-full mix-blend-overlay pointer-events-none"></div>
                 <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#b3ffc7]/30 blur-[80px] rounded-full mix-blend-overlay pointer-events-none"></div>
                 
-                <div className="max-w-4xl mx-auto relative z-10 flex flex-col items-center text-center">
+                {/* Lottie Animation Decoration - High Definition Play */}
+                <div className="absolute -left-16 top-10 w-48 h-48 md:w-80 md:h-80 opacity-100 pointer-events-none rotate-12 hidden md:block z-40">
+                    <HappyStarLottie className="w-full h-full filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.2)]" />
+                </div>
+                <div className="absolute -right-20 top-24 w-40 h-40 md:w-72 md:h-72 opacity-100 pointer-events-none -rotate-12 hidden lg:block z-40">
+                    <HappyStarLottie className="w-full h-full filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.2)]" />
+                </div>
+                
+                {/* ── Inner Content Wrapper (Elevated for Dropdown to beat Cards) ── */}
+                <div className="max-w-4xl mx-auto relative z-30 flex flex-col items-center text-center">
                     <div className="bg-white/20 backdrop-blur-md rounded-2xl px-4 py-2 border border-white/30 flex items-center gap-2 mb-6 shadow-sm">
                         <LifeBuoy className="w-5 h-5 text-white" />
                         <span className="text-white font-black tracking-widest uppercase text-sm">Biblioteca de Apoio</span>
@@ -110,10 +120,10 @@ export default function DocsHubPage() {
             </div>
 
             {/* ── Page Content Wrapper ── */}
-            <div className="max-w-6xl mx-auto flex flex-col gap-12 relative z-20">
+            <div className="max-w-6xl mx-auto flex flex-col gap-12 relative">
                 
                 {/* ── Trending Cards (Quick Answers - Overlapping the Hero) ── */}
-                <div className="-mt-20 md:-mt-32 px-4 mb-4">
+                <div className="-mt-20 md:-mt-32 px-4 mb-4 relative z-10">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {trendingDocs.map(doc => (
                             <Link 

@@ -6,7 +6,7 @@ import { NotificationToggle } from "@/components/shared/notification-toggle";
 import { getUserProgress } from "@/db/queries";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Info, ChevronRight } from "lucide-react";
+import { Info, ChevronRight, BookOpen, ArrowRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +76,25 @@ export default async function SettingsPage() {
                 <h3 className="mb-4 mt-8 text-xl font-bold text-slate-700">Notificações</h3>
                 <div className="space-y-4">
                     <NotificationToggle initialEnabled={userProgress.notificationsEnabled} />
+                </div>
+
+                {/* Official Support & Docs */}
+                <h3 className="mb-4 mt-12 text-xl font-bold text-slate-700">Apoio Estudantil</h3>
+                <div className="space-y-4">
+                    <Link href="/docs" className="flex items-center justify-between rounded-3xl border-2 border-[#b3ffc7] bg-[#e6ffed] shadow-sm border-b-[6px] transition-all duration-300 hover:bg-[#d7ffb8] hover:border-[#58cc02] hover:border-b-[6px] active:border-b-2 active:translate-y-1 group p-5 cursor-pointer outline-none">
+                        <div className="flex items-center gap-5">
+                            <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-[1.5rem] bg-white border-2 border-[#b3ffc7] shadow-sm text-[#58cc02] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 shrink-0">
+                                <BookOpen className="h-7 w-7 sm:h-8 sm:w-8 fill-[#58cc02]/20" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-lg sm:text-xl font-black text-emerald-800 tracking-tight leading-tight mb-1">Manual & Base de Conhecimento</span>
+                                <span className="text-xs sm:text-sm font-bold text-emerald-600 line-clamp-1">Tutoriais, Ligas, Corações e F.A.Q. Oficiais</span>
+                            </div>
+                        </div>
+                        <div className="hidden sm:flex h-10 w-10 bg-white rounded-full items-center justify-center shadow-sm border border-emerald-100 group-hover:bg-[#58cc02] transition-colors shrink-0 ml-4">
+                            <ArrowRight className="h-5 w-5 text-[#58cc02] group-hover:text-white transition-colors" strokeWidth={3} />
+                        </div>
+                    </Link>
                 </div>
 
                 {/* Extras Panel */}

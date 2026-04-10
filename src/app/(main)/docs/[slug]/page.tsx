@@ -40,6 +40,17 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
             {/* ── MAIN CONTENT (Left) ── */}
             <div className="flex-1 flex flex-col">
                 
+                {/* Back Link (Mobile Friendly & Tactile) */}
+                <Link 
+                    href="/docs" 
+                    className="group flex items-center gap-2 text-stone-500 font-black text-sm uppercase tracking-widest mb-6 hover:text-[#58cc02] transition-colors w-fit"
+                >
+                    <div className="w-8 h-8 rounded-xl bg-white border-2 border-stone-200 border-b-4 flex items-center justify-center group-hover:border-[#58cc02] group-hover:text-[#58cc02] transition-all group-active:translate-y-1 group-active:border-b-0">
+                        <LucideIcons.ArrowLeft className="w-5 h-5" />
+                    </div>
+                    Voltar para a Base de Conhecimento
+                </Link>
+
                 {/* ── Juicy Hero Banner ── */}
                 <div className="bg-[#58cc02] text-white border-2 border-[#46a302] border-b-8 rounded-[2rem] p-8 md:p-12 mb-8 relative overflow-hidden shadow-sm shadow-[#58cc02]/20">
                     <div className="absolute right-[-10%] top-[-20%] opacity-20 pointer-events-none">

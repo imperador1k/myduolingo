@@ -7,7 +7,7 @@ import {
     ArrowLeft, Loader2, MessageSquareText, ShieldAlert, Check, 
     Bot, FileText, ShieldCheck, Scale, Sparkles, UserCircle, 
     Star, Mail, Search, Zap, Copy, ExternalLink, LifeBuoy, HeartHandshake, PhoneCall,
-    TerminalSquare, Activity
+    TerminalSquare, Activity, BookOpen, ArrowRight
 } from "lucide-react";
 import { useFormStatus, useFormState } from "react-dom";
 import { submitSupportTicket } from "@/actions/support";
@@ -170,6 +170,29 @@ export default function SupportPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* ── Prominent Docs Banner ── */}
+                <Link href="/docs" className="bg-gradient-to-r from-[#58cc02] to-[#46a302] border-b-[8px] border-[#3e8e02] rounded-[2.5rem] p-8 md:p-12 mb-10 block shadow-lg hover:-translate-y-2 hover:shadow-xl transition-all duration-300 group overflow-hidden relative outline-none focus:ring-8 focus:ring-[#58cc02]/30">
+                    <div className="absolute -right-10 -top-20 opacity-20 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
+                        <BookOpen className="w-80 h-80 text-white" />
+                    </div>
+                    <div className="absolute left-10 bottom-10 w-40 h-40 bg-[#d7ffb8]/20 blur-[50px] rounded-full mix-blend-overlay"></div>
+                    
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                        <div className="max-w-2xl">
+                            <div className="flex items-center gap-2 text-white/90 font-black text-xs uppercase tracking-widest mb-4">
+                                <Sparkles className="w-4 h-4" /> Base de Conhecimento Oficial
+                            </div>
+                            <h2 className="text-3xl md:text-5xl font-[1000] text-white leading-tight mb-3 drop-shadow-sm">A Enciclopédia Académica.</h2>
+                            <p className="text-[#d7ffb8] font-bold text-lg lg:text-xl leading-relaxed drop-shadow-sm">
+                                Tens dúvidas sobre o motor do jogo? Explora a nossa biblioteca completa de tutoriais de Corações, Ligas, Ofensivas (Streak) e muito mais.
+                            </p>
+                        </div>
+                        <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center shrink-0 border-b-4 border-stone-200 group-hover:bg-[#d7ffb8] group-hover:border-[#b3ffc7] transition-colors shadow-sm cursor-pointer">
+                            <ArrowRight className="w-8 h-8 md:w-10 md:h-10 text-[#58cc02]" strokeWidth={3} />
+                        </div>
+                    </div>
+                </Link>
 
                 {/* ── Advanced Bento Action Grid ── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

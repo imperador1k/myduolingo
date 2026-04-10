@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { askMarco } from "@/actions/marco-chat";
 import ReactMarkdown from "react-markdown";
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 
 type Message = {
     id: string;
@@ -24,6 +25,7 @@ const SLASH_COMMANDS = [
 
 export const FloatingMarco = () => {
     const pathname = usePathname();
+    const { userId, isLoaded } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
@@ -38,19 +40,35 @@ export const FloatingMarco = () => {
         }
     }, [messages, isLoading, isOpen]);
 
-    // CRITICAL: Route Protection (Moved after hooks to avoid "Rendered more hooks" error)
-    if (
-        pathname === "/" ||
-        pathname.startsWith("/login") ||
-        pathname.startsWith("/register") ||
-        pathname.startsWith("/sign-in") ||
-        pathname.startsWith("/sign-up") ||
-        pathname.startsWith("/lesson") ||
-        pathname.startsWith("/evaluation") ||
-        pathname.startsWith("/practice") ||
-        pathname.startsWith("/admin") ||
-        pathname.startsWith("/arcade")
-    ) {
+    // CRITICAL: Route & Auth Protection
+    if (!isLoaded || !userId) {
+        return null; // Oculta se não estiver logado
+    }
+
+    // Whitelist: Apenas renderiza o Marco nestas rotas principais.
+    // Isto previne automaticamente que ele apareça em páginas de Erro 404 ou 500.
+    const ALLOWED_PATHS = [
+        "/learn",
+        "/leaderboard",
+        "/quests",
+        "/shop",
+        "/profile",
+        "/settings",
+        "/docs",
+        "/friends",
+        "/notifications",
+        "/reviews",
+        "/support",
+        "/vocabulary",
+        "/courses",
+        "/analytics"
+    ];
+
+    const isAllowedPath = ALLOWED_PATHS.some(
+        (path) => pathname === path || pathname.startsWith(path + "/")
+    );
+
+    if (!isAllowedPath) {
         return null;
     }
 
