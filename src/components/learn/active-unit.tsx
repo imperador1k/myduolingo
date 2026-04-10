@@ -1,5 +1,6 @@
-import { Cat, Mic, Pencil, Book, Leaf, Star, Check } from 'lucide-react';
+import { Cat, Mic, Pencil, Book, Leaf, Star, Check, Zap } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import Link from 'next/link';
 
 interface Lesson {
@@ -103,10 +104,23 @@ export function ActiveUnit({ unitIndex, title, description, lessons }: ActiveUni
                                         <IconComponent className="text-[#cecece] w-8 h-8 group-hover:text-gray-400 transition-colors" fill="currentColor" />
 
                                         {/* Start Button Tooltip */}
-                                        <div className="absolute left-[calc(100%+16px)] top-1/2 -translate-y-1/2 bg-white text-[#1cb0f6] font-extrabold uppercase tracking-wide px-6 py-2 sm:px-8 sm:py-3 rounded-2xl shadow-[0_4px_0_#e5e5e5] whitespace-nowrap z-20 hover:bg-gray-50 hover:-translate-y-0.5 transition-all text-sm sm:text-lg">
-                                            COMEÇAR
-                                            <div className="absolute top-1/2 -left-[8px] -translate-y-1/2 w-0 h-0 border-y-[8px] border-y-transparent border-r-[8px] border-r-white"></div>
-                                        </div>
+                                        <motion.div 
+                                            initial={{ opacity: 0, x: -20, scale: 0.8 }}
+                                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                                            whileHover={{ scale: 1.05 }}
+                                            className="absolute left-[calc(100%+20px)] top-1/2 -translate-y-1/2 bg-[#1cb0f6] text-white font-black uppercase tracking-[0.1em] px-8 py-3.5 rounded-2xl shadow-[0_6px_0_#1899d6] hover:shadow-[0_4px_0_#1899d6] hover:translate-y-[-18px] active:shadow-none active:translate-y-[-14px] transition-all z-20 whitespace-nowrap text-lg sm:text-xl flex items-center gap-2 group/btn"
+                                        >
+                                            <span className="drop-shadow-sm">Começar</span>
+                                            <motion.div
+                                                animate={{ x: [0, 4, 0] }}
+                                                transition={{ repeat: Infinity, duration: 1.5 }}
+                                            >
+                                                <Zap className="w-5 h-5 fill-white text-white" />
+                                            </motion.div>
+                                            
+                                            {/* Triangle Indicator */}
+                                            <div className="absolute top-1/2 -left-[10px] -translate-y-1/2 w-0 h-0 border-y-[10px] border-y-transparent border-r-[10px] border-r-[#1cb0f6]"></div>
+                                        </motion.div>
                                     </div>
                                 </Link>
                             </div>
@@ -115,7 +129,7 @@ export function ActiveUnit({ unitIndex, title, description, lessons }: ActiveUni
 
                     if (lesson.completed) {
                         return (
-                            <Link key={lesson.id} href={`/lesson/${lesson.id}`}>
+                            <Link key={lesson.id} href={`/lesson?id=${lesson.id}`}>
                                 <div
                                     className="absolute z-10 w-14 h-14 rounded-full bg-[#58cc02] shadow-[0_4px_0_#4da918] flex items-center justify-center cursor-pointer hover:bg-[#61df02] transition-colors"
                                     style={pos}

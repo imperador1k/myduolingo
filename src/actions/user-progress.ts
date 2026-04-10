@@ -119,6 +119,7 @@ export const onChallengeComplete = async (challengeId: number) => {
     await updateStreak();
 
     revalidatePath("/learn");
+    revalidatePath("/lesson");
     revalidatePath("/leaderboard");
     revalidatePath("/shop");
 
@@ -174,8 +175,8 @@ export const onLessonComplete = async () => {
     ).catch(console.error); // Non-blocking: don't await, just fire-and-forget
 
     revalidatePath("/learn");
-    revalidatePath("/lesson");
     revalidatePath("/shop");
+    revalidatePath("/lesson");
 
     return {
         success: true,
@@ -253,6 +254,7 @@ export const onChallengeWrong = async (challengeId?: number) => {
     const result = await reduceHearts();
 
     revalidatePath("/learn");
+    revalidatePath("/lesson");
 
     return { ...result, shieldUsed: false };
 };
@@ -400,7 +402,7 @@ export const onBuyXpBoost = async () => {
 
     revalidatePath("/shop");
     revalidatePath("/learn");
-    revalidatePath("/lesson");
+
 
     return result;
 };
@@ -487,7 +489,7 @@ export const onClinicComplete = async () => {
     ).catch(console.error);
 
     revalidatePath("/learn");
-    revalidatePath("/lesson");
+
     revalidatePath("/shop");
 
     return result;

@@ -88,15 +88,15 @@ export const DangerZone = () => {
     );
 
     return (
-        <div className="mt-12 bg-red-50/50 border-2 border-red-100 rounded-3xl p-6 md:p-8 mb-12">
+        <div className="bg-red-50 border-2 border-red-200 border-b-8 rounded-[2rem] p-6 md:p-8">
             <h3 className="text-xl font-black text-red-600 mb-2">Zona de Perigo</h3>
-            <p className="text-sm font-medium text-red-500/80 mb-6 max-w-md">
+            <p className="text-sm font-bold text-red-400 mb-6 max-w-md">
                 Atenção: Ao apagares a tua conta, perdes todo o XP, Ligas e o teu lugar no MyDuolingo. Esta ação é irreversível.
             </p>
 
             <button
                 onClick={() => setIsDeleteModalOpen(true)}
-                className="bg-white text-red-600 border-2 border-red-200 border-b-6 font-black uppercase tracking-wider rounded-2xl px-6 py-4 hover:bg-red-50 active:translate-y-1 active:border-b-0 transition-all w-full md:w-auto"
+                className="bg-white text-red-500 border-2 border-red-200 border-b-6 font-black uppercase tracking-wider rounded-2xl px-8 py-4 hover:bg-red-50 active:translate-y-1 active:border-b-0 transition-all w-full md:w-auto text-center block"
             >
                 🗑️ APAGAR A MINHA CONTA
             </button>

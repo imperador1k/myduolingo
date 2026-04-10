@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { onChallengeComplete, onChallengeWrong, onLessonComplete, onClinicComplete } from "@/actions/user-progress";
 import { useTTS } from "@/hooks/use-tts";
 import { useUISounds } from "@/hooks/use-ui-sounds";
-import { DuoAnimationLottie, LaughingCatLottie } from "@/components/ui/lottie-animation";
+import { DuoAnimationLottie, LaughingCatLottie, DrunkenOwlLottie } from "@/components/ui/lottie-animation";
 import { InteractiveText } from "@/components/ui/interactive-text";
 import { isAnswerAcceptable } from "@/lib/string-matching";
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,10 @@ export const LessonClient = ({
     isClinic
 }: Props) => {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const initialQ = searchParams.get("q");
+
     const [isPending, startTransition] = useTransition();
     const { open: openReviewModal, close: closeReviewModal } = useReviewModal();
 
@@ -77,9 +82,25 @@ export const LessonClient = ({
     const [challenges, setChallenges] = useState(initialLesson.challenges);
     
     const [activeIndex, setActiveIndex] = useState(() => {
+        if (initialQ) {
+            const index = parseInt(initialQ);
+            if (!isNaN(index) && index >= 0 && index < initialLesson.challenges.length) {
+                return index;
+            }
+        }
         const incompleteIndex = initialLesson.challenges.findIndex(c => !c.completed);
         return incompleteIndex === -1 ? 0 : incompleteIndex;
     });
+
+    // Sync activeIndex to URL to prevent progress loss on refresh/remount
+    useEffect(() => {
+        const currentQ = searchParams.get("q");
+        if (currentQ !== activeIndex.toString()) {
+            const params = new URLSearchParams(searchParams.toString());
+            params.set("q", activeIndex.toString());
+            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        }
+    }, [activeIndex, pathname, router, searchParams]);
 
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [status, setStatus] = useState<"none" | "correct" | "wrong">("none");
@@ -135,6 +156,12 @@ export const LessonClient = ({
         } catch (e) {}
     };
 
+    useEffect(() => {
+        if (hearts !== initialHearts) {
+            setHearts(initialHearts);
+        }
+    }, [initialHearts]);
+
     const handleSelect = (optionId: number) => {
         if (status !== "none") return;
         setSelectedOption(optionId);
@@ -150,7 +177,7 @@ export const LessonClient = ({
 
         if (isInsert || isDictation) {
             if (status !== "none") {
-                handleContinue();
+                if (!isPending) handleContinue();
                 return;
             }
 
@@ -185,7 +212,7 @@ export const LessonClient = ({
 
                 if (!isClinic) {
                     startTransition(() => {
-                        onChallengeWrong().then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
+                        onChallengeWrong(currentChallenge.id).then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
                     });
                 }
             }
@@ -219,7 +246,7 @@ export const LessonClient = ({
 
             if (!isClinic) {
                 startTransition(() => {
-                    onChallengeWrong().then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
+                    onChallengeWrong(currentChallenge.id).then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
                 });
             }
         }
@@ -300,24 +327,92 @@ export const LessonClient = ({
         });
     };
 
-    if (lessonComplete) {
-        if (hearts === 0 && !isClinic) {
-            return (
-                <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-rose-400 to-rose-500 px-6">
-                    <div className="w-full max-w-md text-center">
-                        <div className="mb-6"><span className="text-8xl">💔</span></div>
-                        <h1 className="mb-2 text-4xl font-extrabold text-white">Gastaste todos os teus corações!</h1>
-                        <p className="mb-8 text-lg text-white/80">O teu progresso foi guardado. Recarrega os corações para continuar.</p>
-                        <div className="flex flex-col gap-3">
-                            <Button variant="super" size="lg" className="w-full" onClick={() => router.push("/shop")}>Recarregar Corações</Button>
-                            <Button variant="primary" size="lg" className="w-full border-green-400 bg-green-500 hover:bg-green-400" onClick={() => router.push("/lesson?clinic=true")}>Praticar para ganhar vidas ❤️</Button>
-                            <Button variant="ghost" size="lg" className="w-full text-white hover:bg-white/20" onClick={() => router.push("/learn")}>Voltar</Button>
-                        </div>
-                    </div>
+    if (hearts === 0 && !isClinic) {
+        return (
+            <div className="flex relative min-h-screen flex-col items-center justify-center bg-[#0F172A] overflow-hidden px-6">
+                {/* Atmospheric Background */}
+                <div className="absolute inset-0 z-0">
+                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-rose-900/20 rounded-full blur-[120px] animate-pulse" />
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: "2s" }} />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('/grid.svg')] opacity-[0.03]" />
                 </div>
-            );
-        }
 
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="z-10 w-full max-w-lg"
+                >
+                    <div className="relative group perspective-1000 mb-8 flex justify-center">
+                        <motion.div 
+                            animate={{ 
+                                rotateZ: [0, -2, 2, 0],
+                                y: [0, -10, 0]
+                            }} 
+                            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+                            className="w-64 h-64 relative z-10"
+                        >
+                            <DrunkenOwlLottie className="w-full h-full drop-shadow-[0_0_30px_rgba(225,29,72,0.3)]" />
+                        </motion.div>
+                        <div className="absolute bottom-4 w-32 h-8 bg-black/40 rounded-[100%] blur-xl -z-10 animate-pulse" />
+                    </div>
+
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="text-center backdrop-blur-xl bg-white/5 border border-white/10 p-8 sm:p-12 rounded-[3rem] shadow-2xl relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent" />
+                        
+                        <h1 className="mb-4 text-4xl sm:text-5xl font-black text-white tracking-tight">
+                            Oh não! <br/>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-rose-600 italic">
+                                Ficaste sem vida...
+                            </span>
+                        </h1>
+                        
+                        <p className="mb-10 text-lg font-medium text-slate-400 leading-relaxed">
+                            O teu progresso foi guardado. <br className="hidden sm:block" />
+                            Recarrega as energias para continuar a tua jornada!
+                        </p>
+
+                        <div className="flex flex-col gap-4">
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                <Button 
+                                    variant="super" 
+                                    size="lg" 
+                                    className="w-full h-16 text-xl rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 border-none shadow-[0_6px_0_0_#9f1239] transition-all font-black" 
+                                    onClick={() => router.push("/shop")}
+                                >
+                                    RECARREGAR CORAÇÕES ❤️
+                                </Button>
+                            </motion.div>
+
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ delay: 0.1 }}>
+                                <Button 
+                                    variant="primary" 
+                                    size="lg" 
+                                    className="w-full h-16 text-xl rounded-2xl bg-[#58CC02] hover:bg-[#46a302] border-none shadow-[0_6px_0_0_#367c02] transition-all font-black" 
+                                    onClick={() => router.push("/lesson?clinic=true")}
+                                >
+                                    PRATICAR PARA GANHAR ❤️
+                                </Button>
+                            </motion.div>
+                            
+                            <button 
+                                onClick={() => router.push("/learn")}
+                                className="mt-4 text-slate-500 font-bold hover:text-white transition-colors uppercase tracking-widest text-sm"
+                            >
+                                Voltar para o mapa
+                            </button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            </div>
+        );
+    }
+
+    if (lessonComplete) {
         return (
             <ResultScreen 
                 isSuccess={hearts > 0 || !!isClinic} 
@@ -346,23 +441,76 @@ export const LessonClient = ({
 
     return (
         <>
-            {showExitModal && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
-                    <div className="w-full max-w-md rounded-[2.5rem] bg-white p-8 shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-500 border-4 border-slate-100 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-rose-50 to-white -z-10" />
-                        <div className="w-56 h-56 -mt-4 relative animate-bounce"><LaughingCatLottie className="w-full h-full drop-shadow-xl" /></div>
-                        <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight -mt-4">Vais mesmo <span className="text-rose-500">desistir</span> agora?! 😭</h2>
-                        <p className="mt-4 mb-8 text-lg font-medium text-slate-500 px-2 leading-relaxed">
-                            O gatinho está a rir-se da tua fraqueza... Fica e prova o teu valor! 
-                            <span className="block mt-2 text-sm text-slate-400 font-normal">(Relaxa, o progresso fica guardado de qualquer forma).</span>
-                        </p>
-                        <div className="flex flex-col w-full gap-3">
-                            <Button variant="primary" size="lg" className="w-full h-14 text-lg rounded-2xl tracking-wide uppercase active:border-b-0 active:translate-y-1 transition-all" onClick={cancelExit}>CONTINUAR A APRENDER</Button>
-                            <Button variant="danger" size="lg" className="w-full h-14 text-lg rounded-2xl bg-white text-rose-500 border-2 border-slate-200 hover:bg-rose-50 hover:text-rose-600 active:border-b-0 active:translate-y-1 transition-all" onClick={confirmExit}>Sair porque sou fraco</Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <AnimatePresence>
+                {showExitModal && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-xl p-6"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="w-full max-w-md rounded-[3rem] bg-white p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] flex flex-col items-center text-center border-b-[10px] border-slate-200 relative overflow-hidden"
+                        >
+                            {/* Decorative elements */}
+                            <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-rose-50 to-white -z-10" />
+                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-rose-100 rounded-full blur-3xl opacity-60" />
+                            
+                            <motion.div 
+                                animate={{ y: [0, -12, 0] }} 
+                                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                                className="w-64 h-64 -mt-10 relative pointer-events-none"
+                            >
+                                <LaughingCatLottie className="w-full h-full drop-shadow-2xl" />
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                            >
+                                <h2 className="text-3xl font-black text-slate-800 tracking-tight leading-tight -mt-4 px-2">
+                                    Vais mesmo <span className="text-rose-500 italic">desistir</span> agora?! 😭
+                                </h2>
+                                
+                                <p className="mt-4 mb-10 text-lg font-medium text-slate-500 px-4 leading-relaxed">
+                                    O gatinho está a rir-se da tua fraqueza... Fica e prova o teu valor! 
+                                    <span className="block mt-3 text-sm text-slate-400 font-normal italic opacity-80">
+                                        (Relaxa, o progresso fica guardado de qualquer forma).
+                                    </span>
+                                </p>
+                            </motion.div>
+
+                            <motion.div 
+                                className="flex flex-col w-full gap-4"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                            >
+                                <Button 
+                                    variant="primary" 
+                                    size="lg" 
+                                    className="w-full h-16 text-xl rounded-[2rem] tracking-wide uppercase shadow-[0_6px_0_0_#46a302] hover:shadow-[0_2px_0_0_#46a302] hover:translate-y-[4px] active:shadow-none active:translate-y-[6px] transition-all bg-[#58CC02] border-none font-black" 
+                                    onClick={cancelExit}
+                                >
+                                    CONTINUAR A APRENDER
+                                </Button>
+                                
+                                <button 
+                                    className="w-full h-14 text-sm font-bold text-slate-400 hover:text-rose-500 transition-colors uppercase tracking-widest" 
+                                    onClick={confirmExit}
+                                >
+                                    Sair porque sou fraco
+                                </button>
+                            </motion.div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-white">
                 <LessonHeader progress={progress} hearts={hearts} xpBoostLessons={xpBoostLessons} heartShields={heartShields} isAudioMuted={isAudioMuted} onToggleMute={() => setIsAudioMuted(!isAudioMuted)} onExit={handleExit} />

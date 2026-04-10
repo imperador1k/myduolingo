@@ -1,5 +1,6 @@
-import { Cat, Mic, Pencil, Book, Leaf, Check, Lock, Star, Crown } from 'lucide-react';
+import { Cat, Mic, Pencil, Book, Leaf, Check, Lock, Star, Crown, Zap } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import Link from 'next/link';
 
 interface Challenge {
@@ -129,9 +130,29 @@ export function UnitCardIsland({
                 {/* The Recessed Track (Line) */}
                 <div className="absolute inset-0 pointer-events-none flex justify-center z-0">
                     <div 
-                        className="h-full w-0 border-l-[8px] border-dashed"
-                        style={{ borderColor: `${theme.dark}40` }}
+                        className="h-full w-0 border-l-[8px] border-dashed transition-colors duration-1000"
+                        style={{ borderColor: `${theme.dark}30` }}
                     />
+                    
+                    {/* Living Energy Path (Animated SVG) */}
+                    <svg className="absolute inset-0 w-full h-full opacity-40">
+                        <defs>
+                            <linearGradient id="energyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stopColor={theme.text} stopOpacity="0" />
+                                <stop offset="50%" stopColor={theme.text} stopOpacity="1" />
+                                <stop offset="100%" stopColor={theme.text} stopOpacity="0" />
+                            </linearGradient>
+                        </defs>
+                        <motion.rect 
+                            width="4" 
+                            height="100%" 
+                            x="50%" 
+                            className="-translate-x-[2px]"
+                            fill="url(#energyGradient)"
+                            animate={{ y: ["-100%", "100%"] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        />
+                    </svg>
                 </div>
 
                 {/* Interactive Nodes Overlay (z-10) */}
@@ -164,17 +185,72 @@ export function UnitCardIsland({
                                 {lesson.isCurrent && (
                                     <div className="relative group cursor-pointer z-40 flex flex-col items-center justify-center">
                                         
+                                        {/* Living Pulsing Rings */}
+                                        <div className="absolute inset-0 flex items-center justify-center -z-10">
+                                            {[1, 2, 3].map((i) => (
+                                                <motion.div 
+                                                    key={i}
+                                                    initial={{ opacity: 0.5, scale: 0.8 }}
+                                                    animate={{ opacity: 0, scale: 1.8 + i * 0.2 }}
+                                                    transition={{ 
+                                                        duration: 3, 
+                                                        repeat: Infinity, 
+                                                        delay: i * 0.8,
+                                                        ease: "easeOut"
+                                                    }}
+                                                    className="absolute w-[80px] h-[80px] rounded-full border-2 border-yellow-400"
+                                                />
+                                            ))}
+                                        </div>
+                                        
                                         {/* Massive COMEÇAR Directional Bubble */}
-                                        <div className="absolute -top-16 left-1/2 -translate-x-1/2 flex flex-col items-center z-20 pointer-events-none mb-4">
+                                        <div className="absolute -top-[72px] left-1/2 -translate-x-1/2 flex flex-col items-center z-40 mb-4">
                                             {!noHearts && (
-                                                <div className="bg-white border-2 border-[#e5e7eb] border-b-4 rounded-2xl p-3 shadow-xl animate-bounce pointer-events-auto flex flex-col items-center relative">
-                                                    <div className="bg-[#58CC02] text-white font-black uppercase text-sm px-4 py-2 rounded-xl border-b-4 border-[#46a302] active:translate-y-1 active:border-b-0 transition-all cursor-pointer whitespace-nowrap">
-                                                        COMEÇAR
+                                                <motion.div 
+                                                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                                                    animate={{ 
+                                                        opacity: 1, 
+                                                        y: [0, -5, 0], 
+                                                        scale: 1 
+                                                    }}
+                                                    transition={{
+                                                        y: {
+                                                            repeat: Infinity,
+                                                            duration: 2,
+                                                            ease: "easeInOut"
+                                                        },
+                                                        opacity: { duration: 0.5 },
+                                                        scale: { duration: 0.5 }
+                                                    }}
+                                                    whileHover={{ scale: 1.08, y: -8 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    className="relative cursor-pointer shadow-[0_10px_25px_rgba(88,204,2,0.3)] rounded-2xl"
+                                                    onClick={() => onLessonClick({
+                                                        id: lesson.id, title: lesson.title, unitTitle,
+                                                        challengeCount: lesson.challenges?.length || 0,
+                                                        completedCount: lesson.challenges?.filter(c => c.challengeProgress?.some(p => p.completed)).length || 0,
+                                                        xpReward: (lesson.challenges?.length || 0) * 10
+                                                    })}
+                                                >
+                                                    <div className="bg-gradient-to-b from-[#58CC02] to-[#4eb801] text-white font-black uppercase text-base px-8 py-3.5 rounded-2xl border-2 border-white/20 border-b-[6px] border-b-[#46a302] active:border-b-0 transition-all whitespace-nowrap flex items-center gap-2 relative overflow-hidden group/btn">
+                                                        <span className="drop-shadow-[0_2px_2px_rgba(0,0,0,0.2)]">Começar</span>
+                                                        <motion.div
+                                                            animate={{ 
+                                                                rotate: [0, 10, -10, 0],
+                                                                scale: [1, 1.2, 1]
+                                                            }}
+                                                            transition={{ repeat: Infinity, duration: 2 }}
+                                                        >
+                                                            <Zap className="w-5 h-5 fill-yellow-300 text-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.6)]" />
+                                                        </motion.div>
+                                                        
+                                                        {/* Shine effect */}
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:animate-[shimmer_1.5s_infinite] pointer-events-none" />
                                                     </div>
                                                     {/* CSS Triangle Tail */}
-                                                    <div className="absolute -bottom-[12px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-[12px] border-x-transparent border-t-[12px] border-t-[#e5e7eb]"></div>
-                                                    <div className="absolute -bottom-[8px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-[10px] border-x-transparent border-t-[10px] border-t-white"></div>
-                                                </div>
+                                                    <div className="absolute -bottom-[12px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-[12px] border-x-transparent border-t-[12px] border-t-[#46a302]"></div>
+                                                    <div className="absolute -bottom-[8px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-[10px] border-x-transparent border-t-[10px] border-t-[#4eb801]"></div>
+                                                </motion.div>
                                             )}
                                         </div>
                                         

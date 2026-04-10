@@ -39,15 +39,22 @@ export default function RootLayout({
           <CustomToastProvider>
             <Toaster richColors />
             <OneSignalProvider />
+            
+            {/* Always render children to preserve client-side state during server refreshes */}
             <ClerkLoading>
-              <LoadingScreen />
+              <div className="fixed inset-0 z-[999] bg-white flex items-center justify-center">
+                <LoadingScreen />
+              </div>
             </ClerkLoading>
+
             <ClerkLoaded>
               <TTSUnlocker />
               <ReviewModal />
-              {children}
-              <FloatingMarco />
             </ClerkLoaded>
+
+            {children}
+            <FloatingMarco />
+            
           </CustomToastProvider>
         </body>
       </html>
