@@ -7,6 +7,7 @@ import { OneSignalProvider } from "@/components/shared/OneSignalProvider";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { CustomToastProvider } from "@/components/ui/custom-toast";
 import { FloatingMarco } from "@/components/shared/floating-marco";
+import { TTSUnlocker } from "@/components/shared/tts-unlocker";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"] });
@@ -41,6 +42,7 @@ export default function RootLayout({
               <LoadingScreen />
             </ClerkLoading>
             <ClerkLoaded>
+              <TTSUnlocker />
               {children}
               <FloatingMarco />
             </ClerkLoaded>

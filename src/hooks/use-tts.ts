@@ -51,6 +51,16 @@ function findVoice(bcp47Code: string): SpeechSynthesisVoice | undefined {
 export const useTTS = (languageCode: string = "en") => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [playingText, setPlayingText] = useState<string | null>(null);
+    const [voicesLoaded, setVoicesLoaded] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.speechSynthesis) {
+            const updateVoices = () => setVoicesLoaded(window.speechSynthesis.getVoices().length > 0);
+            updateVoices();
+            window.speechSynthesis.addEventListener("voiceschanged", updateVoices);
+            return () => window.speechSynthesis.removeEventListener("voiceschanged", updateVoices);
+        }
+    }, []);
 
     const stopAudio = useCallback(() => {
         if (typeof window !== "undefined" && window.speechSynthesis) {
@@ -78,7 +88,11 @@ export const useTTS = (languageCode: string = "en") => {
             utterance.rate = speed;
 
             const bestVoice = findVoice(bcp47Code);
-            if (bestVoice) utterance.voice = bestVoice;
+            if (bestVoice) {
+                utterance.voice = bestVoice;
+            } else {
+                console.warn(`[TTS] No perfect voice found for ${bcp47Code}. Using system default.`);
+            }
 
             utterance.onstart = () => {
                 setIsPlaying(true);
