@@ -1,6 +1,6 @@
 "use server";
 
-import { followUser, unfollowUser, sendMessage, markMessagesAsRead, markNotificationAsRead } from "@/db/queries";
+import { followUser, unfollowUser, markNotificationAsRead } from "@/db/queries";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
 import { notifications } from "@/db/schema";
@@ -76,20 +76,6 @@ export const onUnfollow = async (id: string) => {
     }
 };
 
-
-export const onSendMessage = async (receiverId: string, formData: FormData) => {
-    const content = formData.get("content") as string;
-    const type = (formData.get("type") as "text" | "image" | "file") || "text";
-    const fileName = formData.get("fileName") as string | undefined;
-
-    if (!content) return;
-    try {
-        await sendMessage(receiverId, content, type, fileName);
-    } catch (error) {
-        console.error("Message error:", error);
-    }
-};
-
 export const onSearchUsers = async (query: string) => {
     // We can reuse the query logic but need to import it or reimplement.
     // Importing 'searchUsers' from queries.ts is fine as this is a Server Action file.
@@ -99,16 +85,6 @@ export const onSearchUsers = async (query: string) => {
         return await searchUsers(query);
     } catch (error) {
         return [];
-    }
-};
-
-export const onMarkMessagesAsRead = async (partnerId: string) => {
-    try {
-        await markMessagesAsRead(partnerId);
-        revalidatePath("/messages");
-        revalidatePath("/"); // Update global unread badge everywhere
-    } catch (error) {
-        console.error("Mark messages as read error:", error);
     }
 };
 
