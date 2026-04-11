@@ -53,6 +53,21 @@ export default function SupportPage() {
     // Smart Search State
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<typeof DOCS_ARTICLES>([]);
+    const [placeholderText, setPlaceholderText] = useState("Procurar no Mural...");
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 640) {
+                setPlaceholderText("Procurar...");
+            } else {
+                setPlaceholderText("Procurar por Ligas, XP, Ofensivas...");
+            }
+        };
+
+        handleResize(); // Set initial
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     useEffect(() => {
         const fetchReviews = async () => {
@@ -127,19 +142,20 @@ export default function SupportPage() {
                         {/* Interactive Search Bar */}
                         <div className="w-full max-w-2xl relative mt-4">
                             <div className="relative transition-transform group-hover:scale-[1.02] duration-500 z-30">
-                                <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
-                                    <Search className="w-7 h-7 text-stone-400" />
+                                <div className="absolute inset-y-0 left-5 sm:left-6 flex items-center pointer-events-none">
+                                    <Search className="w-6 h-6 sm:w-7 sm:h-7 text-stone-400" />
                                 </div>
                                 <input 
                                     type="text"
                                     value={searchQuery}
                                     onChange={handleSearch}
-                                    placeholder="Procurar por Ligas, XP, Desafios..."
-                                    className="w-full bg-white text-stone-800 font-bold text-lg sm:text-xl rounded-full py-6 pl-16 pr-6 shadow-[0_0_40px_rgba(0,0,0,0.15)] focus:outline-none focus:ring-8 focus:ring-white/20 transition-all border-none placeholder:text-stone-400"
+                                    placeholder={placeholderText}
+                                    className="w-full bg-white text-stone-800 font-bold text-lg sm:text-xl rounded-full py-5 sm:py-6 pl-14 sm:pl-16 pr-14 sm:pr-40 shadow-[0_0_40px_rgba(0,0,0,0.15)] focus:outline-none focus:ring-8 focus:ring-white/20 transition-all border-none placeholder:text-stone-400 placeholder:text-base sm:placeholder:text-lg"
                                 />
-                                <div className="absolute inset-y-2.5 right-3">
-                                    <Link href="/docs" className="bg-gradient-to-b from-indigo-500 to-indigo-600 text-white font-bold rounded-full px-6 py-3 hover:from-indigo-400 hover:to-indigo-500 transition-all h-full flex items-center shadow-md active:scale-95 border-b-4 border-indigo-700">
-                                        Ler Tudo
+                                <div className="absolute inset-y-2.5 right-2.5">
+                                    <Link href="/docs" className="bg-gradient-to-b from-indigo-500 to-indigo-600 text-white font-bold rounded-full px-4 sm:px-6 py-3 hover:from-indigo-400 hover:to-indigo-500 transition-all h-full flex items-center justify-center shadow-md active:scale-95 border-b-4 border-indigo-700 aspect-square sm:aspect-auto">
+                                        <span className="hidden sm:block">Ler Tudo</span>
+                                        <ArrowRight className="w-5 h-5 sm:hidden" strokeWidth={3} />
                                     </Link>
                                 </div>
                             </div>

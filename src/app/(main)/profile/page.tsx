@@ -99,17 +99,17 @@ export default async function ProfilePage() {
             </div>
 
             {/* XP Balance Context Banner */}
-            <div className="mb-12 relative flex items-center justify-between overflow-hidden rounded-[2rem] border-b-4 border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-8 py-6 shadow-sm hover:shadow-md transition-shadow">
+            <div className="mb-12 relative flex flex-col sm:flex-row items-center justify-between overflow-hidden rounded-[2rem] border-b-4 border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-6 sm:px-8 sm:py-6 shadow-sm hover:shadow-md transition-shadow gap-6 sm:gap-0">
                 <div className="absolute right-[-10%] top-[-50%] w-48 h-48 bg-amber-200 rounded-full blur-3xl opacity-50" />
-                <div className="relative z-10 flex flex-col gap-1">
+                <div className="relative z-10 flex flex-col items-center sm:items-start gap-1">
                     <p className="text-sm font-black uppercase tracking-widest text-amber-600">O Teu Cofre</p>
                     <div className="flex items-center gap-3">
                         <Zap className="w-8 h-8 text-amber-500 fill-amber-500 animate-pulse" />
                         <p className="text-4xl font-black text-amber-700 drop-shadow-sm">{userProgress.points}</p>
                     </div>
                 </div>
-                <Link href="/shop" className="relative z-10">
-                    <Button variant="super" size="lg" className="px-8 rounded-2xl uppercase tracking-widest font-black shadow-lg">Visitar Loja</Button>
+                <Link href="/shop" className="relative z-10 w-full sm:w-auto">
+                    <Button variant="super" size="lg" className="w-full sm:w-auto px-8 rounded-2xl uppercase tracking-widest font-black shadow-lg">Visitar Loja</Button>
                 </Link>
             </div>
 

@@ -121,20 +121,20 @@ export const AchievementsList = ({ achievements, userProgress }: Props) => {
 
     return (
         <div className="mb-10 w-full animate-in fade-in duration-700 delay-300">
-            <div className="mb-8 flex items-center justify-between border-b-4 border-stone-100 pb-6">
-                <div className="flex items-center gap-4">
-                    <div className="h-14 w-14 bg-amber-100 rounded-2xl flex items-center justify-center border-2 border-amber-200 border-b-4 shadow-sm">
+            <div className="mb-8 flex flex-col sm:flex-row items-center justify-between border-b-4 border-stone-100 pb-6 gap-6 sm:gap-4">
+                <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
+                    <div className="h-14 w-14 bg-amber-100 rounded-2xl flex items-center justify-center border-2 border-amber-200 border-b-4 shadow-sm shrink-0">
                         <Trophy className="h-8 w-8 text-amber-500 fill-amber-200" />
                     </div>
                    <div className="flex flex-col">
-                        <h2 className="text-3xl font-black text-stone-700 tracking-tight uppercase leading-none">
+                        <h2 className="text-2xl sm:text-3xl font-black text-stone-700 tracking-tight uppercase leading-none">
                             Conquistas
                         </h2>
                         <p className="text-stone-400 font-bold text-sm mt-1">O teu percurso de glória</p>
                    </div>
                 </div>
-                <div className="flex flex-col items-end">
-                    <span className="rounded-2xl bg-amber-400 border-b-4 border-amber-600 px-5 py-2 text-sm font-black tracking-wide text-white shadow-sm">
+                <div className="flex flex-col items-center sm:items-end w-full sm:w-auto">
+                    <span className="rounded-2xl bg-amber-400 border-b-4 border-amber-600 px-5 py-2 text-sm font-black tracking-wide text-white shadow-sm whitespace-nowrap">
                         {unlockedCount} / {achievements.length}
                     </span>
                 </div>
@@ -150,7 +150,7 @@ export const AchievementsList = ({ achievements, userProgress }: Props) => {
                 <Button 
                     onClick={() => setIsExpanded(!isExpanded)}
                     variant="super" 
-                    className="w-full md:w-auto h-16 rounded-[2rem] border-b-8 text-white font-black uppercase tracking-widest px-12 text-base active:translate-y-1 active:border-b-0 transition-all shadow-lg shadow-green-500/20"
+                    className="w-full md:w-auto h-auto min-h-[64px] py-4 rounded-[2rem] border-b-8 text-white font-black uppercase tracking-wider sm:tracking-widest px-4 sm:px-12 text-sm sm:text-base active:translate-y-1 active:border-b-0 transition-all shadow-lg shadow-green-500/20 whitespace-normal text-center"
                 >
                     {isExpanded ? "Esconder Grelha" : "Ver grelha completa de conquistas"}
                 </Button>

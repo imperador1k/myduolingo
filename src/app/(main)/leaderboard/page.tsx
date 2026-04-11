@@ -109,18 +109,28 @@ export default async function LeaderboardPage() {
                                 )}
                             </div>
 
-                            <div className="flex-1 flex flex-col px-2">
-                                <span className={cn("font-black text-stone-700 text-xl tracking-tight leading-tight", isCurrentUser && "text-sky-700")}>
+                            <div className="flex-1 flex flex-col px-2 min-w-0">
+                                <span className={cn("font-black text-stone-700 text-lg sm:text-xl tracking-tight leading-none truncate", isCurrentUser && "text-sky-700")}>
                                     {user.userName}
                                 </span>
-                                {isCurrentUser && (
-                                    <span className="text-xs font-black text-sky-500 uppercase tracking-widest mt-1 animate-pulse">
-                                        O Teu Lugar
-                                    </span>
-                                )}
+                                <div className="flex items-center gap-2 mt-1">
+                                    {isCurrentUser && (
+                                        <span className="text-[10px] font-black text-sky-500 uppercase tracking-widest animate-pulse whitespace-nowrap">
+                                            Tu
+                                        </span>
+                                    )}
+                                    {/* Mobile XP Badge */}
+                                    <div className="flex sm:hidden items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+                                        <Zap className="h-3 w-3 text-amber-500 fill-amber-300" />
+                                        <span className="font-extrabold text-stone-700 text-xs tracking-tighter">
+                                            {user.points} XP
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="bg-amber-100 rounded-2xl px-5 py-2.5 border-2 border-amber-200 border-b-4 flex items-center gap-2 group-hover:scale-110 transition-transform">
+                            {/* Desktop XP Badge */}
+                            <div className="hidden sm:flex bg-amber-100 rounded-2xl px-5 py-2.5 border-2 border-amber-200 border-b-4 items-center gap-2 group-hover:scale-110 transition-transform">
                                 <Zap className="h-5 w-5 text-amber-500 fill-amber-300" />
                                 <span className="font-black text-stone-700 text-2xl tracking-tighter leading-none">
                                     {user.points}
