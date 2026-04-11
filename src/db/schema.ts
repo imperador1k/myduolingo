@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, boolean, pgEnum, date, timestamp, jsonb, unique } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, pgEnum, date, timestamp, jsonb, unique, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // Enum for challenge types
@@ -145,13 +145,6 @@ export const userProgress = pgTable("user_progress", {
     notificationsEnabled: boolean("notifications_enabled").default(true).notNull(),
 });
 
-export const userProgressRelations = relations(userProgress, ({ one, many }) => ({
-    activeCourse: one(courses, {
-        fields: [userProgress.activeCourseId],
-        references: [courses.id],
-    }),
-    placementTests: many(placementTestHistory),
-}));
 
 // ===== PLACEMENT TEST HISTORY =====
 export const placementTestHistory = pgTable("placement_test_history", {
@@ -161,69 +154,6 @@ export const placementTestHistory = pgTable("placement_test_history", {
     finalLevel: text("final_level").notNull(),
     createdAt: timestamp("created_at").defaultNow(),
 });
-
-export const placementTestHistoryRelations = relations(placementTestHistory, ({ one }) => ({
-    user: one(userProgress, {
-        fields: [placementTestHistory.userId],
-        references: [userProgress.userId],
-    }),
-}));
-
-// ===== SOCIAL =====
-
-export const follows = pgTable("follows", {
-    id: serial("id").primaryKey(),
-    followerId: text("follower_id").notNull(),
-    followingId: text("following_id").notNull(),
-    createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const followsRelations = relations(follows, ({ one }) => ({
-    follower: one(userProgress, {
-        fields: [follows.followerId],
-        references: [userProgress.userId],
-        relationName: "follower"
-    }),
-    following: one(userProgress, {
-        fields: [follows.followingId],
-        references: [userProgress.userId],
-        relationName: "following"
-    }),
-}));
-
-export const notifications = pgTable("notifications", {
-    id: serial("id").primaryKey(),
-    userId: text("user_id").notNull(),
-    type: text("type").notNull(),
-    message: text("message").notNull(),
-    link: text("link"),
-    read: boolean("read").notNull().default(false),
-    createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const messages = pgTable("messages", {
-    id: serial("id").primaryKey(),
-    senderId: text("sender_id").notNull(),
-    receiverId: text("receiver_id").notNull(),
-    content: text("content").notNull(),
-    type: text("type", { enum: ["text", "image", "file"] }).default("text").notNull(),
-    fileName: text("file_name"),
-    read: boolean("read").notNull().default(false),
-    createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const messagesRelations = relations(messages, ({ one }) => ({
-    sender: one(userProgress, {
-        fields: [messages.senderId],
-        references: [userProgress.userId],
-        relationName: "sender"
-    }),
-    receiver: one(userProgress, {
-        fields: [messages.receiverId],
-        references: [userProgress.userId],
-        relationName: "receiver"
-    }),
-}));
 
 // ===== PRACTICE SESSIONS =====
 export const practiceSessions = pgTable("practice_sessions", {
@@ -420,4 +350,166 @@ export const supportTicketsRelations = relations(supportTickets, ({ one }) => ({
         fields: [supportTickets.userId],
         references: [userProgress.userId],
     }),
+}));
+
+// ===== MESSAGING (Conversations & Group Chat) =====
+
+export const conversations = pgTable("conversations", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name"), // Only used for group chats
+    isGroup: boolean("is_group").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const conversationsRelations = relations(conversations, ({ many }) => ({
+    participants: many(conversationParticipants),
+    messages: many(messages),
+}));
+
+export const conversationParticipants = pgTable("conversation_participants", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conversationId: uuid("conversation_id")
+        .references(() => conversations.id, { onDelete: "cascade" })
+        .notNull(),
+    userId: text("user_id")
+        .references(() => userProgress.userId, { onDelete: "cascade" })
+        .notNull(),
+    joinedAt: timestamp("joined_at").defaultNow().notNull(),
+}, (t) => ({
+    unq: unique("conversation_participant_unique").on(t.conversationId, t.userId),
+}));
+
+export const conversationParticipantsRelations = relations(conversationParticipants, ({ one }) => ({
+    conversation: one(conversations, {
+        fields: [conversationParticipants.conversationId],
+        references: [conversations.id],
+    }),
+    user: one(userProgress, {
+        fields: [conversationParticipants.userId],
+        references: [userProgress.userId],
+    }),
+}));
+
+export const messages = pgTable("messages", {
+    id: serial("id").primaryKey(),
+    conversationId: uuid("conversation_id")
+        .references(() => conversations.id, { onDelete: "cascade" })
+        .notNull(),
+    senderId: text("sender_id")
+        .references(() => userProgress.userId, { onDelete: "cascade" })
+        .notNull(),
+    content: text("content").notNull(),
+    imageUrl: text("image_url"),
+    type: text("type").default("text").notNull(),
+    fileName: text("file_name"),
+    read: boolean("read").default(false).notNull(),
+    parentMessageId: integer("parent_message_id"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const messagesRelations = relations(messages, ({ one, many }) => ({
+    conversation: one(conversations, {
+        fields: [messages.conversationId],
+        references: [conversations.id],
+    }),
+    sender: one(userProgress, {
+        fields: [messages.senderId],
+        references: [userProgress.userId],
+    }),
+    parent: one(messages, {
+        fields: [messages.parentMessageId],
+        references: [messages.id],
+        relationName: "replies",
+    }),
+    replies: many(messages, {
+        relationName: "replies",
+    }),
+    reactions: many(messageReactions),
+}));
+
+export const messageReactions = pgTable("message_reactions", {
+    id: serial("id").primaryKey(),
+    messageId: integer("message_id")
+        .references(() => messages.id, { onDelete: "cascade" })
+        .notNull(),
+    userId: text("user_id")
+        .references(() => userProgress.userId, { onDelete: "cascade" })
+        .notNull(),
+    emoji: text("emoji").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const messageReactionsRelations = relations(messageReactions, ({ one }) => ({
+    message: one(messages, {
+        fields: [messageReactions.messageId],
+        references: [messages.id],
+    }),
+    user: one(userProgress, {
+        fields: [messageReactions.userId],
+        references: [userProgress.userId],
+    }),
+}));
+
+// ===== FOLLOWS (Social Graph) =====
+
+export const follows = pgTable("follows", {
+    id: serial("id").primaryKey(),
+    followerId: text("follower_id")
+        .references(() => userProgress.userId, { onDelete: "cascade" })
+        .notNull(),
+    followingId: text("following_id")
+        .references(() => userProgress.userId, { onDelete: "cascade" })
+        .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+    unq: unique("follow_unique").on(t.followerId, t.followingId),
+}));
+
+export const followsRelations = relations(follows, ({ one }) => ({
+    follower: one(userProgress, {
+        fields: [follows.followerId],
+        references: [userProgress.userId],
+        relationName: "follower",
+    }),
+    following: one(userProgress, {
+        fields: [follows.followingId],
+        references: [userProgress.userId],
+        relationName: "following",
+    }),
+}));
+
+// ===== NOTIFICATIONS =====
+
+export const notifications = pgTable("notifications", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id")
+        .references(() => userProgress.userId, { onDelete: "cascade" })
+        .notNull(),
+    type: text("type").notNull(), // e.g., "follow", "message", "high_five"
+    message: text("message").notNull(),
+    read: boolean("read").default(false).notNull(),
+    link: text("link"), // Link to redirect when clicked
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+    user: one(userProgress, {
+        fields: [notifications.userId],
+        references: [userProgress.userId],
+    }),
+}));
+
+// Update UserProgress with all relations
+export const userProgressRelations = relations(userProgress, ({ one, many }) => ({
+    activeCourse: one(courses, {
+        fields: [userProgress.activeCourseId],
+        references: [courses.id],
+    }),
+    placementTests: many(placementTestHistory),
+    conversationParticipations: many(conversationParticipants),
+    sentMessages: many(messages),
+    supportTickets: many(supportTickets),
+    followers: many(follows, { relationName: "following" }),
+    following: many(follows, { relationName: "follower" }),
+    notifications: many(notifications),
 }));

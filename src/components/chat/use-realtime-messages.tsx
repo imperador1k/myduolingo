@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { useAuth } from "@clerk/nextjs";
 import { useUISounds } from "@/hooks/use-ui-sounds";
 
-export const useRealtimeMessages = (initialMessages: any[], userId: string, otherUserId: string) => {
+export const useRealtimeMessages = (initialMessages: any[], userId: string, conversationId: string) => {
     const [messages, setMessages] = useState(initialMessages);
     const [isPartnerOnline, setIsPartnerOnline] = useState(false);
     const [isPartnerTyping, setIsPartnerTyping] = useState(false);
@@ -38,55 +38,96 @@ export const useRealtimeMessages = (initialMessages: any[], userId: string, othe
     }, [initialMessages]);
 
     useEffect(() => {
+        if (!conversationId) return;
+
         const channel = supabase
-            .channel('realtime:messages') // Unique tag
+            .channel(`realtime:messages:${conversationId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `conversation_id=eq.${conversationId}`
+                },
+                (payload: any) => {
+                    const newMsg = payload.new;
+                    setMessages((prev) => {
+                        // Prevent duplicates
+                        if (prev.some((m) => m.id === newMsg.id)) return prev;
+
+                        // Play sound if received from someone else
+                        if (newMsg.sender_id !== userId) {
+                            playPop();
+                        }
+
+                        // Clear temp optimistic messages when real ones arrive
+                        const filtered = prev.filter(m => !m.id?.toString().startsWith('temp-'));
+
+                        return [...filtered, {
+                            ...newMsg,
+                            senderId: newMsg.sender_id,
+                            conversationId: newMsg.conversation_id,
+                            createdAt: new Date(newMsg.created_at),
+                            imageUrl: newMsg.image_url,
+                            fileName: newMsg.file_name,
+                        }];
+                    });
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `conversation_id=eq.${conversationId}`
+                },
+                (payload: any) => {
+                    const updatedMsg = payload.new;
+                    setMessages((prev) => prev.map((msg) => 
+                        msg.id === updatedMsg.id 
+                            ? { ...msg, read: updatedMsg.read } 
+                            : msg
+                    ));
+                }
+            )
             .on(
                 'postgres_changes',
                 {
                     event: '*',
                     schema: 'public',
-                    table: 'messages',
+                    table: 'message_reactions',
                 },
-                (payload) => {
-                    const newMsg = payload.new as any;
-                    
-                    if (payload.eventType === 'INSERT') {
-                        // Filter: Only relevant messages
-                        if (
-                            (newMsg.sender_id === userId && newMsg.receiver_id === otherUserId) ||
-                            (newMsg.sender_id === otherUserId && newMsg.receiver_id === userId)
-                        ) {
-                            setMessages((prev) => {
-                                // Prevent duplicates
-                                if (prev.some((m) => m.id === newMsg.id)) return prev;
+                (payload: any) => {
+                    const reaction = payload.new || payload.old;
+                    if (!reaction) return;
 
-                                // Play sound if received from partner
-                                if (newMsg.sender_id === otherUserId) {
-                                    playPop();
-                                }
-
-                                // Clear temp optimistic messages when real ones arrive
-                                const filtered = prev.filter(m => !m.id?.toString().startsWith('temp-'));
-
-                                return [...filtered, {
-                                    ...newMsg,
-                                    senderId: newMsg.sender_id, // Map snake_case to camelCase
-                                    receiverId: newMsg.receiver_id,
-                                    createdAt: new Date(newMsg.created_at),
-                                    content: newMsg.content,
-                                    type: newMsg.type,
-                                    fileName: newMsg.file_name,
-                                }];
-                            });
+                    setMessages((prev) => prev.map((msg) => {
+                        if (msg.id === reaction.message_id) {
+                            const currentReactions = msg.reactions || [];
+                            if (payload.eventType === 'INSERT') {
+                                // Add reaction if not already present
+                                if (currentReactions.some((r: any) => r.id === reaction.id)) return msg;
+                                return {
+                                    ...msg,
+                                    reactions: [...currentReactions, {
+                                        id: reaction.id,
+                                        messageId: reaction.message_id,
+                                        userId: reaction.user_id,
+                                        emoji: reaction.emoji,
+                                        createdAt: reaction.created_at
+                                    }]
+                                };
+                            } else if (payload.eventType === 'DELETE') {
+                                return {
+                                    ...msg,
+                                    reactions: currentReactions.filter((r: any) => r.id !== reaction.id)
+                                };
+                            }
                         }
-                    } else if (payload.eventType === 'UPDATE') {
-                        // Update existing message (e.g., read status changed)
-                        setMessages((prev) => prev.map((msg) => 
-                            msg.id === newMsg.id 
-                                ? { ...msg, read: newMsg.read } 
-                                : msg
-                        ));
-                    }
+                        return msg;
+                    }));
                 }
             )
             .subscribe();
@@ -94,13 +135,13 @@ export const useRealtimeMessages = (initialMessages: any[], userId: string, othe
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [userId, otherUserId]);
+    }, [userId, conversationId]);
 
-    // Presence Effect
+    // Presence Effect (Using conversationId as the room)
     useEffect(() => {
-        if (!userId || !otherUserId) return;
+        if (!userId || !conversationId) return;
 
-        const roomId = `presence_${[userId, otherUserId].sort().join('_')}`;
+        const roomId = `presence_${conversationId}`;
         const channel = supabase.channel(roomId, {
             config: {
                 presence: {
@@ -112,15 +153,17 @@ export const useRealtimeMessages = (initialMessages: any[], userId: string, othe
         channel
             .on('presence', { event: 'sync' }, () => {
                 const newState = channel.presenceState();
-                const partnerPresence = newState[otherUserId];
                 
-                setIsPartnerOnline(!!partnerPresence);
+                // For groups, we might want to check all users. 
+                // For now, let's keep it simple: if there's > 1 user, someone else is here.
+                const otherUsers = Object.keys(newState).filter(id => id !== userId);
+                setIsPartnerOnline(otherUsers.length > 0);
 
-                if (partnerPresence && partnerPresence[0]) {
-                    setIsPartnerTyping((partnerPresence[0] as any).isTyping || false);
-                } else {
-                    setIsPartnerTyping(false);
-                }
+                const someoneIsTyping = otherUsers.some(uid => {
+                    const presence = newState[uid] as any;
+                    return presence && presence[0] && presence[0].isTyping;
+                });
+                setIsPartnerTyping(someoneIsTyping);
             })
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
@@ -133,7 +176,7 @@ export const useRealtimeMessages = (initialMessages: any[], userId: string, othe
         return () => {
             channel.unsubscribe();
         };
-    }, [userId, otherUserId]);
+    }, [userId, conversationId]);
 
     const addOptimisticMessage = (msg: any) => {
         setMessages((prev) => [...prev, msg]);

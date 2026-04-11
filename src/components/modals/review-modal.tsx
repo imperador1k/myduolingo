@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import Image from "next/image";
-import { X } from "lucide-react";
+import Link from "next/link";
+import { X, Heart } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useReviewModal } from "@/store/use-review-modal-store";
@@ -111,13 +112,14 @@ export const ReviewModal = () => {
                         )}
                     </Button>
 
-                    <button 
-                        disabled={isPending}
+                    <Link 
+                        href="/reviews"
                         onClick={handleClose}
-                        className="text-stone-400 font-bold mt-5 hover:text-stone-600 cursor-pointer active:scale-95 transition-all text-sm outline-none px-4 py-2 rounded-xl hover:bg-stone-50"
+                        className="w-full mt-4 bg-purple-50 text-purple-600 border-2 border-purple-200 border-b-4 rounded-2xl py-3 flex items-center justify-center gap-2 font-bold hover:bg-purple-100 active:translate-y-1 active:border-b-0 transition-all text-sm uppercase tracking-widest"
                     >
-                        Agora não
-                    </button>
+                        <Heart className="w-4 h-4 fill-purple-600" />
+                        Ver mural de feedback
+                    </Link>
                     
                 </div>
             </DialogContent>

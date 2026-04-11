@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 type AchievementItem = {
     title: string;
@@ -19,7 +20,12 @@ type Props = {
 import { Zap, Trophy, Flame, Target, Star } from "lucide-react";
 
 export const AchievementsList = ({ achievements, userProgress }: Props) => {
+    const [mounted, setMounted] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
     const unlockedCount = achievements.filter(a => a.unlocked).length;
 
     // Categorization logic parsing descriptions
@@ -95,7 +101,7 @@ export const AchievementsList = ({ achievements, userProgress }: Props) => {
                                                 style={{ width: `${progressPercent}%` }}
                                             />
                                             <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white mix-blend-difference tracking-widest">
-                                                {current.toLocaleString()} / {target.toLocaleString()}
+                                                {mounted ? `${current.toLocaleString()} / ${target.toLocaleString()}` : ""}
                                             </span>
                                         </div>
                                     )}

@@ -9,7 +9,7 @@ interface LegalLayoutProps {
     backHref?: string;
 }
 
-export const LegalLayout = ({ title, lastUpdated, icon, children, backHref = "/settings/about" }: LegalLayoutProps) => {
+export const LegalLayout = ({ title, lastUpdated, icon, children, backHref = "/settings" }: LegalLayoutProps) => {
     return (
         <div className="min-h-screen bg-[#fbf9f8] py-12 px-4">
             <div className="max-w-3xl mx-auto">

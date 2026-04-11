@@ -1,5 +1,6 @@
+import Link from "next/link";
+import { Star, ArrowLeft } from "lucide-react";
 import Image from "next/image";
-import { Star } from "lucide-react";
 import { getLatestReviewsAction } from "@/actions/user-reviews";
 
 import { ReviewCTA } from "./review-cta";
@@ -15,7 +16,14 @@ export default async function ReviewsPage() {
 
     return (
         <div className="flex w-full flex-col p-6 lg:p-12 mb-[100px] animate-in fade-in duration-500 max-w-[1056px] mx-auto">
-            {/* Hero Section */}
+            <div className="mb-6 flex">
+                <Link href="/settings" className="inline-flex items-center gap-2 text-stone-400 hover:text-stone-600 font-bold transition-all group active:translate-x-[-4px]">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-stone-200 border-b-4 bg-white group-hover:bg-stone-50 transition-all">
+                        <ArrowLeft className="w-5 h-5 text-stone-400 group-hover:text-stone-600" />
+                    </div>
+                    VOLTAR
+                </Link>
+            </div>
             <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-8 mb-12 bg-white border-2 border-stone-200 border-b-8 rounded-3xl p-8 lg:p-12">
                 <div className="flex-1 flex flex-col items-center text-center md:items-start md:text-left gap-4">
                     <h1 className="text-4xl md:text-5xl font-black text-stone-800 leading-tight flex items-center justify-center md:justify-start gap-2 flex-wrap">

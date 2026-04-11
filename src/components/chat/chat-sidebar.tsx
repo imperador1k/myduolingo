@@ -4,22 +4,33 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { onSearchUsers } from "@/actions/user-actions";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Users, UserPlus } from "lucide-react";
+import { CreateGroupModal } from "@/components/modals/create-group-modal";
+import { NewChatModal } from "@/components/modals/new-chat-modal";
 
 type Conversation = {
+    id: string;
+    name: string | null;
+    isGroup: boolean;
     partner: {
         userId: string;
         userName: string;
         userImageSrc: string | null;
-    };
+    } | null;
+    participants: {
+        userId: string;
+        userName: string | null;
+        userImageSrc: string | null;
+    }[];
     lastMessage: {
         id: number;
         content: string;
         createdAt: Date;
-        read: boolean;
         senderId: string;
-    };
+        read: boolean;
+    } | null;
     unreadCount: number;
+    updatedAt: Date;
 };
 
 type Props = {
@@ -30,11 +41,13 @@ export const ChatSidebar = ({ conversations }: Props) => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
-    const activeUserId = searchParams.get("userId");
+    const activeConversationId = searchParams.get("conversationId");
 
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+    const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -52,63 +65,102 @@ export const ChatSidebar = ({ conversations }: Props) => {
         return () => clearTimeout(timeoutId);
     }, [query]);
 
-    const onSelect = (userId: string) => {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Handle selecting an existing conversation
+    const onSelectConversation = (id: string) => {
         const params = new URLSearchParams(searchParams);
-        params.set("userId", userId);
+        params.set("conversationId", id);
+        params.delete("userId"); // Clean up old param if exists
         router.push(`${pathname}?${params.toString()}`);
-        setQuery(""); // Clear search after selection
+    };
+
+    // Handle selecting a user from search (Nova Mensagem)
+    const onSelectUser = async (userId: string) => {
+        setQuery("");
         setResults([]);
+        
+        // Intelligent DM creation (Server Action will find existing if it exists)
+        try {
+            const { createConversation } = await import("@/actions/messages");
+            const conversationId = await createConversation([userId], false);
+            
+            const params = new URLSearchParams(searchParams);
+            params.set("conversationId", conversationId);
+            router.push(`${pathname}?${params.toString()}`);
+        } catch (error) {
+            console.error("Erro ao iniciar conversa:", error);
+        }
     };
 
     return (
-        <div className={cn("flex w-full flex-col bg-slate-50 h-full", activeUserId ? "hidden md:flex md:w-[360px]" : "w-full")}>
-            <div className="p-4 md:p-5 border-b-2 border-slate-200 bg-white flex flex-col gap-4 md:gap-5 z-20 shadow-sm relative">
-                <h1 className="text-xl font-black text-slate-700 uppercase tracking-widest hidden md:block">Inbox</h1>
-                <h1 className="text-xl font-black text-slate-700 uppercase tracking-widest md:hidden mt-2 text-center">Mensagens</h1>
+        <div className={cn("flex w-full flex-col bg-stone-50/50 h-full", activeConversationId ? "hidden md:flex md:w-[380px]" : "w-full")}>
+            <CreateGroupModal isOpen={isGroupModalOpen} onClose={() => setIsGroupModalOpen(false)} />
+            <NewChatModal isOpen={isNewChatModalOpen} onClose={() => setIsNewChatModalOpen(false)} />
+            
+            <div className="p-6 border-b-2 border-stone-100 bg-white flex flex-col gap-6 z-20 relative">
+                <h1 className="text-2xl font-black text-stone-800 tracking-tight">Conversas</h1>
 
-                {/* Massive Tactile Action Button */}
-                <button className="w-full bg-[#58cc02] hover:bg-[#46a302] active:bg-[#46a302] text-white font-black text-[15px] uppercase tracking-widest py-3.5 rounded-2xl border-2 border-transparent border-b-[6px] hover:border-b-[6px] active:border-b-0 active:translate-y-[6px] transition-all flex items-center justify-center gap-2 shadow-sm" style={{ borderBottomColor: '#46a302' }}>
-                    Nova Mensagem
-                </button>
+                {/* Tactile Action Buttons Row */}
+                <div className="flex gap-3">
+                    <button 
+                        onClick={() => setIsNewChatModalOpen(true)}
+                        className="flex-1 bg-[#58CC02] hover:bg-[#4eb801] active:translate-y-1 active:border-b-0 text-white font-black text-sm uppercase tracking-widest py-3 rounded-xl border-b-4 border-[#46a302] transition-all flex items-center justify-center gap-2 shadow-sm"
+                    >
+                        <UserPlus className="w-4 h-4" />
+                        NOVA MENSAGEM
+                    </button>
+                    <button 
+                        onClick={() => setIsGroupModalOpen(true)}
+                        className="bg-white text-[#1CB0F6] border-2 border-blue-200 border-b-4 rounded-xl px-4 flex items-center justify-center hover:bg-blue-50 active:translate-y-1 active:border-b-0 transition-all shadow-sm"
+                    >
+                        <Users className="w-5 h-5" />
+                    </button>
+                </div>
 
                 {/* Search Input */}
                 <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 font-bold" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
                     <input
+                        id="chat-search"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Pesquisar utilizador..."
-                        className="w-full pl-11 pr-4 py-3 bg-slate-100 rounded-2xl text-[15px] font-bold text-slate-700 placeholder:text-slate-400 border-2 border-slate-200 border-b-[4px] outline-none focus:bg-white focus:border-sky-400 transition-all"
+                        placeholder="Pesquisar..."
+                        className="w-full pl-11 pr-4 py-3 bg-stone-100 rounded-2xl text-[15px] font-bold text-stone-700 placeholder:text-stone-400 border-2 border-stone-200 border-b-[4px] outline-none focus:bg-white focus:border-[#1CB0F6] transition-all"
                     />
                     {/* Search Results Dropdown */}
                     {query && (
-                        <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] border-2 border-slate-200 border-b-[6px] z-50 overflow-hidden max-h-[300px] overflow-y-auto">
+                        <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] border-2 border-stone-200 border-b-[6px] z-50 overflow-hidden max-h-[300px] overflow-y-auto">
                             {loading ? (
-                                <div className="p-6 flex justify-center text-sky-400">
+                                <div className="p-6 flex justify-center text-[#1CB0F6]">
                                     <Loader2 className="h-6 w-6 animate-spin" />
                                 </div>
                             ) : results.length === 0 ? (
-                                <div className="p-6 text-center text-slate-400 font-bold text-sm">
+                                <div className="p-6 text-center text-stone-400 font-bold text-sm">
                                     Nenhum utilizador encontrado.
                                 </div>
                             ) : (
                                 results.map((user) => (
                                     <div
                                         key={user.userId}
-                                        onClick={() => onSelect(user.userId)}
-                                        className="flex items-center gap-4 p-4 hover:bg-slate-50 active:bg-slate-100 cursor-pointer transition border-b-2 border-slate-100 last:border-b-0"
+                                        onClick={() => onSelectUser(user.userId)}
+                                        className="flex items-center gap-4 p-4 hover:bg-stone-50 active:bg-stone-100 cursor-pointer transition border-b-2 border-stone-100 last:border-b-0"
                                     >
-                                        <div className="h-10 w-10 rounded-[12px] border-2 border-slate-200 overflow-hidden flex-shrink-0 bg-slate-100">
+                                        <div className="h-10 w-10 rounded-[12px] border-2 border-stone-200 overflow-hidden flex-shrink-0 bg-stone-100">
                                             {user.userImageSrc ? (
                                                 <img src={user.userImageSrc} alt={user.userName} className="h-full w-full object-cover" />
                                             ) : (
-                                                <div className="flex h-full w-full items-center justify-center text-sm font-black text-slate-400">
+                                                <div className="flex h-full w-full items-center justify-center text-sm font-black text-stone-400">
                                                     {user.userName[0]?.toUpperCase()}
                                                 </div>
                                             )}
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-[15px] font-black text-slate-700 truncate">{user.userName}</span>
+                                            <span className="text-[15px] font-black text-stone-800 truncate">{user.userName}</span>
                                         </div>
                                     </div>
                                 ))
@@ -118,61 +170,100 @@ export const ChatSidebar = ({ conversations }: Props) => {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 pb-[120px] md:pb-4 flex flex-col gap-3 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-3 pb-[120px] md:pb-4 flex flex-col gap-3 scrollbar-hide">
                 {conversations.length === 0 && !query && (
-                    <div className="p-8 text-center bg-white rounded-2xl border-2 border-slate-200 border-b-4 mt-4">
+                    <div className="p-8 text-center bg-white rounded-2xl border-2 border-stone-200 border-b-4 mt-4">
                         <span className="text-4xl">📭</span>
-                        <h3 className="text-lg font-black text-slate-700 mt-4">Caixa de Entrada Vazia</h3>
-                        <p className="text-sm font-bold text-slate-400 mt-2">Começa uma nova conversa pesquisando amigos.</p>
+                        <h3 className="text-lg font-black text-stone-700 mt-4">Vazio</h3>
+                        <p className="text-sm font-bold text-stone-400 mt-2">Pesquisa amigos para começar.</p>
                     </div>
                 )}
-                {conversations.filter(conv => conv.partner).map((conv) => {
-                    const isActive = activeUserId === conv.partner.userId;
+                {conversations.map((conv: Conversation) => {
+                    const isActive = activeConversationId === conv.id;
+                    const displayName = conv.isGroup ? conv.name : conv.partner?.userName;
                     
                     return (
                         <div
-                            key={conv.partner.userId}
-                            onClick={() => onSelect(conv.partner.userId)}
+                            key={conv.id}
+                            onClick={() => onSelectConversation(conv.id)}
                             className={cn(
                                 "flex items-start gap-4 p-4 rounded-2xl border-2 border-b-4 cursor-pointer transition-all hover:-translate-y-1 active:translate-y-1 active:border-b-2",
                                 isActive 
-                                    ? "bg-sky-400 border-sky-500 border-b-sky-600 text-white shadow-md shadow-sky-200/50" 
-                                    : "bg-white border-slate-200 hover:bg-slate-50"
+                                    ? "bg-blue-50 border-[#1CB0F6] border-b-[#1CB0F6] text-stone-800 shadow-md shadow-blue-100/50" 
+                                    : "bg-white border-stone-200 hover:bg-stone-50"
                             )}
                         >
+                            {/* Avatar Logic */}
                             <div className={cn(
-                                "h-14 w-14 rounded-[16px] border-2 overflow-hidden shrink-0 flex items-center justify-center shadow-sm",
-                                isActive ? "border-sky-300 bg-sky-300" : "border-slate-200 bg-slate-100"
+                                "h-14 w-14 shrink-0 relative flex items-center justify-center",
                             )}>
-                                {conv.partner.userImageSrc ? (
-                                    <img src={conv.partner.userImageSrc} alt={conv.partner.userName} className="h-full w-full object-cover rounded-[14px]" />
+                                {conv.isGroup ? (
+                                    <div className="flex -space-x-4 items-center h-full w-full justify-center">
+                                        {conv.participants.slice(0, 2).map((p, idx) => (
+                                            <div 
+                                                key={p.userId} 
+                                                className={cn(
+                                                    "h-10 w-10 rounded-full border-2 border-white overflow-hidden bg-stone-100 shadow-sm relative shrink-0",
+                                                    idx === 1 && "z-10"
+                                                )}
+                                            >
+                                                {p.userImageSrc ? (
+                                                    <img src={p.userImageSrc} alt={p.userName || ""} className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <div className="flex h-full w-full items-center justify-center text-[10px] font-black text-stone-400">
+                                                        {p.userName?.[0] || "?"}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                        {conv.participants.length > 2 && (
+                                            <div className="h-10 w-10 rounded-full border-2 border-white bg-stone-50 flex items-center justify-center text-[10px] font-black text-stone-500 z-20 shadow-sm shrink-0">
+                                                +{conv.participants.length - 2}
+                                            </div>
+                                        )}
+                                    </div>
                                 ) : (
-                                    <span className={cn("text-xl font-black", isActive ? "text-sky-600" : "text-slate-400")}>
-                                        {conv.partner.userName?.[0]?.toUpperCase()}
-                                    </span>
+                                    <div className={cn(
+                                        "h-14 w-14 rounded-[16px] border-2 overflow-hidden shrink-0 flex items-center justify-center shadow-sm",
+                                        isActive ? "border-[#1CB0F6] bg-white" : "border-stone-200 bg-stone-100"
+                                    )}>
+                                        {conv.partner?.userImageSrc ? (
+                                            <img src={conv.partner.userImageSrc} alt={conv.partner.userName} className="h-full w-full object-cover rounded-[14px]" />
+                                        ) : (
+                                            <span className={cn("text-xl font-black", isActive ? "text-[#1CB0F6]" : "text-stone-400")}>
+                                                {conv.partner?.userName?.[0]?.toUpperCase()}
+                                            </span>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                             
                             <div className="flex-1 min-w-0 flex flex-col pt-0.5">
                                 <div className="flex justify-between items-baseline mb-1">
-                                    <span className={cn("truncate text-[15px] font-black", isActive ? "text-white" : "text-slate-700")}>
-                                        {conv.partner.userName}
+                                    <span className={cn("truncate text-[15px] font-black", isActive ? "text-[#1CB0F6]" : "text-stone-800")}>
+                                        {displayName}
                                     </span>
-                                    <span className={cn("text-xs font-bold", isActive ? "text-sky-100" : "text-slate-400")}>
-                                        {new Date(conv.lastMessage.createdAt).toLocaleDateString()}
+                                    <span className={cn("text-xs font-bold", isActive ? "text-[#1CB0F6]/70" : "text-stone-400")}>
+                                        {mounted && conv.lastMessage ? new Date(conv.lastMessage.createdAt).toLocaleDateString() : (mounted ? "Novo" : "")}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center pr-1 mt-1">
                                     <p className={cn(
                                         "text-[13px] font-bold truncate mr-3", 
-                                        isActive ? "text-sky-100" : (conv.unreadCount > 0 && conv.lastMessage.senderId !== "me" ? "text-slate-800" : "text-slate-400")
+                                        isActive ? "text-stone-600" : (conv.unreadCount > 0 && conv.lastMessage?.senderId !== "me" ? "text-stone-900" : "text-stone-400")
                                     )}>
-                                        {conv.lastMessage.senderId === "me" && "Tu: "} {conv.lastMessage.content}
+                                        {conv.lastMessage ? (
+                                            <>
+                                                {conv.lastMessage.senderId === "me" && "Tu: "} {conv.lastMessage.content}
+                                            </>
+                                        ) : (
+                                            "Começa uma conversa!"
+                                        )}
                                     </p>
                                     {conv.unreadCount > 0 && (
                                         <div className={cn(
                                             "flex h-6 min-w-[24px] items-center justify-center rounded-xl px-2 text-[11px] font-black shadow-sm",
-                                            isActive ? "bg-white text-sky-500" : "bg-sky-500 text-white"
+                                            isActive ? "bg-[#1CB0F6] text-white" : "bg-[#1CB0F6] text-white"
                                         )}>
                                             {conv.unreadCount > 99 ? "99+" : conv.unreadCount}
                                         </div>

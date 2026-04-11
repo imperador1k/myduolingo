@@ -6,8 +6,9 @@ import { NotificationToggle } from "@/components/shared/notification-toggle";
 import { getUserProgress } from "@/db/queries";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Book, FileText, Shield, FileCheck } from "lucide-react";
+import { Book, FileText, Shield, FileCheck, UserCircle } from "lucide-react";
 import { DangerZone } from "@/components/settings/danger-zone";
+import { ReviewButtons } from "@/components/settings/review-buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -101,6 +102,11 @@ export default async function SettingsPage() {
                         <FileCheck className="h-6 w-6 text-stone-400 group-hover:text-[#1CB0F6] transition-colors shrink-0" />
                         <span className="font-bold text-stone-700">Licenças</span>
                     </Link>
+                    <Link href="/settings/creator" className="bg-white border-2 border-stone-200 border-b-6 rounded-2xl p-5 flex items-center gap-4 hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer group">
+                        <UserCircle className="h-6 w-6 text-stone-400 group-hover:text-sky-500 transition-colors shrink-0" />
+                        <span className="font-bold text-stone-700">Sobre o Criador</span>
+                    </Link>
+                    <ReviewButtons />
                 </div>
             </div>
 

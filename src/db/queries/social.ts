@@ -3,7 +3,15 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
 import { eq, desc, and, count, ilike, ne, or, asc, inArray } from "drizzle-orm";
 import { db } from "../drizzle";
-import { follows, notifications, messages, userProgress, feedActivities, highFives } from "../schema";
+import { 
+    follows, 
+    notifications, 
+    messages, 
+    userProgress, 
+    feedActivities, 
+    highFives, 
+    conversationParticipants 
+} from "../schema";
 import { createNotification } from "@/lib/notifications";
 
 export const getTopUsers = cache(async (limit: number = 10) => {
@@ -78,33 +86,9 @@ export const getNotifications = cache(async () => {
     if (!userId) return [];
     return await db.query.notifications.findMany({
         where: eq(notifications.userId, userId),
-        orderBy: (notifications, { desc }) => [desc(notifications.createdAt)],
+        orderBy: (notifications: any, { desc }: any) => [desc(notifications.createdAt)],
     });
 });
-
-export const getMessages = cache(async () => {
-    const { userId } = await auth();
-    if (!userId) return [];
-    return await db.query.messages.findMany({
-        where: eq(messages.receiverId, userId),
-        orderBy: (messages, { desc }) => [desc(messages.createdAt)],
-        with: { sender: true }
-    });
-});
-
-export const sendMessage = async (receiverId: string, content: string, type: "text" | "image" | "file" = "text", fileName?: string) => {
-    const { userId: senderId } = await auth();
-    if (!senderId) throw new Error("Unauthorized");
-
-    const [insertedMsg] = await db.insert(messages).values({ senderId, receiverId, content, type, fileName }).returning();
-    const actualSenderId = (insertedMsg as any).sender_id || insertedMsg.senderId;
-
-    const currentUser = await db.query.userProgress.findFirst({ where: eq(userProgress.userId, actualSenderId) });
-    const userName = currentUser?.userName || "Alguém";
-
-    await createNotification(receiverId, "message", `Nova mensagem de ${userName} 💬`, `/messages`);
-    revalidatePath("/messages");
-};
 
 export const getUnreadNotificationCount = cache(async () => {
     const { userId } = await auth();
@@ -116,7 +100,22 @@ export const getUnreadNotificationCount = cache(async () => {
 export const getUnreadMessageCount = cache(async () => {
     const { userId } = await auth();
     if (!userId) return 0;
-    const [result] = await db.select({ count: count() }).from(messages).where(and(eq(messages.receiverId, userId), eq(messages.read, false)));
+
+    const [result] = await db
+        .select({ count: count() })
+        .from(messages)
+        .innerJoin(
+            conversationParticipants, 
+            eq(messages.conversationId, conversationParticipants.conversationId)
+        )
+        .where(
+            and(
+                eq(conversationParticipants.userId, userId),
+                ne(messages.senderId, userId),
+                eq(messages.read, false)
+            )
+        );
+
     return result.count;
 });
 
@@ -127,95 +126,6 @@ export const searchUsers = async (query: string) => {
         where: and(ilike(userProgress.userName, `%${query}%`), ne(userProgress.userId, userId)),
         limit: 10,
     });
-};
-
-export const getConversations = cache(async () => {
-    const { userId } = await auth();
-    if (!userId) return [];
-
-    const userMessages = await db.query.messages.findMany({
-        where: or(eq(messages.senderId, userId), eq(messages.receiverId, userId)),
-        orderBy: [desc(messages.createdAt)],
-    });
-
-    const partnerIds = Array.from(new Set(userMessages.map(msg => {
-        const mSenderId = (msg as any).sender_id || msg.senderId;
-        const mReceiverId = (msg as any).receiver_id || msg.receiverId;
-        return mSenderId === userId ? mReceiverId : mSenderId;
-    })));
-
-    let partners: any[] = [];
-    if (partnerIds.length > 0) {
-        partners = await db.query.userProgress.findMany({ where: inArray(userProgress.userId, partnerIds) });
-    }
-
-    const chatList = partners.map(partner => {
-        const lastMessage = userMessages.find(m => {
-            const mSenderId = (m as any).sender_id || m.senderId;
-            const mReceiverId = (m as any).receiver_id || m.receiverId;
-            return mSenderId === partner.userId || mReceiverId === partner.userId;
-        });
-
-        const unreadCount = userMessages.filter(m => {
-            const mSenderId = (m as any).sender_id || m.senderId;
-            const mReceiverId = (m as any).receiver_id || m.receiverId;
-            return mSenderId === partner.userId && mReceiverId === userId && !m.read;
-        }).length;
-
-        let mappedSenderId = "system";
-        if (lastMessage) {
-            const lSenderId = (lastMessage as any).sender_id || lastMessage.senderId;
-            mappedSenderId = lSenderId === userId ? "me" : lSenderId;
-        }
-
-        return {
-            partner,
-            lastMessage: lastMessage ? { ...lastMessage, senderId: mappedSenderId, createdAt: lastMessage.createdAt || new Date() } : { id: -1, content: "Nenhuma mensagem", senderId: "system", read: true, createdAt: new Date() },
-            unreadCount
-        };
-    });
-
-    const following = await db.query.follows.findMany({
-        where: eq(follows.followerId, userId),
-        with: { following: true }
-    });
-
-    const existingPartnerIds = new Set(partners.map(p => p.userId));
-    for (const follow of following) {
-        if (!existingPartnerIds.has(follow.followingId) && follow.following) {
-            chatList.push({
-                partner: follow.following,
-                lastMessage: { id: -1, content: "Começa uma conversa!", senderId: "system", read: true, createdAt: new Date() },
-                unreadCount: 0,
-            });
-        }
-    }
-
-    chatList.sort((a, b) => {
-        const dateA = a.lastMessage.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;
-        const dateB = b.lastMessage.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0;
-        return dateB - dateA;
-    });
-
-    return chatList;
-});
-
-export const getMessagesForThread = cache(async (otherUserId: string) => {
-    const { userId } = await auth();
-    if (!userId) return [];
-    return await db.query.messages.findMany({
-        where: or(
-            and(eq(messages.senderId, userId), eq(messages.receiverId, otherUserId)),
-            and(eq(messages.senderId, otherUserId), eq(messages.receiverId, userId))
-        ),
-        orderBy: [asc(messages.createdAt)],
-    });
-});
-
-export const markMessagesAsRead = async (partnerId: string) => {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
-    await db.update(messages).set({ read: true }).where(and(eq(messages.receiverId, userId), eq(messages.senderId, partnerId), eq(messages.read, false)));
 };
 
 export const markNotificationAsRead = async (id: number) => {
@@ -235,12 +145,12 @@ export const getFeedActivities = cache(async () => {
         where: eq(follows.followerId, userId),
     });
     
-    const userIds = [userId, ...following.map(f => f.followingId)];
+    const userIds = [userId, ...following.map((f: any) => f.followingId)];
 
     // 2. Fetch recent activities from these users
     const recentActivities = await db.query.feedActivities.findMany({
         where: inArray(feedActivities.userId, userIds),
-        orderBy: (feedActivities, { desc }) => [desc(feedActivities.createdAt)],
+        orderBy: (feedActivities: any, { desc }: any) => [desc(feedActivities.createdAt)],
         limit: 30, // Get the latest 30 activities
         with: {
             user: true, // Join user data to show names and avatars
@@ -249,7 +159,7 @@ export const getFeedActivities = cache(async () => {
     });
 
     return recentActivities.map(activity => {
-        const hasHighFived = activity.highFives.some(hf => hf.senderId === userId);
+        const hasHighFived = activity.highFives.some((hf: any) => hf.senderId === userId);
         return {
             ...activity,
             highFiveCount: activity.highFives.length,

@@ -14,25 +14,14 @@ export const UploadButton = ({ onUploadComplete }: Props) => {
     const [uploading, setUploading] = useState(false);
     const { getToken } = useAuth();
 
-    // Dynamically create the Supabase client to inject the Clerk JWT securely
+    // For Storage, we'll use the standard anon client since the user has anon policies set up.
+    // This avoids the "alg" Header error caused by Clerk's RS256 tokens not being configured in Supabase.
     const supabase = useMemo(() => {
         return createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            {
-                global: {
-                    fetch: async (url, options = {}) => {
-                        const clerkToken = await getToken({ template: 'supabase' });
-                        const headers = new Headers(options?.headers);
-                        if (clerkToken) {
-                            headers.set('Authorization', `Bearer ${clerkToken}`);
-                        }
-                        return fetch(url, { ...options, headers });
-                    },
-                },
-            }
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         );
-    }, [getToken]);
+    }, []);
 
     const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.[0]) return;
@@ -81,9 +70,9 @@ export const UploadButton = ({ onUploadComplete }: Props) => {
             />
             <label htmlFor="file-upload">
                 <div
-                    className="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 rounded-[14px] h-10 w-10 sm:h-[52px] sm:w-[52px] flex items-center justify-center transition-all border-2 border-slate-200 border-b-4 hover:border-b-4 active:border-b-0 active:translate-y-1 shrink-0 cursor-pointer"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl transition-all hover:bg-stone-50 active:scale-95 shrink-0 cursor-pointer text-stone-400 hover:text-[#1CB0F6]"
                 >
-                    {uploading ? <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-slate-500" /> : <Paperclip className="h-5 w-5 sm:h-6 sm:w-6 text-slate-500" />}
+                    {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Paperclip className="h-6 w-6" />}
                 </div>
             </label>
         </div>

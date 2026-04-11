@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Flame, UserPlus, MessageCircle, Bell } from "lucide-react";
@@ -22,7 +23,12 @@ type Props = {
 };
 
 export const NotificationList = ({ notifications }: Props) => {
+    const [mounted, setMounted] = useState(false);
     const [playSuccess] = useSound("/sounds/success.mp3", { volume: 0.3 });
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const getIconBlock = (type: string) => {
         switch (type) {
@@ -104,12 +110,12 @@ export const NotificationList = ({ notifications }: Props) => {
                                 {n.message}
                             </p>
                             <p className="text-sm rounded-lg font-bold text-stone-400 uppercase tracking-widest mt-2">
-                                {new Date(n.createdAt!).toLocaleDateString("pt-PT", {
+                                {mounted && n.createdAt ? new Date(n.createdAt).toLocaleDateString("pt-PT", {
                                     day: 'numeric',
                                     month: 'short',
                                     hour: '2-digit',
                                     minute: '2-digit'
-                                })}
+                                }) : (mounted ? "" : "")}
                             </p>
                         </div>
                     </Wrapper>

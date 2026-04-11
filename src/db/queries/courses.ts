@@ -1,10 +1,22 @@
 import { cache } from "react";
-import { eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { db } from "../drizzle";
-import { courses } from "../schema";
+import { courses, userProgress } from "../schema";
 
 export const getCourses = cache(async () => {
-    const data = await db.query.courses.findMany();
+    const data = await db
+        .select({
+            id: courses.id,
+            title: courses.title,
+            imageSrc: courses.imageSrc,
+            languageCode: courses.languageCode,
+            language: courses.language,
+            studentCount: count(userProgress.id),
+        })
+        .from(courses)
+        .leftJoin(userProgress, eq(courses.id, userProgress.activeCourseId))
+        .groupBy(courses.id);
+
     return data;
 });
 

@@ -14,11 +14,22 @@ type Course = {
     title: string;
     imageSrc: string;
     language: string;
+    studentCount: number;
 };
 
 type Props = {
     courses: Course[];
     activeCourseId?: number;
+};
+
+const formatStudentCount = (count: number) => {
+    if (count >= 1000000) {
+        return `${(count / 1000000).toFixed(1)}M`;
+    }
+    if (count >= 1000) {
+        return `${(count / 1000).toFixed(1)}k`;
+    }
+    return count.toString();
 };
 
 // Language data with flags, colors, and native greetings
@@ -161,7 +172,7 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
                                                 {course.title}
                                             </h3>
                                             <div className="bg-sky-50 text-sky-500 border-2 border-sky-100 font-bold px-4 py-1.5 rounded-xl flex items-center gap-2 text-[13px] uppercase tracking-widest">
-                                                <span>👨‍🎓</span> 1.2M Alunos
+                                                <span>👨‍🎓</span> {formatStudentCount(course.studentCount)} Alunos ativos
                                             </div>
                                         </div>
 

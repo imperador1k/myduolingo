@@ -95,8 +95,8 @@ export default function PrivacyPage() {
                 </div>
 
                 <div className="mt-12 flex justify-center">
-                    <Link href="/settings/about" className="bg-stone-200 text-stone-500 border-b-4 border-stone-300 active:translate-y-1 active:border-b-0 hover:bg-stone-300 rounded-2xl px-12 py-5 font-black uppercase tracking-widest text-center block w-full md:w-auto transition-all">
-                        VOLTAR PARA SOBRE
+                    <Link href="/settings" className="bg-stone-200 text-stone-500 border-b-4 border-stone-300 active:translate-y-1 active:border-b-0 hover:bg-stone-300 rounded-2xl px-12 py-5 font-black uppercase tracking-widest text-center block w-full md:w-auto transition-all">
+                        VOLTAR
                     </Link>
                 </div>
             </div>
