@@ -22,12 +22,11 @@ export const getConversations = async () => {
     if (!userId) throw new Error("Unauthorized");
 
     // 1. Get IDs of conversations the user belongs to
-    const userConvParticipations = await db.query.conversationParticipants.findMany({
-        where: eq(conversationParticipants.userId, userId),
-        columns: {
-            conversationId: true,
-        },
-    });
+    const userConvParticipations = await db.select({
+        conversationId: conversationParticipants.conversationId,
+    })
+    .from(conversationParticipants)
+    .where(eq(conversationParticipants.userId, userId));
 
     const conversationIds = userConvParticipations.map((p: any) => p.conversationId);
     if (conversationIds.length === 0) return [];
@@ -46,29 +45,36 @@ export const getConversations = async () => {
                 limit: 1,
             }
         },
-        orderBy: [desc(conversations.createdAt)], // Temporary, will refine below
+        orderBy: [desc(conversations.createdAt)],
         limit: 50,
     });
 
-    // 3. Format data and calculate unread counts (could be optimized further)
-    const formatted = await Promise.all(data.map(async (conv: any) => {
+    // 3. Batch fetch unread counts to avoid N+1 queries
+    const unreadCountsRaw = await db.select({
+        conversationId: messages.conversationId,
+        count: sql<number>`count(*)`
+    })
+    .from(messages)
+    .where(
+        and(
+            inArray(messages.conversationId, conversationIds),
+            ne(messages.senderId, userId),
+            eq(messages.read, false)
+        )
+    )
+    .groupBy(messages.conversationId);
+
+    // Map unread counts for easy lookup
+    const unreadMap = new Map(unreadCountsRaw.map(row => [row.conversationId, Number(row.count)]));
+
+    // 4. Format data
+    const formatted = data.map((conv: any) => {
         const lastMsg = conv.messages[0];
         
         // Find the "other" participant (for 1-to-1 DMs)
         const partner = conv.isGroup 
             ? null 
             : conv.participants.find((p: any) => p.userId !== userId)?.user;
-
-        // Calculate unread count for this user
-        const unreadResponse = await db.select({ count: sql<number>`count(*)` })
-            .from(messages)
-            .where(
-                and(
-                    eq(messages.conversationId, conv.id),
-                    ne(messages.senderId, userId),
-                    eq(messages.read, false)
-                )
-            );
 
         return {
             id: conv.id,
@@ -91,10 +97,10 @@ export const getConversations = async () => {
                 senderId: lastMsg.senderId,
                 read: lastMsg.read,
             } : null,
-            unreadCount: Number(unreadResponse[0]?.count || 0),
+            unreadCount: unreadMap.get(conv.id) || 0,
             updatedAt: lastMsg?.createdAt || conv.createdAt,
         };
-    }));
+    });
 
     // Final sort by most recent activity
     return (formatted as any[]).sort((a: any, b: any) => b.updatedAt.getTime() - a.updatedAt.getTime());

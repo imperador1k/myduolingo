@@ -20,7 +20,7 @@ export const createNotification = async (
     // Action 1: Insert into the database
     try {
         if (type === "message" && link) {
-            // Smart Grouping Logic ("WhatsApp" Effect)
+            // Smart Batching Logic: Find existing unread notification for this conversation (using link)
             const existingUnread = await db.query.notifications.findFirst({
                 where: and(
                     eq(notifications.userId, userId),
@@ -34,12 +34,12 @@ export const createNotification = async (
                 // Merge/Bump existing notification
                 await db.update(notifications)
                     .set({
-                        message: "Tens novas mensagens! 💬",
+                        message, 
                         createdAt: new Date(), // bump to top
                     })
                     .where(eq(notifications.id, existingUnread.id));
             } else {
-                // Insert standard notification
+                // Insert new notification
                 await db.insert(notifications).values({
                     userId,
                     type,
@@ -59,9 +59,7 @@ export const createNotification = async (
             });
         }
     } catch (dbError) {
-        console.error("Failed to insert notification into DB:", dbError);
-        // If DB insert fails, we probably shouldn't send the push to avoid desync, or we can choose to proceed.
-        // Let's proceed to try sending the push anyway.
+        console.error("Failed to handle notification in DB:", dbError);
     }
 
     // Action 2: Trigger OneSignal Push Notification

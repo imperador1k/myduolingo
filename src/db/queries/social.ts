@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
-import { eq, desc, and, count, ilike, ne, or, asc, inArray } from "drizzle-orm";
+import { eq, desc, and, count, ilike, ne, or, asc, inArray, sql } from "drizzle-orm";
 import { db } from "../drizzle";
 import { 
     follows, 
@@ -102,7 +102,7 @@ export const getUnreadMessageCount = cache(async () => {
     if (!userId) return 0;
 
     const [result] = await db
-        .select({ count: count() })
+        .select({ count: sql<number>`count(*)` })
         .from(messages)
         .innerJoin(
             conversationParticipants, 
@@ -116,7 +116,7 @@ export const getUnreadMessageCount = cache(async () => {
             )
         );
 
-    return result.count;
+    return Number(result?.count || 0);
 });
 
 export const searchUsers = async (query: string) => {

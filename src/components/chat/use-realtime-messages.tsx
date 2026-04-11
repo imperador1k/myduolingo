@@ -1,48 +1,41 @@
-"use client";
-
-import { useEffect, useState, useRef, useMemo } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useUISounds } from "@/hooks/use-ui-sounds";
+import { supabase, setSupabaseAuth } from "@/lib/supabaseClient";
 
 export const useRealtimeMessages = (initialMessages: any[], userId: string, conversationId: string) => {
     const [messages, setMessages] = useState(initialMessages);
     const [isPartnerOnline, setIsPartnerOnline] = useState(false);
     const [isPartnerTyping, setIsPartnerTyping] = useState(false);
-    const presenceChannelRef = useRef<any>(null);
+    const channelRef = useRef<any>(null);
     const { playPop } = useUISounds();
     const { getToken } = useAuth();
 
-    // Dynamically create the Supabase client to inject the Clerk JWT securely
-    const supabase = useMemo(() => {
-        return createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            {
-                global: {
-                    fetch: async (url, options = {}) => {
-                        const clerkToken = await getToken({ template: 'supabase' });
-                        const headers = new Headers(options?.headers);
-                        if (clerkToken) {
-                            headers.set('Authorization', `Bearer ${clerkToken}`);
-                        }
-                        return fetch(url, { ...options, headers });
-                    },
-                },
-            }
-        );
-    }, [getToken]);
-
+    // 🔄 EFFECT 1: Sync initial messages
     useEffect(() => {
         setMessages(initialMessages);
     }, [initialMessages]);
 
+    // 🔄 EFFECT 2: Main Subscription Lifecycle
     useEffect(() => {
-        if (!conversationId) return;
+        if (!conversationId || !userId) return;
 
-        const channel = supabase
-            .channel(`realtime:messages:${conversationId}`)
-            .on(
+        let activeChannel: any;
+
+        const initChat = async () => {
+            // 1. Authenticate the singleton client for this session
+            const token = await getToken({ template: 'supabase' });
+            if (token) setSupabaseAuth(token);
+
+            // 2. Setup the single channel
+            const channel = supabase.channel(`chat_room:${conversationId}`, {
+                config: {
+                    presence: { key: userId },
+                },
+            });
+
+            // 3. postgres_changes: New Messages
+            channel.on(
                 'postgres_changes',
                 {
                     event: 'INSERT',
@@ -53,17 +46,9 @@ export const useRealtimeMessages = (initialMessages: any[], userId: string, conv
                 (payload: any) => {
                     const newMsg = payload.new;
                     setMessages((prev) => {
-                        // Prevent duplicates
                         if (prev.some((m) => m.id === newMsg.id)) return prev;
-
-                        // Play sound if received from someone else
-                        if (newMsg.sender_id !== userId) {
-                            playPop();
-                        }
-
-                        // Clear temp optimistic messages when real ones arrive
+                        if (newMsg.sender_id !== userId) playPop();
                         const filtered = prev.filter(m => !m.id?.toString().startsWith('temp-'));
-
                         return [...filtered, {
                             ...newMsg,
                             senderId: newMsg.sender_id,
@@ -74,8 +59,10 @@ export const useRealtimeMessages = (initialMessages: any[], userId: string, conv
                         }];
                     });
                 }
-            )
-            .on(
+            );
+
+            // 4. postgres_changes: Read receipts
+            channel.on(
                 'postgres_changes',
                 {
                     event: 'UPDATE',
@@ -91,8 +78,10 @@ export const useRealtimeMessages = (initialMessages: any[], userId: string, conv
                             : msg
                     ));
                 }
-            )
-            .on(
+            );
+
+            // 5. postgres_changes: Reactions (Global for now, filters can be added)
+            channel.on(
                 'postgres_changes',
                 {
                     event: '*',
@@ -102,12 +91,10 @@ export const useRealtimeMessages = (initialMessages: any[], userId: string, conv
                 (payload: any) => {
                     const reaction = payload.new || payload.old;
                     if (!reaction) return;
-
                     setMessages((prev) => prev.map((msg) => {
                         if (msg.id === reaction.message_id) {
                             const currentReactions = msg.reactions || [];
                             if (payload.eventType === 'INSERT') {
-                                // Add reaction if not already present
                                 if (currentReactions.some((r: any) => r.id === reaction.id)) return msg;
                                 return {
                                     ...msg,
@@ -129,62 +116,65 @@ export const useRealtimeMessages = (initialMessages: any[], userId: string, conv
                         return msg;
                     }));
                 }
-            )
-            .subscribe();
+            );
 
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [userId, conversationId]);
-
-    // Presence Effect (Using conversationId as the room)
-    useEffect(() => {
-        if (!userId || !conversationId) return;
-
-        const roomId = `presence_${conversationId}`;
-        const channel = supabase.channel(roomId, {
-            config: {
-                presence: {
-                    key: userId,
-                },
-            },
-        });
-
-        channel
-            .on('presence', { event: 'sync' }, () => {
-                const newState = channel.presenceState();
+            // 6. Presence: Online Status & Typing
+            channel.on('presence', { event: 'sync' }, () => {
+                const state = channel.presenceState();
+                const others = Object.keys(state).filter(k => k !== userId);
                 
-                // For groups, we might want to check all users. 
-                // For now, let's keep it simple: if there's > 1 user, someone else is here.
-                const otherUsers = Object.keys(newState).filter(id => id !== userId);
-                setIsPartnerOnline(otherUsers.length > 0);
-
-                const someoneIsTyping = otherUsers.some(uid => {
-                    const presence = newState[uid] as any;
-                    return presence && presence[0] && presence[0].isTyping;
+                setIsPartnerOnline(others.length > 0);
+                
+                const someoneTyping = others.some(uid => {
+                    const userState = state[uid] as any;
+                    return userState && userState[0]?.isTyping;
                 });
-                setIsPartnerTyping(someoneIsTyping);
-            })
-            .subscribe(async (status) => {
+                setIsPartnerTyping(someoneTyping);
+            });
+
+            // 7. Subscribe and Track
+            channel.subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
+                    console.log(`[Realtime] 🚀 Conectado ao chat: ${conversationId}`);
                     await channel.track({ online_at: new Date().toISOString(), isTyping: false });
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.error(`[Realtime] ❌ Erro de subscrição no canal ${conversationId}`);
                 }
             });
 
-        presenceChannelRef.current = channel;
-
-        return () => {
-            channel.unsubscribe();
+            activeChannel = channel;
+            channelRef.current = channel;
         };
-    }, [userId, conversationId]);
+
+        initChat();
+
+        // Cleanup
+        return () => {
+            if (activeChannel) {
+                console.log(`[Realtime] 🔌 Desconectando do chat: ${conversationId}`);
+                supabase.removeChannel(activeChannel);
+            }
+        };
+    }, [conversationId, userId, getToken]);
+
+    // 🔄 EFFECT 3: Proactive Token Refresh (Stays ahead of Clerk's 60s expiry)
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            const token = await getToken({ template: 'supabase' });
+            if (token) {
+                setSupabaseAuth(token);
+            }
+        }, 50000); // 50s refresh
+        return () => clearInterval(interval);
+    }, [getToken]);
 
     const addOptimisticMessage = (msg: any) => {
         setMessages((prev) => [...prev, msg]);
     };
 
     const trackTyping = (isTyping: boolean) => {
-        if (presenceChannelRef.current) {
-            presenceChannelRef.current.track({ isTyping, online_at: new Date().toISOString() });
+        if (channelRef.current) {
+            channelRef.current.track({ isTyping, online_at: new Date().toISOString() });
         }
     };
 

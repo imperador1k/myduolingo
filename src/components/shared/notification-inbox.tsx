@@ -5,7 +5,7 @@ import { NotificationList } from "@/components/shared/notification-list";
 import { markNotificationsAsRead, deleteAllNotifications } from "@/actions/user-actions";
 import { NotificationSettingsModal } from "@/components/modals/notification-settings-modal";
 import { Button } from "@/components/ui/button";
-import { CheckCheck, Trash, Settings, Trophy, UserPlus } from "lucide-react";
+import { CheckCheck, Trash, Settings, Trophy, UserPlus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { TedyLottie } from "@/components/ui/lottie-animation";
@@ -109,7 +109,7 @@ export const NotificationInbox = ({ initialNotifications, initialEnabled }: Prop
                         )}
                         title="Marcar lidas"
                     >
-                        <CheckCheck className="h-5 w-5 mr-0 sm:mr-2" />
+                        {isPending ? <Loader2 className="h-5 w-5 animate-spin mr-0 sm:mr-2" /> : <CheckCheck className="h-5 w-5 mr-0 sm:mr-2" />}
                         <span className="hidden sm:inline">Lidas</span>
                     </Button>
                     <Button
