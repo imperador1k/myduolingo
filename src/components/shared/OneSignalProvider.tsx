@@ -29,7 +29,7 @@ export const OneSignalProvider = () => {
         };
 
         // Ensure we're in the browser environment before initializing
-        if (typeof window !== "undefined") {
+        if (typeof window !== "undefined" && !window.location.hostname.includes("localhost")) {
             initOneSignal();
         }
     }, []);
@@ -47,7 +47,9 @@ export const OneSignalProvider = () => {
              }
         };
 
-        loginOneSignal();
+        if (typeof window !== "undefined" && !window.location.hostname.includes("localhost")) {
+            loginOneSignal();
+        }
     }, [userId]);
 
     return null;

@@ -7,6 +7,7 @@ import { onSearchUsers } from "@/actions/user-actions";
 import { Search, Loader2, Users, UserPlus } from "lucide-react";
 import { CreateGroupModal } from "@/components/modals/create-group-modal";
 import { NewChatModal } from "@/components/modals/new-chat-modal";
+import { useGlobalPresence } from "@/components/providers/global-presence-provider";
 
 type Conversation = {
     id: string;
@@ -42,6 +43,7 @@ export const ChatSidebar = ({ conversations }: Props) => {
     const router = useRouter();
     const pathname = usePathname();
     const activeConversationId = searchParams.get("conversationId");
+    const { isPartnerOnline } = useGlobalPresence();
 
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<any[]>([]);
@@ -235,6 +237,9 @@ export const ChatSidebar = ({ conversations }: Props) => {
                                             </span>
                                         )}
                                     </div>
+                                )}
+                                {!conv.isGroup && conv.partner && isPartnerOnline(conv.partner.userId) && (
+                                    <span className="w-3.5 h-3.5 bg-[#58CC02] rounded-full border-2 border-white absolute -bottom-0.5 -right-0.5 z-10 shadow-sm"></span>
                                 )}
                             </div>
                             

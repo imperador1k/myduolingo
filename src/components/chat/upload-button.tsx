@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Paperclip, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@clerk/nextjs";
 
 type Props = {
@@ -13,15 +13,6 @@ type Props = {
 export const UploadButton = ({ onUploadComplete }: Props) => {
     const [uploading, setUploading] = useState(false);
     const { getToken } = useAuth();
-
-    // For Storage, we'll use the standard anon client since the user has anon policies set up.
-    // This avoids the "alg" Header error caused by Clerk's RS256 tokens not being configured in Supabase.
-    const supabase = useMemo(() => {
-        return createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
-    }, []);
 
     const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.[0]) return;

@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRealtimeMessages } from "./use-realtime-messages";
+import { useGlobalPresence } from "@/components/providers/global-presence-provider";
 import { toast } from "sonner";
 import { EmptyLottie } from "@/app/(main)/messages/empty-lottie";
 import Link from "next/link";
@@ -49,7 +50,10 @@ type Props = {
 };
 
 export const ChatWindow = ({ userId, conversationId, partner, participants, isGroup, groupName, initialMessages }: Props) => {
-    const { messages, addOptimisticMessage, isPartnerOnline, isPartnerTyping, trackTyping } = useRealtimeMessages(initialMessages, userId, conversationId);
+    const { messages, addOptimisticMessage, isPartnerTyping, trackTyping } = useRealtimeMessages(initialMessages, userId, conversationId);
+    const { isPartnerOnline: checkIsPartnerOnline } = useGlobalPresence();
+    const isPartnerOnline = partner ? checkIsPartnerOnline(partner.userId) : false;
+    
     const bottomRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
@@ -79,12 +83,18 @@ export const ChatWindow = ({ userId, conversationId, partner, participants, isGr
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isTypingRef = useRef(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (trackTyping) {
-            trackTyping(true);
+            if (!isTypingRef.current) {
+                isTypingRef.current = true;
+                trackTyping(true);
+            }
+            
             if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
             typingTimeoutRef.current = setTimeout(() => {
+                isTypingRef.current = false;
                 trackTyping(false);
             }, 2000);
         }

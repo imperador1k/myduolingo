@@ -9,6 +9,7 @@ import { CustomToastProvider } from "@/components/ui/custom-toast";
 import { FloatingMarco } from "@/components/shared/floating-marco";
 import { TTSUnlocker } from "@/components/shared/tts-unlocker";
 import { ReviewModal } from "@/components/modals/review-modal";
+import { GlobalPresenceProvider } from "@/components/providers/global-presence-provider";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"] });
@@ -40,7 +41,6 @@ export default function RootLayout({
             <Toaster richColors />
             <OneSignalProvider />
             
-            {/* Always render children to preserve client-side state during server refreshes */}
             <ClerkLoading>
               <div className="fixed inset-0 z-[999] bg-white flex items-center justify-center">
                 <LoadingScreen />
@@ -48,13 +48,14 @@ export default function RootLayout({
             </ClerkLoading>
 
             <ClerkLoaded>
-              <TTSUnlocker />
-              <ReviewModal />
+              <GlobalPresenceProvider>
+                  <TTSUnlocker />
+                  <ReviewModal />
+                  {children}
+                  <FloatingMarco />
+              </GlobalPresenceProvider>
             </ClerkLoaded>
 
-            {children}
-            <FloatingMarco />
-            
           </CustomToastProvider>
         </body>
       </html>

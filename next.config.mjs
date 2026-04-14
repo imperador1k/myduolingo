@@ -50,7 +50,7 @@ const nextConfig = {
                     },
                     {
                         key: "Content-Security-Policy",
-                        value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; img-src 'self' blob: data: https://*.clerk.com https://*.clerk.dev https://*.clerk.accounts.dev https://bjoddfyvixlyrhpyxylr.supabase.co https://res.cloudinary.com https://*.giphy.com; font-src 'self' data:; connect-src 'self' https://*.clerk.com https://*.clerk.dev https://*.clerk.accounts.dev https://bjoddfyvixlyrhpyxylr.supabase.co wss://bjoddfyvixlyrhpyxylr.supabase.co https://*.sentry.io https://api.giphy.com; frame-src 'self' https://challenges.cloudflare.com;",
+                        value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://cdn.onesignal.com https://api.onesignal.com; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; img-src 'self' blob: data: https://*.clerk.com https://*.clerk.dev https://*.clerk.accounts.dev https://bjoddfyvixlyrhpyxylr.supabase.co https://res.cloudinary.com https://*.giphy.com https://grainy-gradients.vercel.app; font-src 'self' data:; connect-src 'self' https://*.clerk.com https://*.clerk.dev https://*.clerk.accounts.dev https://bjoddfyvixlyrhpyxylr.supabase.co wss://bjoddfyvixlyrhpyxylr.supabase.co https://*.sentry.io https://api.giphy.com https://onesignal.com https://api.onesignal.com https://cdn.onesignal.com; frame-src 'self' https://challenges.cloudflare.com;",
                     },
                 ],
             },
