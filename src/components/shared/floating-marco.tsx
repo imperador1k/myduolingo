@@ -18,6 +18,8 @@ type Message = {
 
 const SLASH_COMMANDS = [
     { cmd: "/suporte", icon: "🛠️", desc: "Reportar um erro", color: "blue" },
+    { cmd: "/docs", icon: "📖", desc: "Aprender sobre a app", color: "indigo" },
+    { cmd: "/reviews", icon: "⭐", desc: "Deixar uma avaliação", color: "pink" },
     { cmd: "/cultura", icon: "🌍", desc: "Curiosidade cultural", color: "purple" },
     { cmd: "/dica", icon: "🧠", desc: "Dica de estudo rápida", color: "yellow" },
     { cmd: "/traduzir", icon: "🗣️", desc: "Traduzir...", color: "green" },
@@ -27,11 +29,31 @@ export const FloatingMarco = () => {
     const pathname = usePathname();
     const { userId, isLoaded } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
-    const [input, setInput] = useState("");
+    const [input, setInput] = useState(""); // Used to trigger slash menu filter mode
+    const [isEmpty, setIsEmpty] = useState(true);
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
+    const editorRef = useRef<HTMLDivElement>(null);
+
+    // Ensure Placeholder CSS is injected manually if needed
+    useEffect(() => {
+        const style = document.createElement("style");
+        style.innerHTML = `
+            .marco-rich-input:empty::before {
+                content: attr(data-placeholder);
+                color: #a8a29e;
+                pointer-events: none;
+                cursor: text;
+            }
+            .marco-rich-input span[contenteditable="false"] {
+                display: inline-flex;
+                align-items: center;
+            }
+        `;
+        document.head.appendChild(style);
+        return () => { document.head.removeChild(style); };
+    }, []);
 
     // Auto-scroll to bottom of chat
     useEffect(() => {
@@ -72,11 +94,34 @@ export const FloatingMarco = () => {
         return null;
     }
 
+    const extractText = () => {
+        if (!editorRef.current) return "";
+        let text = "";
+        editorRef.current.childNodes.forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                text += node.textContent;
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                const el = node as HTMLElement;
+                if (el.dataset.cmd) {
+                    text += el.dataset.cmd;
+                } else {
+                    text += el.innerText;
+                }
+            }
+        });
+        return text.trim();
+    };
+
     const handleSend = async (overrideInput?: string) => {
-        const textToSend = overrideInput || input;
+        const textToSend = overrideInput || extractText();
         if (!textToSend.trim() || isLoading) return;
 
+        if (editorRef.current) {
+            editorRef.current.innerHTML = "";
+        }
+        setIsEmpty(true);
         setInput("");
+
         
         const newMessage: Message = { id: Date.now().toString(), role: "user", content: textToSend };
         setMessages((prev) => [...prev, newMessage]);
@@ -95,30 +140,109 @@ export const FloatingMarco = () => {
         }
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleSend();
         }
     };
 
+    const handleInput = () => {
+        if (!editorRef.current) return;
+        setIsEmpty(editorRef.current.textContent?.trim() === "" && editorRef.current.children.length === 0);
+        
+        // Check for Slash Menu Invocation
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            if (range.startContainer.nodeType === Node.TEXT_NODE) {
+                const textNodesText = range.startContainer.textContent || "";
+                const beforeCursor = textNodesText.slice(0, range.startOffset);
+                const words = beforeCursor.split(/\s/);
+                const currentWord = words[words.length - 1];
+                
+                if (currentWord.startsWith("/")) {
+                    setInput(currentWord);
+                } else {
+                    setInput("");
+                }
+            } else {
+                setInput("");
+            }
+        }
+    };
+
     const handleCommandClick = (cmd: typeof SLASH_COMMANDS[0]) => {
-        setInput(cmd.cmd + " ");
-        inputRef.current?.focus();
+        if (!editorRef.current) return;
+        editorRef.current.focus();
+        
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            
+            if (range.startContainer.nodeType === Node.TEXT_NODE) {
+                const textContent = range.startContainer.textContent || "";
+                const beforeCursor = textContent.slice(0, range.startOffset);
+                const lastSlashIndex = beforeCursor.lastIndexOf("/");
+                
+                if (lastSlashIndex !== -1) {
+                    range.setStart(range.startContainer, lastSlashIndex);
+                    range.deleteContents();
+                }
+            }
+            
+            const chip = document.createElement("span");
+            chip.contentEditable = "false";
+            chip.className = "bg-[#58CC02] text-white px-2 py-0.5 mx-1 rounded-md font-extrabold text-sm select-none inline-flex items-center shadow-sm cursor-default";
+            chip.dataset.cmd = cmd.cmd;
+            chip.innerHTML = `<span class="mr-1">${cmd.icon}</span>${cmd.cmd}`;
+            
+            range.insertNode(chip);
+            
+            const space = document.createTextNode("\u00A0");
+            range.setStartAfter(chip);
+            range.insertNode(space);
+            
+            range.setStartAfter(space);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        } else {
+             const chip = document.createElement("span");
+             chip.contentEditable = "false";
+             chip.className = "bg-[#58CC02] text-white px-2 py-0.5 mx-1 rounded-md font-extrabold text-sm select-none inline-flex items-center shadow-sm cursor-default";
+             chip.dataset.cmd = cmd.cmd;
+             chip.innerHTML = `<span class="mr-1">${cmd.icon}</span>${cmd.cmd}`;
+             editorRef.current.appendChild(chip);
+             editorRef.current.appendChild(document.createTextNode("\u00A0"));
+             
+             const newRange = document.createRange();
+             newRange.selectNodeContents(editorRef.current);
+             newRange.collapse(false);
+             const sel = window.getSelection();
+             sel?.removeAllRanges();
+             sel?.addRange(newRange);
+        }
+        
+        setInput("");
+        setIsEmpty(false);
     };
 
     const renderUserMessage = (text: string) => {
-        const foundCmd = SLASH_COMMANDS.find(c => text.startsWith(c.cmd));
-        if (!foundCmd) return text;
-        const rest = text.slice(foundCmd.cmd.length).trim();
-        return (
-            <>
-                <span className="inline-block bg-white/20 text-white font-bold px-2 py-0.5 rounded-md mr-1 shadow-sm">
-                    {foundCmd.cmd}
-                </span>
-                {rest}
-            </>
-        );
+        // Find commands inside the string and wrap them in pill components matching our token style
+        return text.split(/(\/\w+)/g).map((part, index) => {
+            if (part.startsWith("/")) {
+                const cmd = SLASH_COMMANDS.find(c => c.cmd === part);
+                if (cmd) {
+                    return (
+                        <span key={index} className="inline-flex items-center bg-[#46a302] text-white font-extrabold px-2 py-0.5 mx-0.5 rounded-md shadow-sm border border-black/10">
+                            <span className="mr-1 text-xs">{cmd.icon}</span>{cmd.cmd}
+                        </span>
+                    );
+                }
+            }
+            return <span key={index}>{part}</span>;
+        });
     };
 
     return (
@@ -168,7 +292,7 @@ export const FloatingMarco = () => {
                             />
                         </div>
                         <div className="text-white font-black tracking-wide text-lg">
-                            MARCO <span className="text-xs opacity-80">(BETA)</span>
+                            MARCO <span className="text-xs opacity-80"></span>
                         </div>
                     </div>
                     <button
@@ -241,7 +365,58 @@ export const FloatingMarco = () => {
                                                             </Link>
                                                         );
                                                     }
+                                                    if (props.href === "/docs" && props.children?.toString() === "LER DOCUMENTAÇÃO") {
+                                                        return (
+                                                            <Link 
+                                                                href="/docs" 
+                                                                className="block mt-4 bg-[#58CC02] text-white font-black text-center py-3 px-6 rounded-2xl border-2 border-[#46A302] border-b-[6px] active:translate-y-1 active:border-b-0 transition-all no-underline w-full shadow-sm"
+                                                            >
+                                                                📖 ABRIR DOCUMENTAÇÃO
+                                                            </Link>
+                                                        );
+                                                    }
+                                                    if (props.href === "/reviews" && props.children?.toString() === "DEIXAR AVALIAÇÃO") {
+                                                        return (
+                                                            <Link 
+                                                                href="/reviews" 
+                                                                className="block mt-4 bg-[#FF9600] text-white font-black text-center py-3 px-6 rounded-2xl border-2 border-[#CC7A00] border-b-[6px] active:translate-y-1 active:border-b-0 transition-all no-underline w-full shadow-sm"
+                                                            >
+                                                                ⭐ DEIXAR AVALIAÇÃO
+                                                            </Link>
+                                                        );
+                                                    }
                                                     return <a {...props} className="text-[#1CB0F6] hover:underline font-bold" />;
+                                                },
+                                                code: ({ node, className, children, ...props }) => {
+                                                    const content = children?.toString() || "";
+                                                    const isInline = !className; // In react-markdown v9+, inline code usually has no className
+                                                    if (isInline && content.startsWith("/")) {
+                                                        return (
+                                                            <button 
+                                                                onClick={() => {
+                                                                    const cmdObj = SLASH_COMMANDS.find(c => c.cmd === content);
+                                                                    if (cmdObj) {
+                                                                        handleCommandClick(cmdObj);
+                                                                    } else {
+                                                                        // Fallback if not in predefined list
+                                                                        if (editorRef.current) {
+                                                                            editorRef.current.focus();
+                                                                            const selection = window.getSelection();
+                                                                            const range = selection?.getRangeAt(0);
+                                                                            if (range) {
+                                                                                range.insertNode(document.createTextNode(content + " "));
+                                                                                range.collapse(false);
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }} 
+                                                                className="bg-[#58CC02]/10 text-[#58CC02] font-extrabold px-1.5 py-0.5 mx-0.5 rounded-md border border-[#58CC02]/20 hover:bg-[#58CC02]/20 cursor-pointer transition-colors shadow-sm inline-flex items-center align-baseline"
+                                                            >
+                                                                {content}
+                                                            </button>
+                                                        );
+                                                    }
+                                                    return <code className={cn("bg-stone-200 text-stone-700 font-mono px-1.5 py-0.5 rounded-md text-sm border border-stone-300", className)} {...props}>{children}</code>;
                                                 }
                                             }}
                                         >
@@ -287,22 +462,22 @@ export const FloatingMarco = () => {
                     
                     <div className="flex items-center gap-3 relative">
                         <div className="flex-1 relative">
-                            <input
-                            ref={inputRef}
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Escreve a tua dúvida..."
-                            className="w-full bg-stone-100 border-2 border-stone-200 border-b-4 rounded-2xl px-4 py-3 text-stone-700 font-bold focus:outline-none focus:border-[#58CC02] focus:ring-4 focus:ring-[#58CC02]/20 focus:bg-white transition-all pr-12"
-                        />
-                    </div>
+                            <div
+                                ref={editorRef}
+                                contentEditable
+                                suppressContentEditableWarning
+                                onInput={handleInput}
+                                onKeyDown={handleKeyDown}
+                                data-placeholder="Escreve a tua dúvida..."
+                                className="marco-rich-input w-full min-h-[48px] max-h-[120px] overflow-y-auto bg-stone-100 border-2 border-stone-200 border-b-4 rounded-2xl px-4 py-3 text-stone-700 font-bold focus:outline-none focus:border-[#58CC02] focus:ring-4 focus:ring-[#58CC02]/20 focus:bg-white transition-all pr-12 cursor-text"
+                            ></div>
+                        </div>
                     <button
                         onClick={() => handleSend()}
-                        disabled={!input.trim() || isLoading}
+                        disabled={isEmpty || isLoading}
                         className={cn(
                             "w-12 h-12 rounded-full flex items-center justify-center transition-all outline-none shrink-0",
-                            input.trim() && !isLoading
+                            !isEmpty && !isLoading
                                 ? "bg-[#58CC02] border-2 border-[#46A302] border-b-4 text-white active:translate-y-1 active:border-b-0 shadow-sm"
                                 : "bg-stone-200 border-2 border-stone-300 border-b-4 text-stone-400 cursor-not-allowed"
                         )}
