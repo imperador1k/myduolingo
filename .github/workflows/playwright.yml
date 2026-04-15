@@ -19,6 +19,11 @@ jobs:
       run: npx playwright install --with-deps
     - name: Run Playwright tests
       run: npx playwright test
+      env:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+        CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+        ADMIN_ALLOWED_USER_IDS: ${{ secrets.ADMIN_ALLOWED_USER_IDS }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
