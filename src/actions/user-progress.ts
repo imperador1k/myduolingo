@@ -1,5 +1,7 @@
 "use server";
 
+import { actionError } from "@/lib/action-error";
+
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "@/lib/notifications";
@@ -33,9 +35,9 @@ import { getDailyQuests, getQuestProgress } from "@/lib/quests";
  */
 export const updateNotificationPreference = async (enabled: boolean) => {
     const parsed = z.boolean().safeParse(enabled);
-    if (!parsed.success) throw new Error("Invalid payload: enabled must be boolean");
+    if (!parsed.success) return actionError("INVALID_PAYLOAD", "Payload inválido: enabled tem de ser um boolean");
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return actionError("UNAUTHORIZED", "Não estás autenticado");
     
     await db.update(userProgress)
         .set({ notificationsEnabled: enabled })
@@ -65,18 +67,18 @@ export const onChallengeComplete = async (challengeId: number) => {
     // 🛡️ ANTI-CHEAT: Zod Payload Validation
     const schema = z.object({ challengeId: z.number().positive() });
     const parsed = schema.safeParse({ challengeId });
-    if (!parsed.success) throw new Error("Invalid payload: challengeId must be a positive number.");
+    if (!parsed.success) return actionError("INVALID_PAYLOAD", "Payload inválido: ID do desafio tem de ser positivo.");
 
     const { userId } = await auth();
 
     if (!userId) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     // 🛡️ ANTI-CHEAT: Rate Limiting
     const { success } = await gameplayRateLimit.limit(userId);
     if (!success) {
-        throw new Error("Estás a ir rápido demais!");
+        return actionError("RATE_LIMIT_EXCEEDED", "Estás a ir rápido demais!");
     }
 
     // 🛡️ ANTI-CHEAT: Database Spoofing Guard
@@ -85,18 +87,18 @@ export const onChallengeComplete = async (challengeId: number) => {
     });
 
     if (!challengeExists) {
-        throw new Error("Invalid challenge: Spoofing attempt detected.");
+        return actionError("SPOOFING_DETECTED", "Desafio inválido: Detetada tentativa de manipulação.");
     }
 
     const userProgressData = await getUserProgress();
 
     if (!userProgressData) {
-        throw new Error("User progress not found.");
+        return actionError("NOT_FOUND", "Progresso de utilizador não encontrado.");
     }
 
     // 🛡️ ANTI-CHEAT: Boundary Guard
     if (userProgressData.hearts === 0 && !userProgressData.heartShields) {
-        throw new Error("Cannot complete challenges with 0 hearts.");
+        return actionError("INSUFFICIENT_FUNDS", "Não podes completar desafios com 0 vidas.");
     }
 
     // Mark challenge as complete
@@ -140,7 +142,7 @@ export const onLessonComplete = async () => {
     const { userId } = await auth();
 
     if (!userId) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     const start = Date.now();
@@ -203,18 +205,18 @@ export const onChallengeWrong = async (challengeId?: number) => {
     // 🛡️ ANTI-CHEAT: Zod Payload Validation
     const schema = z.object({ challengeId: z.number().positive().optional() });
     const parsed = schema.safeParse({ challengeId });
-    if (!parsed.success) throw new Error("Invalid payload.");
+    if (!parsed.success) return actionError("INVALID_PAYLOAD", "Payload inválido.");
 
     const { userId } = await auth();
 
     if (!userId) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     // 🛡️ ANTI-CHEAT: Rate Limiting
     const { success } = await gameplayRateLimit.limit(userId);
     if (!success) {
-        throw new Error("Estás a ir rápido demais!");
+        return actionError("RATE_LIMIT_EXCEEDED", "Estás a ir rápido demais!");
     }
 
     if (parsed.data.challengeId) {
@@ -222,12 +224,12 @@ export const onChallengeWrong = async (challengeId?: number) => {
         const challengeExists = await db.query.challenges.findFirst({
             where: eq(challenges.id, parsed.data.challengeId),
         });
-        if (!challengeExists) throw new Error("Invalid challenge.");
+        if (!challengeExists) return actionError("SPOOFING_DETECTED", "Desafio inválido.");
     }
 
     const userProgressData = await getUserProgress();
-    if (!userProgressData) throw new Error("User progress not found.");
-    if (userProgressData.hearts === 0) throw new Error("Hearts already depleted.");
+    if (!userProgressData) return actionError("NOT_FOUND", "Progresso de utilizador não encontrado.");
+    if (userProgressData.hearts === 0) return actionError("INSUFFICIENT_FUNDS", "Os teus corações já estão esgotados.");
 
     // Log the mistake for the Heart Clinic
     if (parsed.data.challengeId) {
@@ -244,6 +246,7 @@ export const onChallengeWrong = async (challengeId?: number) => {
 
         const userProgressData = await getUserProgress();
         return {
+            success: true,
             hearts: userProgressData?.hearts || 0,
             shieldUsed: true,
             shieldsRemaining: shieldResult.shieldsRemaining
@@ -256,7 +259,7 @@ export const onChallengeWrong = async (challengeId?: number) => {
     revalidatePath("/learn");
     revalidatePath("/lesson");
 
-    return { ...result, shieldUsed: false };
+    return { success: true, ...result, shieldUsed: false };
 };
 
 /**
@@ -272,12 +275,12 @@ export const onChallengeWrong = async (challengeId?: number) => {
  */
 export const onSelectCourse = async (courseId: number) => {
     const parsed = z.number().positive().safeParse(courseId);
-    if (!parsed.success) throw new Error("Invalid payload: courseId must be a positive number.");
+    if (!parsed.success) return actionError("INVALID_PAYLOAD", "Payload inválido: courseId deve ser positivo.");
     const { userId } = await auth();
     const user = await currentUser();
 
     if (!userId || !user) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     // Create or update user progress
@@ -307,15 +310,15 @@ export const onRefillHearts = async () => {
     const { userId } = await auth();
 
     if (!userId) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     const userProgressData = await getUserProgress();
-    if (!userProgressData) throw new Error("User progress not found.");
+    if (!userProgressData) return actionError("NOT_FOUND", "Progresso não encontrado.");
     
     // 🛡️ ANTI-CHEAT: Hard boundaries
-    if (userProgressData.hearts === 5) throw new Error("Hearts already full.");
-    if (userProgressData.points < 100) throw new Error("Insufficient XP.");
+    if (userProgressData.hearts === 5) return actionError("CONFLICT", "Os teus corações já estão no máximo.");
+    if (userProgressData.points < 100) return actionError("INSUFFICIENT_FUNDS", "Não tens XP suficiente.");
 
     const result = await refillHearts();
 
@@ -336,15 +339,15 @@ export const onBuyOneHeart = async () => {
     const { userId } = await auth();
 
     if (!userId) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     const userProgressData = await getUserProgress();
-    if (!userProgressData) throw new Error("User progress not found.");
+    if (!userProgressData) return actionError("NOT_FOUND", "Progresso não encontrado.");
     
     // 🛡️ ANTI-CHEAT: Hard boundaries
-    if (userProgressData.hearts >= 5) throw new Error("Hearts already full.");
-    if (userProgressData.points < 20) throw new Error("Insufficient XP.");
+    if (userProgressData.hearts >= 5) return actionError("CONFLICT", "Os teus corações já estão no máximo.");
+    if (userProgressData.points < 20) return actionError("INSUFFICIENT_FUNDS", "Não tens XP suficiente.");
 
     const result = await buyOneHeart();
 
@@ -365,7 +368,7 @@ export const onSyncUserInfo = async () => {
     const user = await currentUser();
 
     if (!userId || !user) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     const userName = user.firstName
@@ -393,7 +396,7 @@ export const onBuyXpBoost = async () => {
     const { userId } = await auth();
 
     if (!userId) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     const result = await buyXpBoost();
@@ -416,7 +419,7 @@ export const onBuyHeartShield = async () => {
     const { userId } = await auth();
 
     if (!userId) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     const result = await buyHeartShield();
@@ -438,7 +441,7 @@ export const onBuyStreakFreeze = async () => {
     const { userId } = await auth();
 
     if (!userId) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     const result = await buyStreakFreeze();
@@ -477,7 +480,7 @@ export const checkStreakStatus = async () => {
  */
 export const onClinicComplete = async () => {
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return actionError("UNAUTHORIZED", "Não estás autenticado");
 
     const result = await completeClinicLesson();
 
@@ -505,13 +508,13 @@ export const claimDailyChestReward = async () => {
     const { userId } = await auth();
 
     if (!userId) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     // 🛡️ ANTI-CHEAT: Rate Limiting
     const { success } = await gameplayRateLimit.limit(userId);
     if (!success) {
-        throw new Error("Estás a ir rápido demais!");
+        return actionError("RATE_LIMIT_EXCEEDED", "Estás a ir rápido demais!");
     }
 
     const todayStr = new Date().toISOString().split('T')[0];
@@ -525,11 +528,11 @@ export const claimDailyChestReward = async () => {
     });
 
     if (!todayStats) {
-        throw new Error("Nenhum progresso encontrado para hoje.");
+        return actionError("NOT_FOUND", "Nenhum progresso encontrado para hoje.");
     }
 
     if (todayStats.chestClaimed) {
-        throw new Error("O Baú Diário já foi aberto hoje.");
+        return actionError("CONFLICT", "O Baú Diário já foi aberto hoje.");
     }
 
     // Verify 3 quests are completed
@@ -544,7 +547,7 @@ export const claimDailyChestReward = async () => {
     const completedQuestsCount = dailyQuests.filter(q => q.current >= q.target).length;
 
     if (completedQuestsCount < 3) {
-        throw new Error("Ainda não completaste as 3 missões necessárias.");
+        return actionError("CONFLICT", "Ainda não completaste as 3 missões necessárias.");
     }
 
     // Mark as claimed
@@ -577,17 +580,17 @@ export const claimDailyChestReward = async () => {
 export const addArcadePoints = async (amount: number) => {
     const parsed = z.number().int().min(1).max(10).safeParse(amount);
     if (!parsed.success) {
-        throw new Error("Invalid arcade points amount: limit exceeded.");
+        return actionError("SPOOFING_DETECTED", "Quantidade de pontos de Arcade inválida.");
     }
     const { userId } = await auth();
 
     if (!userId) {
-        throw new Error("Unauthorized");
+        return actionError("UNAUTHORIZED", "Não estás autenticado");
     }
 
     // Must be a small amount to prevent abuse
     if (amount > 10) {
-        throw new Error("Invalid arcade points amount.");
+        return actionError("SPOOFING_DETECTED", "Quantidade de pontos inválida.");
     }
 
     await addPoints(amount);

@@ -59,7 +59,11 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
 
         startTransition(() => {
             onSelectCourse(courseId)
-                .then(() => {
+                .then((res) => {
+                    if ('message' in res && !res.success) {
+                        toast.error(res.message);
+                        return;
+                    }
                     router.push("/learn");
                 })
                 .catch(console.error);

@@ -82,8 +82,8 @@ export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streak
         startTransition(() => {
             action()
                 .then((result) => {
-                    if (result && 'error' in result) {
-                        setError(errorMapping[result.error] || "Erro desconhecido");
+                    if (result && 'message' in result && !result.success) {
+                        setError(result.message);
                     } else {
                         // Success!
                         playReward();

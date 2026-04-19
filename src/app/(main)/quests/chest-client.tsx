@@ -22,41 +22,43 @@ export const ChestClient = ({ completedQuestsCount, chestClaimed }: Props) => {
         playClick();
         setIsClaiming(true);
 
-        try {
-            const result = await claimDailyChestReward();
-            if (result.success) {
-                // Confetti Explosion
-                const duration = 3000;
-                const end = Date.now() + duration;
-
-                const frame = () => {
-                    confetti({
-                        particleCount: 5,
-                        angle: 60,
-                        spread: 55,
-                        origin: { x: 0 },
-                        colors: ['#FFC800', '#58CC02', '#FF4B4B']
-                    });
-                    confetti({
-                        particleCount: 5,
-                        angle: 120,
-                        spread: 55,
-                        origin: { x: 1 },
-                        colors: ['#FFC800', '#58CC02', '#FF4B4B']
-                    });
-
-                    if (Date.now() < end) {
-                        requestAnimationFrame(frame);
-                    }
-                };
-                frame();
-                toast.success(`Ganhaste ${result.reward} XP!`);
-            }
-        } catch (error: any) {
-            toast.error(error.message || "Erro ao abrir o baú.");
-        } finally {
+        const result = await claimDailyChestReward();
+        if ('message' in result && !result.success) {
+            toast.error(result.message);
             setIsClaiming(false);
+            return;
         }
+
+        if (result.success) {
+            // Confetti Explosion
+            const duration = 3000;
+            const end = Date.now() + duration;
+
+            const frame = () => {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#FFC800', '#58CC02', '#FF4B4B']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#FFC800', '#58CC02', '#FF4B4B']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            };
+            frame();
+            toast.success(`Ganhaste ${result.reward} XP!`);
+        }
+        
+        setIsClaiming(false);
     };
 
     // State 3: Claimed

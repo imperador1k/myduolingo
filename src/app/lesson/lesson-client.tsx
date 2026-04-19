@@ -3,6 +3,7 @@
 import { useState, useTransition, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { toast } from "sonner";
 import { onChallengeComplete, onChallengeWrong, onLessonComplete, onClinicComplete } from "@/actions/user-progress";
 import { useTTS } from "@/hooks/use-tts";
 import { useUISounds } from "@/hooks/use-ui-sounds";
@@ -200,6 +201,7 @@ export const LessonClient = ({
                 } else {
                     startTransition(() => {
                         onChallengeComplete(currentChallenge.id).then((res) => {
+                            if ('message' in res && !res.success) { toast.error(res.message); return; }
                             const xp = res.xpGained || 10;
                             setPoints((prev) => prev + xp);
                             setXpGained((prev) => prev + xp);
@@ -213,11 +215,11 @@ export const LessonClient = ({
                 setTypoMessage(null);
                 setChallenges((prev) => [...prev, { ...currentChallenge, id: currentChallenge.id + Math.random() }]);
 
-                if (!isClinic) {
-                    startTransition(() => {
-                        onChallengeWrong(currentChallenge.id).then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
-                    });
-                }
+            if (!isClinic) {
+                startTransition(() => {
+                    onChallengeWrong(currentChallenge.id).then((result) => {if ('message' in result && !result.success) { toast.error(result.message); return; } if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
+                });
+            }
             }
             return;
         }
@@ -235,6 +237,7 @@ export const LessonClient = ({
             } else {
                 startTransition(() => {
                     onChallengeComplete(currentChallenge.id).then((result) => {
+                        if ('message' in result && !result.success) { toast.error(result.message); return; }
                         const xp = result.xpGained || 10;
                         setPoints((prev) => prev + xp);
                         setXpGained((prev) => prev + xp);
@@ -249,7 +252,7 @@ export const LessonClient = ({
 
             if (!isClinic) {
                 startTransition(() => {
-                    onChallengeWrong(currentChallenge.id).then((result) => {if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
+                    onChallengeWrong(currentChallenge.id).then((result) => {if ('message' in result && !result.success) { toast.error(result.message); return; } if (!result.shieldUsed && result.hearts !== undefined) { setHearts(result.hearts); setHeartsLost((prev) => prev + 1);}});
                 });
             }
         }
@@ -613,7 +616,7 @@ export const LessonClient = ({
                                             setStatus("correct");
                                             setCorrectCount((prev) => prev + 1);
                                             if (isClinic) { setPoints((prev) => prev + 10); setXpGained((prev) => prev + 10); } else {
-                                                onChallengeComplete(currentChallenge.id).then((res) => { const xp = res.xpGained || 10; setPoints((prev) => prev + xp); setXpGained((prev) => prev + xp); });
+                                                onChallengeComplete(currentChallenge.id).then((res) => { if ('message' in res && !res.success) { toast.error(res.message); return; } const xp = res.xpGained || 10; setPoints((prev) => prev + xp); setXpGained((prev) => prev + xp); });
                                             }
                                         }
                                     } else {
