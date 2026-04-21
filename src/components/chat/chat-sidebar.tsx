@@ -4,7 +4,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { onSearchUsers } from "@/actions/user-actions";
-import { Search, Loader2, Users, UserPlus } from "lucide-react";
+import { Search, Loader2, Users, UserPlus, BadgeCheck } from "lucide-react";
 import { CreateGroupModal } from "@/components/modals/create-group-modal";
 import { NewChatModal } from "@/components/modals/new-chat-modal";
 import { useGlobalPresence } from "@/components/providers/global-presence-provider";
@@ -17,11 +17,13 @@ type Conversation = {
         userId: string;
         userName: string;
         userImageSrc: string | null;
+        isPro?: boolean;
     } | null;
     participants: {
         userId: string;
         userName: string | null;
         userImageSrc: string | null;
+        isPro?: boolean;
     }[];
     lastMessage: {
         id: number;
@@ -245,8 +247,11 @@ export const ChatSidebar = ({ conversations }: Props) => {
                             
                             <div className="flex-1 min-w-0 flex flex-col pt-0.5">
                                 <div className="flex justify-between items-baseline mb-1">
-                                    <span className={cn("truncate text-[15px] font-black", isActive ? "text-[#1CB0F6]" : "text-stone-800")}>
-                                        {displayName}
+                                    <span className={cn("truncate text-[15px] font-black flex items-center", isActive ? "text-[#1CB0F6]" : "text-stone-800")}>
+                                        <span className="truncate">{displayName}</span>
+                                        {!conv.isGroup && conv.partner?.isPro && (
+                                            <BadgeCheck className="h-4 w-4 text-amber-500 fill-amber-300 ml-1 shrink-0 inline-block" aria-hidden="true" />
+                                        )}
                                     </span>
                                     <span className={cn("text-xs font-bold", isActive ? "text-[#1CB0F6]/70" : "text-stone-400")}>
                                         {mounted && conv.lastMessage ? new Date(conv.lastMessage.createdAt).toLocaleDateString() : (mounted ? "Novo" : "")}

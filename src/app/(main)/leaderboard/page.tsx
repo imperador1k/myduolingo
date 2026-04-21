@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/drizzle";
 import { userProgress } from "@/db/schema";
 import { desc } from "drizzle-orm";
-import { Trophy, Star, Crown, Zap } from "lucide-react";
+import { Trophy, Star, Crown, Zap, BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TedyLottie } from "@/components/ui/lottie-animation";
 import { LottieBlock } from "@/components/ui/lottie-block";
+import { calculateIsPro } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +18,18 @@ export default async function LeaderboardPage() {
         redirect("/");
     }
 
-    const topUsers = await db.query.userProgress.findMany({
+    const topUsersData = await db.query.userProgress.findMany({
         orderBy: [desc(userProgress.points)],
         limit: 50,
+        with: {
+            subscription: true,
+        }
     });
+
+    const topUsers = topUsersData.map(user => ({
+        ...user,
+        isPro: calculateIsPro(user.subscription),
+    }));
 
     return (
         <div className="flex flex-col gap-6 p-4 sm:p-8 pb-24 max-w-[1000px] mx-auto w-full font-sans">
@@ -110,8 +119,11 @@ export default async function LeaderboardPage() {
                             </div>
 
                             <div className="flex-1 flex flex-col px-2 min-w-0">
-                                <span className={cn("font-black text-stone-700 text-lg sm:text-xl tracking-tight leading-none truncate", isCurrentUser && "text-sky-700")}>
-                                    {user.userName}
+                                <span className={cn("font-black text-stone-700 text-lg sm:text-xl tracking-tight leading-none truncate flex items-center", isCurrentUser && "text-sky-700")}>
+                                    <span className="truncate">{user.userName}</span>
+                                    {user.isPro && (
+                                        <BadgeCheck className="h-4.5 w-4.5 text-amber-500 fill-amber-300 ml-1 shrink-0 inline-block" aria-hidden="true" />
+                                    )}
                                 </span>
                                 <div className="flex items-center gap-2 mt-1">
                                     {isCurrentUser && (
@@ -197,11 +209,14 @@ const PodiumCard = ({ user, rank, isCurrentUser, color, featured, icon }: { user
             </div>
 
             <h3 className={cn(
-                "text-2xl font-black text-stone-700 tracking-tight text-center leading-tight truncate w-full",
+                "text-2xl font-black text-stone-700 tracking-tight text-center leading-tight truncate w-full flex items-center justify-center",
                 featured && "text-3xl",
                 isCurrentUser && "text-sky-700"
             )}>
-                {user.userName}
+                <span className="truncate">{user.userName}</span>
+                {user.isPro && (
+                    <BadgeCheck className="h-4.5 w-4.5 text-amber-500 fill-amber-300 ml-1 shrink-0 inline-block" aria-hidden="true" />
+                )}
             </h3>
             
             <div className="mt-4 flex flex-col items-center gap-1">

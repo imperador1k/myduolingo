@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getLesson, getUserProgress, getHeartClinicLesson } from "@/db/queries";
 import { LessonClient } from "./lesson-client";
+import { checkSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ type Props = {
 const LessonPage = async ({ searchParams }: Props) => {
     const params = await searchParams;
     const userProgress = await getUserProgress();
+    const isPro = await checkSubscription();
 
     if (!userProgress) {
         redirect("/learn");
@@ -35,6 +37,7 @@ const LessonPage = async ({ searchParams }: Props) => {
                 languageCode={userProgress.activeCourse?.languageCode || "en"}
                 language={userProgress.activeCourse?.language || "English"}
                 isClinic
+                isPro={isPro}
             />
         );
     }
@@ -56,6 +59,7 @@ const LessonPage = async ({ searchParams }: Props) => {
             heartShields={userProgress.heartShields || 0}
             languageCode={userProgress.activeCourse?.languageCode || "en"}
             language={userProgress.activeCourse?.language || "English"}
+            isPro={isPro}
         />
     );
 };

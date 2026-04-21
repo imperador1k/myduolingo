@@ -1,13 +1,15 @@
-import { Dumbbell, Mic, PenTool, BookOpen, Headphones, HeartPulse, Bot, History, Sparkles } from "lucide-react";
+import { Dumbbell, Mic, PenTool, BookOpen, Headphones, HeartPulse, Bot, History, Sparkles, Lock } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getUserProgress } from "@/db/queries";
+import { checkSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
 export default async function PracticePage() {
     const userProgress = await getUserProgress();
     const hasFullHearts = userProgress?.hearts === 5;
+    const isPro = await checkSubscription();
 
     return (
         <div className="flex flex-col gap-8 px-4 sm:px-6 py-8 max-w-[1056px] mx-auto w-full">
@@ -69,8 +71,10 @@ export default async function PracticePage() {
                 )}
             </div>
 
-            {/* ── 2x2 Skills Grid ── */}
-            <div className="grid gap-6 md:grid-cols-2">
+            {/* ── 2x2 Skills Grid & Conversação Fluída OR Paywall ── */}
+            {isPro ? (
+                <>
+                    <div className="grid gap-6 md:grid-cols-2">
                 
                 {/* Writing Card */}
                 <Link href="/practice/writing" className="group text-left bg-white rounded-xl border-2 border-stone-200 border-b-8 p-8 flex gap-6 items-start transition-all active:translate-y-1 active:border-b-4 hover:bg-stone-50">
@@ -154,6 +158,23 @@ export default async function PracticePage() {
                     </div>
                 </div>
             </div>
+                </>
+            ) : (
+                <div className="bg-white rounded-3xl p-8 sm:p-12 border-2 border-stone-200 border-b-8 flex flex-col items-center text-center mt-4">
+                    <div className="w-24 h-24 bg-stone-100 rounded-full flex items-center justify-center mb-6 shadow-inner border-b-4 border-stone-200">
+                        <Lock className="w-12 h-12 text-stone-400" strokeWidth={2.5} />
+                    </div>
+                    <h3 className="text-3xl font-black text-stone-700 mb-4">Prática com IA Bloqueada</h3>
+                    <p className="text-stone-500 font-medium text-lg max-w-lg mb-8">
+                        Eleva o teu nível com o plano MyDuolingo PRO e acede à nossa Inteligência Artificial sem limites.
+                    </p>
+                    <Link href="/shop" className="w-full sm:w-auto">
+                        <span className="inline-block bg-indigo-500 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest border-b-8 border-indigo-600 active:border-b-4 active:translate-y-1 transition-all hover:bg-indigo-400">
+                            DESBLOQUEAR PRO
+                        </span>
+                    </Link>
+                </div>
+            )}
 
         </div>
     );

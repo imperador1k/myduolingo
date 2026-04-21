@@ -259,8 +259,16 @@ export default function DocsHubPage() {
                                 {/* Timeline Line behind cards */}
                                 <div className="absolute left-[20px] top-4 bottom-4 w-1 bg-stone-200 rounded-full z-0 opacity-50"></div>
 
+                                {/* Changelog Card: PRO Subscription */}
+                                <div className="bg-white border-2 border-emerald-200 border-b-[6px] rounded-[1.5rem] p-6 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all relative z-10 group">
+                                    <div className="absolute -left-3 top-[-10px] rotate-[-10deg] group-hover:rotate-0 transition-transform bg-emerald-500 text-white font-black text-[10px] tracking-widest uppercase px-3 py-1 rounded-full border-2 border-white shadow-sm shadow-emerald-500/30">V 1.5.0</div>
+                                    <h3 className="text-stone-800 font-[1000] text-xl mt-3 mb-2 leading-tight">Chegou o MyDuolingo PRO! 👑</h3>
+                                    <p className="text-stone-500 font-bold text-sm leading-relaxed mb-4">Desbloqueia corações infinitos e a Área de Prática AI com a nossa nova subscrição premium via Stripe. Pratica sem limites!</p>
+                                    <span className="text-stone-400 font-black text-[11px] uppercase tracking-wider">Acabado de Sair</span>
+                                </div>
+
                                 {/* Changelog Card 1 */}
-                                <div className="bg-white border-2 border-stone-200 border-b-[6px] rounded-[1.5rem] p-6 shadow-sm hover:border-blue-300 hover:shadow-md transition-all relative z-10 group">
+                                <div className="bg-white border-2 border-stone-200 border-b-[6px] rounded-[1.5rem] p-6 shadow-sm hover:border-blue-300 hover:shadow-md transition-all relative z-10 group opacity-80 hover:opacity-100">
                                     <div className="absolute -left-3 top-[-10px] rotate-[-10deg] group-hover:rotate-0 transition-transform bg-[#1CB0F6] text-white font-black text-[10px] tracking-widest uppercase px-3 py-1 rounded-full border-2 border-white shadow-sm shadow-[#1CB0F6]/30">V 1.3.0</div>
                                     <h3 className="text-stone-800 font-[1000] text-xl mt-3 mb-2 leading-tight">O Mural do Amor Nasceu!</h3>
                                     <p className="text-stone-500 font-bold text-sm leading-relaxed mb-4">Lançámos o sistema de reviews onde a comunidade pode deixar o seu feedback tátil na plataforma. Já foste dar 5 estrelas?</p>

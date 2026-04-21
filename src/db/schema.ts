@@ -499,12 +499,34 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
     }),
 }));
 
+// ===== USER SUBSCRIPTIONS (Stripe PRO) =====
+
+export const userSubscriptions = pgTable("user_subscriptions", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id")
+        .references(() => userProgress.userId, { onDelete: "cascade" })
+        .notNull()
+        .unique(),
+    stripeCustomerId: text("stripe_customer_id").notNull().unique(),
+    stripeSubscriptionId: text("stripe_subscription_id").unique(),
+    stripePriceId: text("stripe_price_id"),
+    stripeCurrentPeriodEnd: timestamp("stripe_current_period_end"),
+});
+
+export const userSubscriptionsRelations = relations(userSubscriptions, ({ one }) => ({
+    user: one(userProgress, {
+        fields: [userSubscriptions.userId],
+        references: [userProgress.userId],
+    }),
+}));
+
 // Update UserProgress with all relations
 export const userProgressRelations = relations(userProgress, ({ one, many }) => ({
     activeCourse: one(courses, {
         fields: [userProgress.activeCourseId],
         references: [courses.id],
     }),
+    subscription: one(userSubscriptions),
     placementTests: many(placementTestHistory),
     conversationParticipations: many(conversationParticipants),
     sentMessages: many(messages),

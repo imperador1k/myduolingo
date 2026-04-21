@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -9,6 +10,7 @@ type Props = {
     actions?: ReactNode;
     bannerColorFrom?: string;
     bannerColorTo?: string;
+    isPro?: boolean;
 };
 
 export const ProfileHero = ({
@@ -18,7 +20,8 @@ export const ProfileHero = ({
     createdAt,
     actions,
     bannerColorFrom = "from-sky-400",
-    bannerColorTo = "to-emerald-400"
+    bannerColorTo = "to-emerald-400",
+    isPro = false
 }: Props) => {
     return (
         <div className="relative w-full mb-10 pt-20 group">
@@ -47,8 +50,11 @@ export const ProfileHero = ({
                 {/* Content Area */}
                 <div className="md:ml-[170px] w-full md:flex-1 flex flex-col items-center md:items-start text-center md:text-left mt-10 md:mt-0 min-w-0 px-2 lg:px-0">
                     <div className="flex flex-col gap-1 w-full">
-                        <h1 className="text-3xl lg:text-4xl font-black text-stone-700 tracking-tight drop-shadow-sm uppercase break-words line-clamp-2 xl:line-clamp-none">
+                        <h1 className="text-3xl lg:text-4xl font-black text-stone-700 tracking-tight drop-shadow-sm uppercase break-words line-clamp-2 xl:line-clamp-none flex items-center justify-center md:justify-start">
                             {name || username || "Estudante"}
+                            {isPro && (
+                                <BadgeCheck className="h-6 w-6 lg:h-8 lg:w-8 text-amber-500 fill-amber-300 ml-2 shrink-0 inline-block" aria-hidden="true" />
+                            )}
                         </h1>
                         <p className="text-stone-400 font-bold text-lg tracking-tight truncate w-full">@{username?.toLowerCase().replace(" ", "") || "estudante"}</p>
                     </div>

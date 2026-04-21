@@ -29,6 +29,7 @@ flowchart TD
     Clerk[Clerk Auth <br/> Identity & JWT]
     SupabaseRealtime((Supabase Realtime <br/> WebSockets & Presence))
     Gemini([Google Gemini 2.5 SDK])
+    Stripe([Stripe API <br/> Subscriptions])
 
     %% Database Layer
     subgraph Data [Data Layer]
@@ -46,6 +47,7 @@ flowchart TD
     Actions --> Drizzle
     Actions --> Gemini
     Actions --> Storage
+    Actions --> Stripe
 
     Drizzle --> DB
     RLS --- DB
@@ -64,6 +66,9 @@ A interação é efetuada através de transações SQL rigorosamente compiladas 
 
 ### Gestão Passiva de Motor Assíncrono (Vidas & Recursos)
 A economia central não recorre a CRON Jobs instáveis que derretem as pools partilhadas. A "Regeneração Passiva" opera através de avaliações algorítmicas Preguiçosas ("Lazy Loading Checks"). Corações regeneram para 5 baseado na comparação matemática exata de `lastHeartChange` temporalidade UTC contra `Date.now()`.
+
+### MyDuolingo PRO: Validação de Subscrição
+O status PRO é governado por uma pipeline híbrida. O backend armazena o `stripeCurrentPeriodEnd` via webhooks. A aplicação utiliza um helper centralizado `calculateIsPro` (em `src/lib/subscription.ts`) que implementa um **período de carência de 24 horas**. Este buffer assegura que pequenos atrasos no processamento do Stripe não interrompam a experiência do utilizador. O status é injetado via Drizzle Joins em queries críticas (Leaderboard, Chat) para evitar requests N+1.
 
 ---
 

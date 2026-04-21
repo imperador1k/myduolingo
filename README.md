@@ -12,10 +12,11 @@
   ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql)
   ![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.31-C5F74F?logo=drizzle)
   ![Clerk Auth](https://img.shields.io/badge/Clerk_Auth-Seguro-6C47FF?logo=clerk)
-  ![Google AI](https://img.shields.io/badge/Gemini_AI-Integrado-4285F4?logo=google)
-  ![Supabase Realtime](https://img.shields.io/badge/Supabase_Realtime-WebSockets-3ECF8E?logo=supabase)
-  ![Security](https://img.shields.io/badge/Supabase_RLS-Zero_Trust-red?logo=security)
-  ![Zod](https://img.shields.io/badge/Zod-Validation-3068b7?logo=zod)
+   ![Google AI](https://img.shields.io/badge/Gemini_AI-Integrado-4285F4?logo=google)
+   ![Supabase Realtime](https://img.shields.io/badge/Supabase_Realtime-WebSockets-3ECF8E?logo=supabase)
+   ![Stripe PRO](https://img.shields.io/badge/Stripe-Subscription-635BFF?logo=stripe)
+   ![Security](https://img.shields.io/badge/Supabase_RLS-Zero_Trust-red?logo=security)
+   ![Zod](https://img.shields.io/badge/Zod-Validation-3068b7?logo=zod)
 
 </div>
 
@@ -32,6 +33,7 @@
 - **⚡ Motor Real-Time (WebSockets):** Interconectividade social imaculada com chat 1-a-1 usando a infraestrutura Realtime do Supabase. Canais otimizados transmitem atividade "*Presence*" (estados "Online" via green dot e indicadores "A escrever...") de forma efémera (`0` custos de escrita na BD), com updates na interface a orbitar lógicas de *Optimistic UI*.
 - **🛡️ DevSecOps & Anti-Cheat Engine:** Confiabilidade em primeiro lugar. Um motor blindado valida rigidamente as interações da gamificação; payloads passam crivos estreitos em **Zod**, enquanto que as aprovações de pontos (XP e recompensas) decorrem atrás do perímetro opressivo do Servidor (`Server Actions` verificadas). Isto liga-se com Políticas Supabase *Row Level Security* (RLS) destrancadas temporariamente por um inquebrável JWT fabricado pelo Clerk.
 - **🏆 Economia Híbrida e Sistema Leaderboard:** Retenção movida por dopamina gamificada. Um loop implacável processa XP semanal distribuindo títulos e posições no *Leaderboard* Top 50 global. Decorado ao lado de sistemas passivos de Vidas (regeneradas a cada 5 horas no servidor), Escudos, Congeladores de Ofensivas, e uma Loja In-Game com power-ups ativos.
+- **💎 MyDuolingo PRO & VIP Badges:** Ecossistema de monetização e prestígio. Integração profunda com **Stripe** para subscrições recorrentes que destrancam Vidas Infinitas, Prática de IA exclusiva e o cobiçado **VIP Gold Badge** (`BadgeCheck`) visível em todo o ecossistema social (Leaderboard, Chat e Perfil).
 - **📱 Dinâmicas UI/UX Premium:** Arquitetura CSS superlativa utilizando abstrações Bento-Grid da camada Tailwind CSS. O interface transborda animações micro-reativas, interações de arrastar-e-largar e sons hápticos de gratificação embutidos localmente à app via `use-sound`.
 
 ---
@@ -87,6 +89,11 @@ GEMINI_API_KEY="AIzaSy..."
 # Redes de Alta Frequência (Realtime DB)
 NEXT_PUBLIC_SUPABASE_URL="..."
 NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
+
+# Pagamentos (Stripe)
+STRIPE_API_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
 ### 3. Migração da Camada Física

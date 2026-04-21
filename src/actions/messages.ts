@@ -12,6 +12,7 @@ import {
 } from "@/db/schema";
 import { createNotification } from "@/lib/notifications";
 import { eq, and, desc, ne, sql, inArray } from "drizzle-orm";
+import { calculateIsPro } from "@/lib/subscription";
 
 /**
  * Fetches the current user's inbox list.
@@ -37,7 +38,11 @@ export const getConversations = async () => {
         with: {
             participants: {
                 with: {
-                    user: true, // Joins with userProgress
+                    user: {
+                        with: {
+                            subscription: true,
+                        }
+                    },
                 }
             },
             messages: {
@@ -84,11 +89,13 @@ export const getConversations = async () => {
                 userId: partner.userId,
                 userName: partner.userName,
                 userImageSrc: partner.userImageSrc,
+                isPro: calculateIsPro(partner.subscription),
             } : null,
             participants: conv.participants.map((p: any) => ({
                 userId: p.userId,
                 userName: p.user?.userName,
                 userImageSrc: p.user?.userImageSrc,
+                isPro: calculateIsPro(p.user?.subscription),
             })),
             lastMessage: lastMsg ? {
                 id: lastMsg.id,
@@ -280,15 +287,28 @@ export const getMessages = async (conversationId: string) => {
 
     if (!participation) throw new Error("Forbidden");
 
-    return await db.query.messages.findMany({
+    const data = await db.query.messages.findMany({
         where: eq(messages.conversationId, conversationId),
         orderBy: [desc(messages.createdAt)],
         limit: 100,
         with: {
             reactions: true,
             parent: true,
+            sender: {
+                with: {
+                    subscription: true,
+                }
+            }
         }
     });
+
+    return data.map((msg: any) => ({
+        ...msg,
+        sender: {
+            ...msg.sender,
+            isPro: calculateIsPro(msg.sender?.subscription),
+        }
+    }));
 };
 
 /**

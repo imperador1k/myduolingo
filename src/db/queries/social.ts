@@ -153,59 +153,29 @@ export const getFeedActivities = cache(async () => {
         orderBy: (feedActivities: any, { desc }: any) => [desc(feedActivities.createdAt)],
         limit: 30, // Get the latest 30 activities
         with: {
-            user: true, // Join user data to show names and avatars
+            user: {
+                with: {
+                    subscription: true
+                }
+            },
             highFives: true // To count high-fives and check if I already gave one
         }
     });
 
     return recentActivities.map(activity => {
         const hasHighFived = activity.highFives.some((hf: any) => hf.senderId === userId);
+        // Using calculateIsPro from the frontend request. Needs import from src/lib/subscription
+        const { calculateIsPro } = require("@/lib/subscription");
         return {
             ...activity,
+            user: {
+                ...activity.user,
+                isPro: calculateIsPro(activity.user.subscription)
+            },
             highFiveCount: activity.highFives.length,
             hasHighFived
         };
     });
 });
 
-export const giveHighFive = async (activityId: number) => {
-    const { userId: currentUserId } = await auth();
-    if (!currentUserId) throw new Error("Unauthorized");
-
-    // Check if activity exists
-    const activity = await db.query.feedActivities.findFirst({
-        where: eq(feedActivities.id, activityId),
-        with: { user: true }
-    });
-
-    if (!activity) throw new Error("Atividade não encontrada");
-
-    // Don't high-five yourself
-    if (activity.userId === currentUserId) throw new Error("Não podes dar um High-Five a ti mesmo");
-
-    try {
-        await db.insert(highFives).values({
-            senderId: currentUserId,
-            receiverId: activity.userId,
-            activityId: activityId
-        });
-
-        // Current User name
-        const currentUser = await db.query.userProgress.findFirst({
-            where: eq(userProgress.userId, currentUserId)
-        });
-        
-        // Notify the receiver
-        await createNotification(
-            activity.userId,
-            "high_five",
-            `${currentUser?.userName || "Alguém"} deu-te um High-Five! ✋`,
-            `/friends` // Re-direct to friends feed to see it
-        );
-
-        revalidatePath("/friends");
-    } catch (e) {
-        // Likely a duplicate unique constraint error, just ignore
-        console.error("Already high-fived or another error", e);
-    }
-};
+// High five mutation moved to src/actions/social.ts

@@ -1,17 +1,18 @@
 "use client";
 
-import { Zap, Heart, Trophy, ChevronRight } from "lucide-react";
+import { Zap, Heart, Trophy, ChevronRight, Infinity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
 
 export const DesktopSidebar = ({
-    points, hearts, streak, activeCourse, progressPct, completedLessons, totalLessons,
+    points, hearts, streak, activeCourse, progressPct, completedLessons, totalLessons, isPro,
 }: {
     points: number; hearts: number; streak: number;
     activeCourse?: { title: string; imageSrc?: string | null };
     progressPct: number; completedLessons: number; totalLessons: number;
+    isPro?: boolean;
 }) => {
     const dailyGoal = 200;
     const todayXp = points % dailyGoal;
@@ -118,8 +119,12 @@ export const DesktopSidebar = ({
                         >
                             <div className="absolute inset-0 bg-rose-50 opacity-50" />
                             <div className="relative z-10 flex items-center justify-between px-1">
-                                <p className="font-black text-2xl tracking-tighter text-rose-500">{hearts}</p>
-                                <Heart className={cn("w-6 h-6", hearts > 0 ? "text-rose-500 fill-rose-500 group-hover:scale-110 group-hover:animate-pulse transition-all drop-shadow-sm" : "text-slate-300")} />
+                                {isPro ? (
+                                    <Infinity className="w-8 h-8 text-rose-500 shrink-0 stroke-[3]" />
+                                ) : (
+                                    <p className="font-black text-2xl tracking-tighter text-rose-500">{hearts}</p>
+                                )}
+                                <Heart className={cn("w-6 h-6", (isPro || hearts > 0) ? "text-rose-500 fill-rose-500 group-hover:scale-110 group-hover:animate-pulse transition-all drop-shadow-sm" : "text-slate-300")} />
                             </div>
                              <span className="relative z-10 text-[10px] font-black uppercase tracking-widest text-rose-400 mt-1 px-1">Vidas</span>
                         </motion.div>

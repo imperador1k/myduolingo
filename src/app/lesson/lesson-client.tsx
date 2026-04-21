@@ -59,6 +59,7 @@ type Props = {
     languageCode: string;
     language: string;
     isClinic?: boolean;
+    isPro?: boolean;
 };
 
 export const LessonClient = ({
@@ -69,7 +70,8 @@ export const LessonClient = ({
     heartShields,
     languageCode,
     language,
-    isClinic
+    isClinic,
+    isPro
 }: Props) => {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -543,7 +545,7 @@ export const LessonClient = ({
             </AnimatePresence>
 
             <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-white">
-                <LessonHeader progress={progress} hearts={hearts} xpBoostLessons={xpBoostLessons} heartShields={heartShields} isAudioMuted={isAudioMuted} onToggleMute={() => setIsAudioMuted(!isAudioMuted)} onExit={handleExit} />
+                <LessonHeader progress={progress} hearts={hearts} xpBoostLessons={xpBoostLessons} heartShields={heartShields} isAudioMuted={isAudioMuted} onToggleMute={() => setIsAudioMuted(!isAudioMuted)} onExit={handleExit} isPro={isPro} />
 
                 {showTransition && (
                     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white animate-in fade-in duration-300">

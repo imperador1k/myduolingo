@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Zap, Shield, Snowflake, Sparkles, Heart } from "lucide-react";
+import { Zap, Shield, Snowflake, Sparkles, Heart, Infinity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     onRefillHearts,
@@ -16,6 +16,7 @@ import {
 import { useUISounds } from "@/hooks/use-ui-sounds";
 import { PurchaseSuccessModal } from "@/components/modals/purchase-success-modal";
 import { usePurchaseStore } from "@/store/use-purchase-store";
+import { useProModalStore } from "@/store/use-pro-modal-store";
 
 type Props = {
     hearts: number;
@@ -23,6 +24,7 @@ type Props = {
     xpBoostLessons: number;
     heartShields: number;
     streakFreezes: number;
+    isPro: boolean;
 };
 
 type PurchasePopup = {
@@ -33,9 +35,10 @@ type PurchasePopup = {
     color: string;
 };
 
-export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streakFreezes }: Props) => {
+export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streakFreezes, isPro }: Props) => {
     const router = useRouter();
     const { isOpen, data: popupData, open: openPopup, close: closePopupStore } = usePurchaseStore();
+    const { openModal: openProModal } = useProModalStore();
     
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
@@ -202,11 +205,62 @@ export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streak
                     </div>
                 )}
 
+                {/* ===== SUPER PRO BANNER ===== */}
+                <div 
+                    onClick={openProModal}
+                    className="relative mb-8 flex w-full cursor-pointer flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden rounded-[2rem] border-2 border-amber-200 border-b-8 bg-gradient-to-tr from-amber-400 via-yellow-200 to-amber-500 p-6 md:p-8 shadow-sm transition-all hover:-translate-y-1 hover:border-b-[10px] active:translate-y-2 active:border-b-0 group"
+                >
+                    {/* Shimmer sweep animation overlay */}
+                    <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite_ease-in-out_2s] skew-x-12" />
+
+                    <div className="relative z-10 flex items-center gap-6">
+                        <div className="flex shrink-0 items-center justify-center -mt-2 group-hover:-translate-y-2 transition-transform duration-500">
+                            <img src="/mascot.svg" alt="Mascote PRO" className="w-24 h-24 md:w-28 md:h-28 drop-shadow-xl" />
+                        </div>
+                        <div className="flex flex-col text-stone-800">
+                            <span className="text-2xl md:text-3xl font-black tracking-tight drop-shadow-sm flex items-center gap-2">
+                                Liga o SUPER PRO <Sparkles className="h-6 w-6 text-amber-100 fill-amber-100 animate-pulse" />
+                            </span>
+                            <span className="text-base font-bold text-amber-900/80 leading-snug mt-1">
+                                Corações ilimitados e sem anúncios! Chega ao topo hoje.
+                            </span>
+                        </div>
+                    </div>
+                    <button className="relative z-10 shrink-0 h-14 md:h-16 px-8 rounded-2xl bg-white text-amber-500 font-black uppercase tracking-widest border-2 border-transparent border-b-4 border-b-amber-200 group-hover:bg-amber-50 shadow-sm transition-colors text-lg flex items-center justify-center">
+                        VER VANTAGENS
+                    </button>
+                    {/* Simple keyframes for the shimmer animation are added locally using styled-jsx */}
+                    <style jsx>{`
+                        @keyframes shimmer {
+                            100% { transform: translateX(150%) skewX(12deg); }
+                        }
+                    `}</style>
+                </div>
+
                 {/* BENTO BOX STOREFRONT ITEMS */}
                 <div className="grid grid-cols-1 gap-6">
                     
+                    {/* PRO Hearts State */}
+                    {isPro && (
+                        <div className="flex w-full flex-col md:flex-row md:items-center justify-between gap-6 rounded-[2rem] border-2 border-b-8 border-rose-200 bg-rose-50/60 p-6 md:p-8 cursor-default overflow-hidden group relative">
+                             <div className="absolute top-0 right-0 w-32 h-32 bg-rose-100 rounded-full blur-3xl opacity-50 -z-10 translate-x-10 -translate-y-10" />
+                             <div className="flex items-center gap-6">
+                                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.5rem] border-2 border-b-4 border-rose-100 bg-rose-50 group-hover:rotate-12 transition-transform">
+                                    <Infinity className="h-10 w-10 text-rose-500" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-2xl font-black text-stone-700 tracking-tight">Vidas Infinitas</span>
+                                    <span className="text-base text-stone-500 font-medium mt-1">És um utilizador PRO! Erra à vontade e aprende sem limites.</span>
+                                </div>
+                            </div>
+                            <div className="shrink-0 text-center py-4 px-8 font-black uppercase tracking-[0.2em] text-white bg-rose-500 rounded-2xl border-2 border-transparent border-b-4 border-b-rose-700 shadow-sm">
+                                ATIVO
+                            </div>
+                        </div>
+                    )}
+
                     {/* Buy 1 Heart */}
-                    {hearts < 5 && (
+                    {!isPro && hearts < 5 && (
                         <div className="flex w-full flex-col md:flex-row md:items-center justify-between gap-6 rounded-[2rem] border-2 border-b-8 border-stone-200 bg-white p-6 md:p-8 shadow-sm transition-all hover:border-b-[10px] hover:mb-[-2px] group">
                             <div className="flex items-center gap-6">
                                 <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.5rem] border-2 border-b-4 border-rose-200 bg-rose-50 shadow-inner group-hover:-translate-y-1 transition-transform">
@@ -229,7 +283,7 @@ export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streak
                     )}
 
                     {/* Refill All Hearts */}
-                    {hearts === 0 && (
+                    {!isPro && hearts === 0 && (
                         <div className="flex w-full flex-col md:flex-row md:items-center justify-between gap-6 rounded-[2rem] border-2 border-b-8 border-stone-200 bg-white p-6 md:p-8 shadow-sm transition-all hover:border-b-[10px] hover:mb-[-2px] group">
                             <div className="flex items-center gap-6">
                                 <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.5rem] border-2 border-b-4 border-amber-200 bg-amber-50 shadow-inner group-hover:-translate-y-1 transition-transform">
@@ -252,7 +306,7 @@ export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streak
                     )}
 
                     {/* Max Hearts Reached State */}
-                    {hearts === 5 && (
+                    {!isPro && hearts === 5 && (
                         <div className="flex w-full flex-col md:flex-row md:items-center justify-between gap-6 rounded-[2rem] border-2 border-b-8 border-rose-200 bg-rose-50/60 p-6 md:p-8 cursor-default opacity-80 decoration-rose-200 grayscale-[20%]">
                              <div className="flex items-center gap-6">
                                 <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.5rem] border-2 border-b-4 border-rose-100 bg-rose-50">

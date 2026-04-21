@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { UnitIslandFeed } from "@/components/learn/unit-island-feed";
 import { DesktopSidebar } from "@/components/learn/desktop-sidebar";
 import { LivingBackground } from "@/components/learn/living-background";
+import { checkSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export default async function LearnPage() {
     const userProgress = await getUserProgress();
     const units = await getUnits();
     const courses = await getCourses();
+    const isPro = await checkSubscription();
 
     if (!userProgress || !userProgress.activeCourseId) redirect("/courses");
     if (!units || units.length === 0) redirect("/courses");
@@ -105,6 +107,7 @@ export default async function LearnPage() {
                     progressPct={progressPct}
                     completedLessons={completedLessons}
                     totalLessons={totalLessons}
+                    isPro={isPro}
                 />
             </div>
         </>

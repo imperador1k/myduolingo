@@ -1,4 +1,4 @@
-import { X, Volume2, VolumeX, Zap, Shield, Heart } from "lucide-react";
+import { X, Volume2, VolumeX, Zap, Shield, Heart, Infinity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ProgressBar = ({ value }: { value: number }) => {
@@ -14,16 +14,24 @@ const ProgressBar = ({ value }: { value: number }) => {
     );
 };
 
-const Hearts = ({ hearts }: { hearts: number }) => {
+const Hearts = ({ hearts, isPro }: { hearts: number, isPro?: boolean }) => {
     return (
         <div className="flex items-center gap-2 bg-white border-2 border-stone-200 border-b-4 rounded-xl px-4 py-2 font-bold text-rose-500">
-            <Heart
-                className={cn(
-                    "h-6 w-6",
-                    hearts > 0 ? "fill-rose-500 text-rose-500" : "text-stone-300"
-                )}
-            />
-            <span>{hearts}</span>
+            {isPro ? (
+                <>
+                    <Infinity className="h-6 w-6 text-rose-500 stroke-[3]" />
+                </>
+            ) : (
+                <>
+                    <Heart
+                        className={cn(
+                            "h-6 w-6",
+                            hearts > 0 ? "fill-rose-500 text-rose-500" : "text-stone-300"
+                        )}
+                    />
+                    <span>{hearts}</span>
+                </>
+            )}
         </div>
     );
 };
@@ -36,6 +44,7 @@ type HeaderProps = {
     isAudioMuted: boolean;
     onToggleMute: () => void;
     onExit: () => void;
+    isPro?: boolean;
 };
 
 export const LessonHeader = ({
@@ -46,6 +55,7 @@ export const LessonHeader = ({
     isAudioMuted,
     onToggleMute,
     onExit,
+    isPro,
 }: HeaderProps) => {
     return (
         <header className="mx-auto flex w-full max-w-[1140px] shrink-0 items-center justify-between gap-x-4 px-6 pt-6 lg:pt-12">
@@ -84,7 +94,7 @@ export const LessonHeader = ({
                     </div>
                 )}
 
-                <Hearts hearts={hearts} />
+                <Hearts hearts={hearts} isPro={isPro} />
             </div>
         </header>
     );

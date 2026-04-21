@@ -4,6 +4,7 @@ import { actionError } from "@/lib/action-error";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { checkSubscription } from "@/lib/subscription";
 import { createNotification } from "@/lib/notifications";
 import {
     getUserProgress,
@@ -230,6 +231,21 @@ export const onChallengeWrong = async (challengeId?: number) => {
     const userProgressData = await getUserProgress();
     if (!userProgressData) return actionError("NOT_FOUND", "Progresso de utilizador não encontrado.");
     if (userProgressData.hearts === 0) return actionError("INSUFFICIENT_FUNDS", "Os teus corações já estão esgotados.");
+
+    // Check if the user is PRO (Infinite Hearts)
+    const isPro = await checkSubscription();
+    if (isPro) {
+        // Log the mistake for the Clinic even if it doesn't cost a heart
+        if (parsed.data.challengeId) {
+            await logMistake(parsed.data.challengeId);
+        }
+        return { 
+            success: true, 
+            hearts: userProgressData.hearts, // Return current hearts, frontend knows it's infinity
+            shieldUsed: false,
+            isPro: true 
+        };
+    }
 
     // Log the mistake for the Heart Clinic
     if (parsed.data.challengeId) {

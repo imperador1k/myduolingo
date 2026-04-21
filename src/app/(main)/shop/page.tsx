@@ -1,16 +1,20 @@
 import { redirect } from "next/navigation";
 import { getUserProgress } from "@/db/queries";
-import { Heart, Zap, Shield, Snowflake, ShoppingBag } from "lucide-react";
+import { Heart, Zap, Shield, Snowflake, ShoppingBag, Infinity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ShopItems } from "./shop-items";
 import { PracticeButton } from "./practice-button";
 import { LottieBlock } from "@/components/ui/lottie-block";
 import { SupportCard } from "./support-card";
+import { checkSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
 export default async function ShopPage() {
-    const userProgress = await getUserProgress();
+    const userProgressData = getUserProgress();
+    const isProData = checkSubscription();
+
+    const [userProgress, isPro] = await Promise.all([userProgressData, isProData]);
 
     if (!userProgress) {
         redirect("/courses");
@@ -44,23 +48,30 @@ export default async function ShopPage() {
                     
                     <h3 className="mb-4 text-xl md:text-2xl font-black text-stone-700 sm:mb-0">Vidas Atuais</h3>
                     <div className="flex items-center gap-2">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                            <Heart
-                                key={i}
-                                className={cn(
-                                    "h-8 w-8 md:h-10 md:w-10 transition-all duration-300",
-                                    i <= (userProgress.hearts || 0) 
-                                        ? "fill-rose-500 text-rose-500 drop-shadow-md hover:scale-110 active:scale-95 cursor-pointer" 
-                                        : "fill-stone-100 text-stone-200 stroke-2",
-                                    i <= (userProgress.hearts || 0) ? "animate-pulse" : "" 
-                                )}
-                            />
-                        ))}
+                        {isPro ? (
+                            <div className="flex items-center gap-3 bg-rose-50 px-6 py-3 rounded-2xl border-2 border-rose-200 border-b-4">
+                                <Infinity className="h-10 w-10 text-rose-500 stroke-[3]" />
+                                <span className="text-2xl font-black text-rose-600 uppercase tracking-tighter">Infinitas</span>
+                            </div>
+                        ) : (
+                            [1, 2, 3, 4, 5].map((i) => (
+                                <Heart
+                                    key={i}
+                                    className={cn(
+                                        "h-8 w-8 md:h-10 md:w-10 transition-all duration-300",
+                                        i <= (userProgress.hearts || 0) 
+                                            ? "fill-rose-500 text-rose-500 drop-shadow-md hover:scale-110 active:scale-95 cursor-pointer" 
+                                            : "fill-stone-100 text-stone-200 stroke-2",
+                                        i <= (userProgress.hearts || 0) ? "animate-pulse" : "" 
+                                    )}
+                                />
+                            ))
+                        )}
                     </div>
                 </div>
 
                 {/* Heart Clinic — Practice to earn hearts */}
-                {(userProgress.hearts || 0) < 5 && (
+                {!isPro && (userProgress.hearts || 0) < 5 && (
                     <PracticeButton />
                 )}
                 
@@ -99,6 +110,7 @@ export default async function ShopPage() {
                     xpBoostLessons={userProgress.xpBoostLessons || 0}
                     heartShields={userProgress.heartShields || 0}
                     streakFreezes={userProgress.streakFreezes || 0}
+                    isPro={isPro}
                 />
             </div>
 

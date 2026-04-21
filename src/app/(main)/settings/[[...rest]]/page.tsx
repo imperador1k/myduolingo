@@ -8,6 +8,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Book, FileText, Shield, FileCheck } from "lucide-react";
 import { DangerZone } from "@/components/settings/danger-zone";
+import { SubscriptionCard } from "@/components/settings/subscription-card";
+import { checkSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,8 @@ export default async function SettingsPage() {
 
     const userProgress = await getUserProgress();
     if (!userProgress) return redirect("/courses");
+
+    const isPro = await checkSubscription();
 
     const formattedDate = new Intl.DateTimeFormat("pt-PT", {
         day: "numeric",
@@ -71,6 +75,11 @@ export default async function SettingsPage() {
                         </span>
                     </div>
                 </div>
+            </div>
+
+            {/* Subscription Management */}
+            <div>
+                <SubscriptionCard isPro={isPro} />
             </div>
 
             {/* Notifications & Preferences */}

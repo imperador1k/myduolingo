@@ -14,7 +14,8 @@ import {
     Users, 
     Loader2,
     Reply,
-    Smile
+    Smile,
+    BadgeCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -38,6 +39,7 @@ type Props = {
         userId: string;
         userName: string;
         userImageSrc: string | null;
+        isPro?: boolean;
     } | null;
     participants: {
         userId: string;
@@ -336,8 +338,11 @@ export const ChatWindow = ({ userId, conversationId, partner, participants, isGr
                             )}
                         </div>
                         <div className="flex flex-col">
-                            <h2 className="font-black text-stone-800 text-lg tracking-tight leading-none">
+                            <h2 className="font-black text-stone-800 text-lg tracking-tight leading-none flex items-center">
                                 {isGroup ? groupName : partner?.userName}
+                                {!isGroup && partner?.isPro && (
+                                    <BadgeCheck className="h-5 w-5 text-amber-500 fill-amber-300 ml-1.5 shrink-0 inline-block" aria-hidden="true" />
+                                )}
                             </h2>
                             <span className={cn("text-[11px] font-black uppercase tracking-widest mt-1", (isPartnerOnline || isGroup) ? "text-[#58CC02]" : "text-stone-300")}>
                                 {isGroup ? "Conversa de Grupo" : (isPartnerOnline ? "Online" : "Offline")}

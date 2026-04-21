@@ -57,6 +57,7 @@ export default async function PublicProfilePage({ params }: Props) {
                 createdAt={new Date()} 
                 bannerColorFrom="from-sky-500"
                 bannerColorTo="from-emerald-500"
+                isPro={userProgress.isPro}
                 actions={
                     <>
                         <div className="w-full sm:w-auto sm:min-w-[160px] flex-1 h-12 sm:h-14">

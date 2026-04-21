@@ -6,6 +6,7 @@ import {
     CheckCheck, 
     Reply, 
     FileText,
+    BadgeCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLongPress } from "@/hooks/use-long-press";
@@ -214,6 +215,9 @@ export const MessageItem = ({
                     isMe ? "justify-end text-sky-400" : "justify-start text-stone-300"
                 )}>
                     <span>{formatTimestamp(msg.createdAt)}</span>
+                    {!isMe && msg.sender?.isPro && (
+                        <BadgeCheck className="w-3 h-3 text-amber-500 fill-amber-300" />
+                    )}
                     {isMe && i === actualLastMyMessageIndex && msg.read && (
                         <span className="ml-1 text-[#58CC02] flex items-center gap-1">
                             <CheckCheck className="w-3 h-3" /> Visto

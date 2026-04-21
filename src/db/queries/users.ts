@@ -5,6 +5,7 @@ import { db } from "../drizzle";
 import { userProgress, userDailyStats, courses, userVocabulary, challengeProgress, challengeMistakes } from "../schema";
 import { subDays, format } from "date-fns";
 import { createNotification } from "@/lib/notifications";
+import { checkSubscription } from "@/lib/subscription";
 
 export const getUserAnalytics = cache(async () => {
     const { userId } = await auth();
@@ -110,12 +111,23 @@ export const getUserProgress = cache(async () => {
     return data;
 });
 
+import { calculateIsPro } from "@/lib/subscription";
+
 export const getUserProgressById = cache(async (userId: string) => {
     const data = await db.query.userProgress.findFirst({
         where: eq(userProgress.userId, userId),
-        with: { activeCourse: true },
+        with: { 
+            activeCourse: true,
+            subscription: true,
+        },
     });
-    return data;
+    
+    if (!data) return null;
+
+    return {
+        ...data,
+        isPro: calculateIsPro(data.subscription),
+    };
 });
 
 export const createUserProgress = async (courseId: number) => {
@@ -163,6 +175,11 @@ export const updateUserInfo = async (name: string, imageUrl: string) => {
 };
 
 export const reduceHearts = async () => {
+    const isPro = await checkSubscription();
+    if (isPro) {
+        return { error: "pro" };
+    }
+
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
     const currentProgress = await getUserProgress();

@@ -105,6 +105,26 @@ export const DOCS_ARTICLES: DocArticle[] = [
             <p>Quando atinjas a barra de progresso totalizada de todas as missões, um <strong>Baú Épico</strong> é desbloqueado no topo da página. Podes bater no baú com força para reclamar as tuas Joias bónus, XP extra ou, quem sabe, Freezes gratuitos!</p>
         `
     },
+    {
+        id: "gamificacao-4",
+        slug: "myduolingo-pro-vs-gratis",
+        title: "MyDuolingo PRO vs Plano Grátis",
+        category: "Gamificação & Loja",
+        summary: "Descobre as vantagens exclusivas do plano PRO e como ele acelera o teu progresso.",
+        icon: "Crown",
+        content: `
+            <p>O <strong>MyDuolingo PRO</strong> é a experiência definitiva para quem leva a sério a fluência num novo idioma. Ao contrário do plano Standard (Grátis), o PRO remove as barreiras entre ti e o conhecimento.</p>
+            
+            <p><strong>Vantagens Principais do PRO:</strong></p>
+            <ul>
+                <li><strong>Corações Infinitos:</strong> Nunca mais pares uma lição a meio. Erra, aprende e continua a praticar sem limites ou esperas de regeneração.</li>
+                <li><strong>Prática com IA Desbloqueada:</strong> Acesso total à Área de Prática AI, incluindo Conversação Fluída, exercícios de Escrita corrigidos por IA e treino de Escuta personalizado.</li>
+                <li><strong>Estatuto Elite:</strong> O teu perfil exibe orgulhosamente o ícone de Infinito nas tabelas de classificação, mostrando o teu compromisso com a excelência.</li>
+            </ul>
+
+            <p>Para assinar, visita a nossa <strong>Loja</strong>. O processamento é feito de forma segura e o acesso às funcionalidades premium é imediato após a confirmação do pagamento.</p>
+        `
+    },
 
     // ── COMPETIÇÃO & SOCIAL ──
     {

@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import QRCode from "react-qr-code";
-import { Copy, Share2, Flame, Trophy, Star, Sparkles, Send, Loader2, Camera } from "lucide-react";
+import { Copy, Share2, Flame, Trophy, Star, Sparkles, Send, Loader2, Camera, BadgeCheck, X } from "lucide-react";
 import { UserSearch } from "@/components/shared/user-search";
 import { FollowButton } from "@/components/shared/follow-button";
 import { cn } from "@/lib/utils";
 import { useCustomToast } from "@/components/ui/custom-toast";
 import { onFollow, onUnfollow } from "@/actions/user-actions";
-import { onGiveHighFive } from "@/actions/user-actions";
+import { toggleHighFive } from "@/actions/social";
 import { QrScannerModal } from "@/components/shared/qr-scanner-modal";
 import confetti from "canvas-confetti";
 
@@ -22,6 +23,7 @@ type FeedActivity = {
     user: {
         userName: string;
         userImageSrc: string | null;
+        isPro?: boolean;
     };
     highFiveCount: number;
     hasHighFived: boolean;
@@ -64,6 +66,14 @@ export const FriendsClient = ({
     const [isSubmittingCode, setIsSubmittingCode] = useState(false);
     const [openScannerId, setOpenScannerId] = useState<number | null>(null); // To manage high-five loading state
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+    const [localActivities, setLocalActivities] = useState<FeedActivity[]>(feedActivities);
+    const [mounted, setMounted] = useState(false);
+    
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const { toast } = useCustomToast();
 
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -123,14 +133,29 @@ export const FriendsClient = ({
     const handleHighFive = async (activityId: number) => {
         try {
             setOpenScannerId(activityId);
-            await onGiveHighFive(activityId);
-            // Fire some fun confetti since this is a positive gaming interaction!
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ["#1CB0F6", "#FF9600", "#58CC02"]
-            });
+            const result = await toggleHighFive(activityId);
+            
+            // Update local state optimistically
+            setLocalActivities(prev => prev.map(act => {
+                if (act.id === activityId) {
+                    if (result.action === "added") {
+                        return { ...act, hasHighFived: true, highFiveCount: act.highFiveCount + 1 };
+                    } else if (result.action === "removed") {
+                        return { ...act, hasHighFived: false, highFiveCount: Math.max(0, act.highFiveCount - 1) };
+                    }
+                }
+                return act;
+            }));
+
+            if (result.action === "added") {
+                // Fire some fun confetti since this is a positive gaming interaction!
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ["#1CB0F6", "#FF9600", "#58CC02"]
+                });
+            }
         } finally {
             setOpenScannerId(null);
         }
@@ -212,6 +237,37 @@ export const FriendsClient = ({
                 }} 
             />
 
+            {/* ── QR Code Enlarged Modal (Portaled) ── */}
+            {isQrModalOpen && mounted && createPortal(
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md" onClick={() => setIsQrModalOpen(false)}>
+                    <div className="bg-white rounded-3xl p-8 max-w-sm w-full flex flex-col items-center relative animate-in zoom-in-95 fade-in duration-300 shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <button 
+                            onClick={() => setIsQrModalOpen(false)}
+                            className="absolute top-4 right-4 p-2 bg-stone-100 text-stone-500 hover:bg-stone-200 rounded-full transition-colors"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                        <h2 className="text-2xl font-black text-stone-800 mb-6 mt-2 text-center">O teu ID Secreto</h2>
+                        <div className="bg-white p-2 rounded-2xl border-4 border-stone-100 w-full aspect-square flex items-center justify-center">
+                            <QRCode
+                                value={profileLink}
+                                size={280}
+                                className="h-auto max-w-full"
+                                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                            />
+                        </div>
+                        <p className="text-stone-500 font-bold text-center mt-6 leading-relaxed">Mostra este código para um amigo te adicionar instantaneamente!</p>
+                        <button 
+                            onClick={() => setIsQrModalOpen(false)}
+                            className="mt-6 w-full py-4 bg-stone-100 text-stone-600 font-black rounded-xl border-b-4 border-stone-200 active:translate-y-1 active:border-b-0 transition-all uppercase tracking-wide"
+                        >
+                            Fechar
+                        </button>
+                    </div>
+                </div>,
+                document.body
+            )}
+
             {/* ── Header ── */}
             <div className="flex items-center gap-4 mb-8">
                 <h1 className="text-4xl font-extrabold text-stone-800">Amigos</h1>
@@ -243,14 +299,14 @@ export const FriendsClient = ({
             {/* ── Feed Tab (Activity) ── */}
             {activeTab === 'feed' && (
                 <div className="space-y-4 max-w-3xl mx-auto">
-                    {feedActivities.length === 0 ? (
+                    {localActivities.length === 0 ? (
                         <div className="bg-stone-50 border-2 border-stone-200 border-dashed rounded-3xl p-10 text-center flex flex-col items-center">
                             <div className="w-20 h-20 bg-stone-200 rounded-full flex items-center justify-center text-4xl mb-4 grayscale opacity-50">📰</div>
                             <h3 className="text-xl font-black text-stone-700 mb-2">O teu feed está vazio</h3>
                             <p className="text-stone-500 font-bold">Segue mais pessoas e completa lições para encheres o teu feed de conquistas épicas!</p>
                         </div>
                     ) : (
-                        feedActivities.map((activity) => {
+                        localActivities.map((activity) => {
                             const visual = getFeedIconAndColor(activity.type);
                             const text = getFeedText(activity.type, activity.metadata);
                             const isPending = openScannerId === activity.id;
@@ -262,8 +318,12 @@ export const FriendsClient = ({
                                             {visual.icon}
                                         </div>
                                         <div>
-                                            <p className="text-lg text-stone-700 font-bold leading-tight">
-                                                <strong className="font-black text-stone-900">{activity.user.userName}</strong> {text}
+                                            <p className="text-lg text-stone-700 font-bold leading-tight flex items-center gap-1.5 flex-wrap">
+                                                <strong className="font-black text-stone-900">{activity.user.userName}</strong>
+                                                {activity.user.isPro && (
+                                                    <BadgeCheck className="w-5 h-5 text-amber-500 fill-amber-300" />
+                                                )}
+                                                {text}
                                             </p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <p className="text-stone-400 font-bold text-sm uppercase tracking-wider">{timeAgo(activity.createdAt)}</p>
@@ -277,12 +337,12 @@ export const FriendsClient = ({
                                     </div>
                                     <button 
                                         onClick={() => handleHighFive(activity.id)}
-                                        disabled={activity.hasHighFived || isPending}
+                                        disabled={isPending}
                                         className={cn(
-                                            "shrink-0 w-full sm:w-auto border-2 border-b-4 rounded-xl px-5 py-3 font-extrabold transition-all flex gap-2 items-center justify-center",
+                                            "shrink-0 w-full sm:w-auto border-2 border-b-4 rounded-xl px-5 py-3 font-extrabold transition-all flex gap-2 items-center justify-center cursor-pointer",
                                             activity.hasHighFived 
-                                                ? "bg-stone-100 text-stone-400 border-stone-200 border-b-2 translate-y-0.5" 
-                                                : "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100 active:translate-y-1 active:border-b-2 cursor-pointer"
+                                                ? "bg-green-100 text-green-500 border-green-200 border-b-2 translate-y-0.5" 
+                                                : "bg-stone-100 text-stone-400 border-stone-200 hover:bg-stone-200 hover:text-stone-500 active:translate-y-1 active:border-b-2"
                                         )}
                                     >
                                         {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="text-xl">✋</span>}
@@ -383,7 +443,10 @@ export const FriendsClient = ({
                             <h2 className="text-xl font-black text-stone-800 mb-2">O teu ID Secreto</h2>
                             <p className="text-stone-500 font-bold text-sm mb-6">Dá isto a um amigo para te adicionar!</p>
                             
-                            <div className="bg-stone-50 p-4 flex items-center justify-center rounded-2xl border-2 border-stone-100 mb-6 w-full max-w-[200px] hover:scale-105 transition-transform cursor-pointer">
+                            <div 
+                                onClick={() => setIsQrModalOpen(true)}
+                                className="bg-stone-50 p-4 flex items-center justify-center rounded-2xl border-2 border-stone-100 mb-6 w-full max-w-[200px] hover:scale-105 transition-transform cursor-pointer relative group"
+                            >
                                 <QRCode
                                     value={profileLink}
                                     size={150}

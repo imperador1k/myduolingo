@@ -49,7 +49,8 @@ export default async function FriendsPage({ searchParams }: Props) {
         createdAt: fa.createdAt ? fa.createdAt.toISOString() : new Date().toISOString(),
         user: {
             userName: fa.user.userName,
-            userImageSrc: fa.user.userImageSrc
+            userImageSrc: fa.user.userImageSrc,
+            isPro: fa.user.isPro
         },
         highFiveCount: fa.highFiveCount,
         hasHighFived: fa.hasHighFived

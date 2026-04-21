@@ -95,7 +95,7 @@ export default function SupportPage() {
     };
 
     const copyContactEmail = () => {
-        navigator.clipboard.writeText("support@myduolingo.com");
+        navigator.clipboard.writeText("contacto@miguelweb.dev");
         toast.success("Endereço de email copiado para a área de transferência!");
     };
 
