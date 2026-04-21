@@ -5,7 +5,7 @@ import { db } from "@/db/drizzle";
 import { feedActivities, highFives, userProgress } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { createNotification } from "@/db/queries";
+import { createNotification } from "@/lib/notifications";
 
 export const toggleHighFive = async (activityId: number) => {
     const { userId: currentUserId } = await auth();
