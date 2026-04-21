@@ -13,6 +13,7 @@ import {
     conversationParticipants 
 } from "../schema";
 import { createNotification } from "@/lib/notifications";
+import { calculateIsPro } from "@/lib/subscription";
 
 export const getTopUsers = cache(async (limit: number = 10) => {
     return await db.query.userProgress.findMany({
@@ -164,8 +165,6 @@ export const getFeedActivities = cache(async () => {
 
     return recentActivities.map(activity => {
         const hasHighFived = activity.highFives.some((hf: any) => hf.senderId === userId);
-        // Using calculateIsPro from the frontend request. Needs import from src/lib/subscription
-        const { calculateIsPro } = require("@/lib/subscription");
         return {
             ...activity,
             user: {
