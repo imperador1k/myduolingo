@@ -88,6 +88,7 @@ export const onSearchUsers = async (query: string) => {
     }
 };
 
+
 export const onMarkNotificationAsRead = async (id: number) => {
     try {
         await markNotificationAsRead(id);
@@ -95,15 +96,5 @@ export const onMarkNotificationAsRead = async (id: number) => {
         revalidatePath("/"); // Update global unread badges
     } catch (error) {
         console.error("Mark notification as read error:", error);
-    }
-};
-
-export const onGiveHighFive = async (activityId: number) => {
-    try {
-        const { giveHighFive } = await import("@/db/queries");
-        await giveHighFive(activityId);
-        revalidatePath("/friends");
-    } catch (error) {
-        console.error("Give high five error:", error);
     }
 };
