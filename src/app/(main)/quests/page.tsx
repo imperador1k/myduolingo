@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db/drizzle";
@@ -23,7 +24,27 @@ const IconMap: Record<string, React.ElementType> = {
 
 export const dynamic = "force-dynamic";
 
-export default async function QuestsPage() {
+export default function QuestsPage() {
+    return (
+        <div className="max-w-5xl mx-auto py-10 px-4 space-y-16 pb-32">
+            {/* Header (Synchronous) */}
+            <div className="text-center space-y-3">
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight text-stone-700 uppercase">
+                    Missões e Troféus
+                </h1>
+                <p className="text-stone-400 font-bold text-lg">
+                    Completa missões diárias e domina a sala das tuas conquistas.
+                </p>
+            </div>
+
+            <Suspense fallback={<QuestsSkeleton />}>
+                <QuestsData />
+            </Suspense>
+        </div>
+    );
+}
+
+async function QuestsData() {
     const { userId } = await auth();
 
     if (!userId) {
@@ -74,18 +95,7 @@ export default async function QuestsPage() {
     });
 
     return (
-        <div className="max-w-5xl mx-auto py-10 px-4 space-y-16 pb-32">
-            
-            {/* Header */}
-            <div className="text-center space-y-3">
-                <h1 className="text-4xl md:text-5xl font-black tracking-tight text-stone-700 uppercase">
-                    Missões e Troféus
-                </h1>
-                <p className="text-stone-400 font-bold text-lg">
-                    Completa missões diárias e domina a sala das tuas conquistas.
-                </p>
-            </div>
-
+        <>
             {/* Section 1: Daily Quests */}
             <section className="space-y-6">
                 <div className="bg-white border-2 border-stone-200 border-b-8 rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-sm">
@@ -191,6 +201,62 @@ export default async function QuestsPage() {
                     })}
                 </div>
             </section>
-        </div>
+        </>
     );
 }
+
+// --- SKELETON FALLBACK ---
+const QuestsSkeleton = () => {
+    return (
+        <div className="animate-in fade-in duration-500 w-full space-y-6">
+            {/* Daily Quests Skeleton */}
+            <section className="space-y-6">
+                <div className="bg-stone-50 border-2 border-stone-200 border-b-8 rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+                    {/* Chest Header Skeleton */}
+                    <div className="flex flex-col items-center justify-center mb-8 border-b-2 border-stone-100 pb-8">
+                        <div className="w-24 h-24 bg-stone-200 rounded-3xl mb-4 animate-pulse" />
+                        <div className="h-6 w-48 bg-stone-200 rounded-lg animate-pulse mb-2" />
+                        <div className="h-4 w-32 bg-stone-200 rounded-md animate-pulse" />
+                    </div>
+
+                    {/* Quest Items list Skeleton */}
+                    <div className="flex flex-col">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-5 border-b-2 border-stone-100 last:border-0">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-14 w-14 shrink-0 rounded-2xl bg-stone-200 border-2 border-stone-300 border-b-4 animate-pulse" />
+                                    <div className="h-6 w-32 bg-stone-200 rounded-md animate-pulse" />
+                                </div>
+                                <div className="flex flex-col items-start sm:items-end gap-1 w-full sm:w-auto mt-2 sm:mt-0">
+                                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                                        <div className="flex-1 sm:w-40 h-6 bg-stone-200 rounded-full border-2 border-stone-300 animate-pulse" />
+                                        <div className="h-5 w-10 bg-stone-200 rounded-md animate-pulse" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Trophy Room Skeleton */}
+            <section className="space-y-6 pt-4">
+                <div className="flex items-center gap-3 px-2 mb-8">
+                    <div className="h-8 w-8 rounded-full bg-stone-200 animate-pulse" />
+                    <div className="h-8 w-48 bg-stone-200 rounded-lg animate-pulse" />
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="bg-stone-50 border-2 border-stone-200 border-b-8 rounded-3xl p-6 flex flex-col items-center text-center h-[220px]">
+                            <div className="w-16 h-16 bg-stone-200 rounded-full mb-4 animate-pulse" />
+                            <div className="h-6 w-24 bg-stone-200 rounded-md mb-2 animate-pulse" />
+                            <div className="h-4 w-32 bg-stone-200 rounded-md mb-1 animate-pulse" />
+                            <div className="h-4 w-20 bg-stone-200 rounded-md animate-pulse" />
+                        </div>
+                    ))}
+                </div>
+            </section>
+        </div>
+    );
+};

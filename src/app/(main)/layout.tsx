@@ -2,9 +2,10 @@ import { Sidebar } from "@/components/shared/sidebar";
 import { MobileHeader } from "@/components/shared/mobile-header";
 import { MobileNav } from "@/components/shared/mobile-nav";
 import { StreakCheck } from "@/components/shared/streak-check";
-import { getUnreadMessageCount, getUnreadNotificationCount } from "@/db/queries";
+import { getUnreadMessageCount, getUnreadNotificationCount, getUserProgress } from "@/db/queries";
 import { CommandMenu } from "@/components/shared/command-menu";
 import { GlobalModals } from "@/components/modals/global-modals";
+import { LeagueResultModal } from "@/components/modals/league-result-modal";
 
 type Props = {
     children: React.ReactNode;
@@ -13,8 +14,9 @@ type Props = {
 export const dynamic = "force-dynamic";
 
 export default async function MainLayout({ children }: Props) {
-    const unreadMessages = await getUnreadMessageCount();
-    const unreadNotifications = await getUnreadNotificationCount();
+    const unreadMessages = (await getUnreadMessageCount()) as number;
+    const unreadNotifications = (await getUnreadNotificationCount()) as number;
+    const userProgress = (await getUserProgress()) as any;
 
     return (
         <div className="flex h-screen overflow-hidden bg-[#f3f6f8]">
@@ -42,6 +44,11 @@ export default async function MainLayout({ children }: Props) {
 
             {/* Immersive Global Modals Container Z-[100] */}
             <GlobalModals />
+
+            {/* Weekly League Ceremony Modal */}
+            {!!userProgress?.lastWeekResult && (
+                <LeagueResultModal result={userProgress.lastWeekResult as any} />
+            )}
         </div>
     );
 }

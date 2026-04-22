@@ -6,6 +6,8 @@ import { db } from "@/db/drizzle";
 import { userSubscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
     const body = await req.text();
     const signature = headers().get("Stripe-Signature") as string;

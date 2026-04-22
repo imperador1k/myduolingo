@@ -1,10 +1,21 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getUserVocabulary, getUserProgress } from "@/db/queries";
 import Link from "next/link";
 import { DuoAnimationLottie } from "@/components/ui/lottie-animation";
 import { VocabularyDashboard } from "./dashboard";
 
-export default async function VocabularyPage() {
+export default function VocabularyPage() {
+    return (
+        <div className="flex flex-col gap-y-8 pb-16 pt-4 px-4 w-full max-w-[1056px] mx-auto min-h-screen">
+            <Suspense fallback={<VocabularySkeleton />}>
+                <VocabularyData />
+            </Suspense>
+        </div>
+    );
+}
+
+async function VocabularyData() {
     const userProgressData = await getUserProgress();
 
     if (!userProgressData?.activeCourseId) {
@@ -15,7 +26,7 @@ export default async function VocabularyPage() {
     const vocabularyList = await getUserVocabulary();
 
     return (
-        <div className="flex flex-col gap-y-8 pb-16 pt-4 px-4 w-full max-w-[1056px] mx-auto min-h-screen">
+        <div className="animate-in fade-in duration-500 w-full flex flex-col gap-y-8">
             {/* ── Word Vault 3D Hero Header ── */}
             <div className="relative w-full rounded-[30px] sm:rounded-[40px] bg-gradient-to-br from-sky-400 to-sky-500 border-2 border-sky-300 border-b-[8px] sm:border-b-[12px] border-b-sky-600 p-6 sm:p-10 md:p-12 mb-8 overflow-hidden shadow-xl flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-10">
                 
@@ -73,3 +84,42 @@ export default async function VocabularyPage() {
         </div>
     );
 }
+
+// --- SKELETON FALLBACK ---
+const VocabularySkeleton = () => {
+    return (
+        <div className="animate-in fade-in duration-500 w-full flex flex-col gap-y-8">
+            {/* Word Vault 3D Hero Header Skeleton */}
+            <div className="relative w-full rounded-[30px] sm:rounded-[40px] bg-stone-200 border-2 border-stone-300 border-b-[8px] sm:border-b-[12px] border-b-stone-400 p-6 sm:p-10 md:p-12 mb-8 overflow-hidden shadow-sm flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-10 animate-pulse">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 sm:gap-8 relative z-10 w-full lg:w-auto">
+                    <div className="relative shrink-0">
+                        <div className="bg-stone-300 rounded-[32px] w-28 h-28 sm:w-32 sm:h-32" />
+                    </div>
+                    <div className="flex flex-col items-center sm:items-start gap-3 w-full">
+                        <div className="h-12 w-64 bg-stone-300 rounded-xl" />
+                        <div className="h-6 w-full max-w-sm bg-stone-300 rounded-lg" />
+                        <div className="h-10 w-32 bg-stone-300 rounded-xl mt-2" />
+                    </div>
+                </div>
+                <div className="relative z-10 w-full lg:w-auto flex justify-center">
+                    <div className="w-full sm:w-[240px] h-20 bg-stone-300 rounded-2xl sm:rounded-3xl" />
+                </div>
+            </div>
+
+            {/* Dashboard Skeleton */}
+            <div className="w-full bg-white rounded-3xl border-2 border-stone-200 p-6 mb-8 animate-pulse">
+                {/* Search / Filter Skeleton */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                    <div className="flex-1 h-14 bg-stone-200 rounded-2xl" />
+                    <div className="w-full sm:w-48 h-14 bg-stone-200 rounded-2xl" />
+                </div>
+                {/* Grid Skeleton */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="h-32 bg-stone-100 rounded-2xl border-2 border-stone-200" />
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};

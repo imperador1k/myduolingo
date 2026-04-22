@@ -1,9 +1,9 @@
 import { cache } from "react";
 import { auth } from "@clerk/nextjs/server";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, sql, gte } from "drizzle-orm";
 import { db } from "../drizzle";
 import { userProgress, userDailyStats, courses, userVocabulary, challengeProgress, challengeMistakes } from "../schema";
-import { subDays, format } from "date-fns";
+import { subDays, format, startOfWeek } from "date-fns";
 import { createNotification } from "@/lib/notifications";
 import { checkSubscription } from "@/lib/subscription";
 
@@ -302,4 +302,62 @@ export const checkStreakReset = async () => {
         return { streakLost: true, days: lostStreak };
     }
     return { streakLost: false };
+};
+
+/**
+ * Calculates the weekly leaderboard by summing XP from `userDailyStats`
+ * since Monday 00:00 of the current week.
+ *
+ * Uses a LEFT JOIN so users with zero activity this week still appear
+ * with weeklyXp = 0 instead of being omitted entirely.
+ */
+export const getWeeklyLeaderboard = cache(async () => {
+    // Monday of the current week, in YYYY-MM-DD format (locale-agnostic, week starts Monday)
+    const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+
+    const rows = await db
+        .select({
+            userId: userProgress.userId,
+            userName: userProgress.userName,
+            userImageSrc: userProgress.userImageSrc,
+            league: userProgress.league,
+            // SUM xpGained for this week only; COALESCE ensures 0 fallback
+            weeklyXp: sql<number>`COALESCE(SUM(CASE WHEN ${userDailyStats.date} >= ${weekStart} THEN ${userDailyStats.xpGained} ELSE 0 END), 0)`,
+        })
+        .from(userProgress)
+        .leftJoin(userDailyStats, eq(userProgress.userId, userDailyStats.userId))
+        .groupBy(
+            userProgress.userId,
+            userProgress.userName,
+            userProgress.userImageSrc,
+            userProgress.league,
+        )
+        .orderBy(sql`COALESCE(SUM(CASE WHEN ${userDailyStats.date} >= ${weekStart} THEN ${userDailyStats.xpGained} ELSE 0 END), 0) DESC`)
+        .limit(50);
+
+    return rows;
+});
+
+/**
+ * Fetches the weekly leaderboard for a specific league tier.
+ * Used exclusively by the cron job — NOT cached, as it must reflect
+ * real-time data at the moment of the weekly reset.
+ *
+ * @param league - e.g. 'BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND'
+ */
+export const getWeeklyLeaderboardByLeague = async (league: string) => {
+    const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+
+    const rows = await db
+        .select({
+            userId: userProgress.userId,
+            weeklyXp: sql<number>`COALESCE(SUM(CASE WHEN ${userDailyStats.date} >= ${weekStart} THEN ${userDailyStats.xpGained} ELSE 0 END), 0)`,
+        })
+        .from(userProgress)
+        .leftJoin(userDailyStats, eq(userProgress.userId, userDailyStats.userId))
+        .where(eq(userProgress.league, league))
+        .groupBy(userProgress.userId)
+        .orderBy(sql`COALESCE(SUM(CASE WHEN ${userDailyStats.date} >= ${weekStart} THEN ${userDailyStats.xpGained} ELSE 0 END), 0) DESC`);
+
+    return rows;
 };

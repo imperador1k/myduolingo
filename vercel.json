@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/league-reset",
+      "schedule": "59 23 * * 0"
+    }
+  ]
+}

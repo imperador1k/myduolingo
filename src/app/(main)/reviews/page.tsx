@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { Star, ArrowLeft } from "lucide-react";
 import Image from "next/image";
@@ -7,16 +8,11 @@ import { ReviewCTA } from "./review-cta";
 
 export const dynamic = "force-dynamic";
 
-export default async function ReviewsPage() {
-    const reviews = await getLatestReviewsAction(50);
-    
-    // Calculate global average
-    const totalRating = reviews.reduce((acc: number, rev: any) => acc + rev.rating, 0);
-    const average = reviews.length > 0 ? (totalRating / reviews.length).toFixed(1) : "0.0";
-
+export default function ReviewsPage() {
     return (
-        <div className="flex w-full flex-col p-6 lg:p-12 mb-[100px] animate-in fade-in duration-500 max-w-[1056px] mx-auto">
-            <div className="mb-6 flex">
+        <div className="flex w-full flex-col p-6 lg:p-12 mb-[100px] max-w-[1056px] mx-auto">
+            {/* ── Back Link (Synchronous) ── */}
+            <div className="mb-6 flex animate-in fade-in duration-500">
                 <Link href="/settings" className="inline-flex items-center gap-2 text-stone-400 hover:text-stone-600 font-bold transition-all group active:translate-x-[-4px]">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-stone-200 border-b-4 bg-white group-hover:bg-stone-50 transition-all">
                         <ArrowLeft className="w-5 h-5 text-stone-400 group-hover:text-stone-600" />
@@ -24,6 +20,23 @@ export default async function ReviewsPage() {
                     VOLTAR
                 </Link>
             </div>
+
+            <Suspense fallback={<ReviewsSkeleton />}>
+                <ReviewsData />
+            </Suspense>
+        </div>
+    );
+}
+
+async function ReviewsData() {
+    const reviews = await getLatestReviewsAction(50);
+    
+    // Calculate global average
+    const totalRating = reviews.reduce((acc: number, rev: any) => acc + rev.rating, 0);
+    const average = reviews.length > 0 ? (totalRating / reviews.length).toFixed(1) : "0.0";
+
+    return (
+        <div className="animate-in fade-in duration-500">
             <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-8 mb-12 bg-white border-2 border-stone-200 border-b-8 rounded-3xl p-8 lg:p-12">
                 <div className="flex-1 flex flex-col items-center text-center md:items-start md:text-left gap-4">
                     <h1 className="text-4xl md:text-5xl font-black text-stone-800 leading-tight flex items-center justify-center md:justify-start gap-2 flex-wrap">
@@ -111,3 +124,44 @@ export default async function ReviewsPage() {
         </div>
     );
 }
+
+// --- SKELETON FALLBACK ---
+const ReviewsSkeleton = () => {
+    return (
+        <div className="animate-in fade-in duration-500 w-full">
+            {/* Header / CTA Skeleton */}
+            <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-8 mb-12 bg-white border-2 border-stone-200 border-b-8 rounded-3xl p-8 lg:p-12 animate-pulse">
+                <div className="flex-1 flex flex-col items-center md:items-start w-full gap-4">
+                    <div className="h-12 w-3/4 bg-stone-200 rounded-xl" />
+                    <div className="h-12 w-1/2 bg-stone-200 rounded-xl" />
+                    <div className="h-6 w-full max-w-md bg-stone-200 rounded-lg mt-2" />
+                    <div className="h-[52px] w-[200px] bg-stone-200 rounded-2xl mt-4" />
+                </div>
+                <div className="bg-stone-100 border-2 border-stone-200 rounded-3xl p-6 md:p-8 flex items-center gap-6 shadow-sm shrink-0 w-full md:w-[320px] h-[140px]" />
+            </div>
+
+            {/* Grid Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="bg-white border-2 border-stone-200 border-b-8 rounded-3xl p-5 sm:p-6 relative flex flex-col gap-4 animate-pulse">
+                        <div className="flex flex-col gap-3 w-full">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-full bg-stone-200 shrink-0" />
+                                <div className="flex flex-col gap-2">
+                                    <div className="h-5 w-24 bg-stone-200 rounded-md" />
+                                    <div className="h-4 w-16 bg-stone-200 rounded-md" />
+                                </div>
+                            </div>
+                            <div className="w-24 h-6 bg-stone-200 rounded-xl" />
+                        </div>
+                        <div className="relative mt-2 space-y-2">
+                            <div className="h-4 w-full bg-stone-200 rounded-md" />
+                            <div className="h-4 w-5/6 bg-stone-200 rounded-md" />
+                            <div className="h-4 w-4/6 bg-stone-200 rounded-md" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};

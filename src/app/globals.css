@@ -308,6 +308,22 @@ a, button, [role="button"], input, select, textarea, label {
   to { transform: translateX(24px); }
 }
 
+/* === VIP Bento Animations === */
+@keyframes shimmer {
+  0% { transform: translateX(-150%) skewX(12deg); }
+  100% { transform: translateX(150%) skewX(12deg); }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.04) translateY(-4px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+  50% { transform: translateY(-8px) rotate(10deg); opacity: 0.9; }
+}
+
 /* Hide Buy Me A Coffee Default Widget Button */
 #bmc-wbtn {
   display: none !important;

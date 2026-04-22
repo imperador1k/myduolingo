@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import { currentUser } from "@clerk/nextjs/server";
 import { SignOutButton } from "@clerk/nextjs";
@@ -13,7 +14,21 @@ import { checkSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
-export default async function SettingsPage() {
+export default function SettingsPage() {
+    return (
+        <div className="max-w-4xl mx-auto py-10 px-4 flex flex-col gap-8 pb-24">
+            <h1 className="text-3xl md:text-4xl font-black text-stone-800 tracking-tight animate-in fade-in duration-500">
+                Definições
+            </h1>
+
+            <Suspense fallback={<SettingsSkeleton />}>
+                <SettingsData />
+            </Suspense>
+        </div>
+    );
+}
+
+async function SettingsData() {
     const user = await currentUser();
     if (!user) return redirect("/");
 
@@ -29,9 +44,7 @@ export default async function SettingsPage() {
     }).format(new Date(user.createdAt));
 
     return (
-        <div className="max-w-4xl mx-auto py-10 px-4 flex flex-col gap-8 pb-24">
-            <h1 className="text-3xl md:text-4xl font-black text-stone-800 tracking-tight">Definições</h1>
-
+        <div className="flex flex-col gap-8 animate-in fade-in duration-500">
             {/* The "Player Passport" (Profile Section) */}
             <div className="bg-white border-2 border-stone-200 border-b-8 rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between relative overflow-hidden gap-6">
                 <div className="flex items-center gap-x-6">
@@ -126,3 +139,55 @@ export default async function SettingsPage() {
         </div>
     );
 }
+
+// --- SKELETON FALLBACK ---
+const SettingsSkeleton = () => {
+    return (
+        <div className="flex flex-col gap-8 animate-in fade-in duration-500">
+            {/* Player Passport Skeleton */}
+            <div className="bg-white border-2 border-stone-200 border-b-8 rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between relative overflow-hidden gap-6 animate-pulse">
+                <div className="flex items-center gap-x-6">
+                    <div className="h-20 w-20 md:h-24 md:w-24 rounded-full bg-stone-200 shrink-0" />
+                    <div className="flex flex-col gap-2">
+                        <div className="h-6 w-48 bg-stone-200 rounded-lg" />
+                        <div className="h-4 w-32 bg-stone-200 rounded-md" />
+                    </div>
+                </div>
+                <div className="w-full md:w-32 h-12 bg-stone-200 rounded-xl" />
+            </div>
+
+            {/* Account Details Skeleton */}
+            <div>
+                <div className="h-6 w-40 bg-stone-200 rounded-lg mb-4 animate-pulse" />
+                <div className="bg-white border-2 border-stone-200 border-b-8 rounded-[2rem] p-6 md:p-8 flex flex-col gap-4 animate-pulse">
+                    <div className="h-16 w-full bg-stone-200 rounded-2xl" />
+                    <div className="h-16 w-full bg-stone-200 rounded-2xl" />
+                </div>
+            </div>
+
+            {/* Subscription Skeleton */}
+            <div>
+                <div className="bg-white border-2 border-stone-200 border-b-8 rounded-[2rem] p-6 md:p-8 animate-pulse h-[240px]" />
+            </div>
+
+            {/* Notifications Skeleton */}
+            <div>
+                <div className="h-6 w-32 bg-stone-200 rounded-lg mb-4 animate-pulse" />
+                <div className="bg-white border-2 border-stone-200 border-b-8 rounded-[2rem] p-6 md:p-8 animate-pulse h-[100px]" />
+            </div>
+
+            {/* Support & Legal Skeleton */}
+            <div>
+                <div className="h-6 w-48 bg-stone-200 rounded-lg mb-4 animate-pulse" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="h-20 bg-white border-2 border-stone-200 border-b-6 rounded-2xl p-5 animate-pulse flex items-center gap-4">
+                            <div className="w-6 h-6 rounded-md bg-stone-200" />
+                            <div className="h-4 w-32 bg-stone-200 rounded-md" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};

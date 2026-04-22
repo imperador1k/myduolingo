@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getCourses, getUserProgress } from "@/db/queries";
 import { CoursesList } from "./courses-list";
 import { BookOpen, Flame, Target, Trophy, Sparkles } from "lucide-react";
@@ -6,15 +7,10 @@ import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
-export default async function CoursesPage() {
-    const courses = await getCourses();
-    const userProgress = await getUserProgress();
-
-    const activeCourse = courses.find(c => c.id === userProgress?.activeCourseId);
-
+export default function CoursesPage() {
     return (
         <div className="pb-12 px-4 lg:px-0 max-w-[1056px] mx-auto pt-6 space-y-10">
-            {/* Gamified Worlds Header */}
+            {/* Gamified Worlds Header (Synchronous) */}
             <div className="flex flex-col items-center justify-center text-center gap-4 mb-10 mt-4">
                 <div className="h-28 w-28 bg-sky-100 rounded-[2rem] border-4 border-sky-200 border-b-[8px] shadow-sm flex items-center justify-center mb-2 animate-in zoom-in duration-500 relative">
                     <span className="text-6xl drop-shadow-md">🌍</span>
@@ -31,9 +27,24 @@ export default async function CoursesPage() {
                 </p>
             </div>
 
+            <Suspense fallback={<CoursesSkeleton />}>
+                <CoursesData />
+            </Suspense>
+        </div>
+    );
+}
+
+async function CoursesData() {
+    const courses = await getCourses();
+    const userProgress = await getUserProgress();
+
+    const activeCourse = courses.find(c => c.id === userProgress?.activeCourseId);
+
+    return (
+        <>
             {/* Active Course Card (if any) */}
             {userProgress?.activeCourseId && activeCourse && (
-                <div className="flex flex-col gap-4 mb-4">
+                <div className="flex flex-col gap-4 mb-4 animate-in fade-in duration-500">
                     <h2 className="text-xl font-black text-slate-700 uppercase tracking-widest pl-2 flex items-center gap-2">
                         <span className="text-2xl drop-shadow-sm">🔥</span> O Teu Percurso
                     </h2>
@@ -82,13 +93,55 @@ export default async function CoursesPage() {
             )}
 
             {/* All Courses Grid */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 animate-in fade-in duration-500">
                 <CoursesList
                     courses={courses}
                     activeCourseId={userProgress?.activeCourseId || undefined}
                 />
             </div>
-        </div>
+        </>
     );
 }
+
+// --- SKELETON FALLBACK ---
+const CoursesSkeleton = () => {
+    return (
+        <div className="animate-in fade-in duration-500 w-full space-y-10">
+            {/* Active Course Card Skeleton */}
+            <div className="flex flex-col gap-4 mb-4">
+                <div className="h-6 w-48 bg-stone-200 rounded-md animate-pulse pl-2" />
+                <div className="w-full bg-white rounded-[32px] border-2 border-stone-200 border-b-[10px] p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6 lg:gap-8 shadow-sm">
+                    {/* Left: Landmark Illustration Skeleton */}
+                    <div className="shrink-0 relative w-24 h-24 lg:w-32 lg:h-32 bg-stone-100 rounded-[2rem] border-2 border-stone-200 flex items-center justify-center animate-pulse" />
+
+                    {/* Center: Title & Progress Bar Skeleton */}
+                    <div className="flex-1 flex flex-col justify-center items-center md:items-start text-center md:text-left gap-4 w-full">
+                        <div className="h-10 w-48 bg-stone-200 rounded-xl animate-pulse" />
+                        <div className="w-full max-w-sm flex flex-col gap-2 mt-2">
+                            <div className="flex-1 h-5 w-full bg-stone-200 rounded-full animate-pulse" />
+                            <div className="h-4 w-32 bg-stone-200 rounded-md animate-pulse" />
+                        </div>
+                    </div>
+
+                    {/* Right: Button Skeleton */}
+                    <div className="shrink-0 mt-4 md:mt-0 w-full md:w-auto">
+                        <div className="w-full md:w-[200px] h-16 rounded-2xl bg-stone-200 border-b-[8px] border-stone-300 animate-pulse" />
+                    </div>
+                </div>
+            </div>
+
+            {/* All Courses Grid Skeleton */}
+            <div className="flex flex-col gap-3">
+                <div className="pt-6 grid grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-4">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="pt-6 pb-8 px-3 rounded-2xl border-2 border-stone-200 border-b-4 bg-stone-50 flex flex-col items-center min-h-[220px] animate-pulse">
+                            <div className="w-[80px] h-[80px] rounded-2xl bg-stone-200 mb-6 drop-shadow-md border-b-4 border-stone-300" />
+                            <div className="h-5 w-24 bg-stone-200 rounded-md" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
 

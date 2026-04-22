@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
@@ -15,7 +16,17 @@ import { ShareProfileModal } from "@/components/modals/share-profile-modal";
 
 export const dynamic = "force-dynamic";
 
-export default async function ProfilePage() {
+export default function ProfilePage() {
+    return (
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 pb-28">
+            <Suspense fallback={<ProfileSkeleton />}>
+                <ProfileData />
+            </Suspense>
+        </div>
+    );
+}
+
+async function ProfileData() {
     const user = await currentUser();
     const userProgress = await getUserProgress();
     const units = await getUnits();
@@ -49,8 +60,7 @@ export default async function ProfilePage() {
     }));
 
     return (
-        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 pb-28">
-
+        <>
             {/* Celebration Lottie */}
             <LottieBlock className="w-24 h-24 md:w-32 md:h-32 mx-auto -mb-8 z-20 relative mix-blend-multiply" />
 
@@ -128,7 +138,74 @@ export default async function ProfilePage() {
                     </SignOutButton>
                 </div>
             </div>
-        </div>
+        </>
     );
 }
+
+// --- SKELETON FALLBACK ---
+const ProfileSkeleton = () => {
+    return (
+        <div className="animate-in fade-in duration-500 w-full">
+            {/* Lottie Placeholder */}
+            <div className="w-24 h-24 md:w-32 md:h-32 mx-auto -mb-8 z-20 relative bg-stone-200 rounded-full animate-pulse" />
+
+            {/* Profile Hero Skeleton */}
+            <div className="w-full bg-stone-100 rounded-[2rem] border-2 border-stone-200 p-6 pt-12 md:p-10 md:pt-16 mb-8 flex flex-col md:flex-row items-center md:items-start gap-6 relative overflow-hidden shadow-sm">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full border-4 border-white shadow-md bg-stone-200 shrink-0 z-10 animate-pulse" />
+                <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left z-10 gap-3">
+                    <div className="h-8 w-48 bg-stone-200 rounded-lg animate-pulse" />
+                    <div className="h-4 w-32 bg-stone-200 rounded-md animate-pulse" />
+                    <div className="h-3 w-24 bg-stone-200 rounded-md animate-pulse mt-2" />
+                </div>
+                <div className="w-full md:w-auto shrink-0 flex flex-col sm:flex-row md:flex-col gap-3 z-10">
+                    <div className="w-full sm:w-[160px] h-12 sm:h-14 bg-stone-200 rounded-[1.5rem] animate-pulse" />
+                    <div className="w-full sm:w-[160px] h-12 sm:h-14 bg-stone-200 rounded-[1.5rem] animate-pulse" />
+                </div>
+            </div>
+
+            {/* Stats Bento Grid Skeleton */}
+            <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex flex-col items-center justify-center rounded-3xl border-b-4 border-2 border-stone-200 bg-stone-50 p-6 h-[140px] animate-pulse">
+                        <div className="h-8 w-8 bg-stone-200 rounded-full mb-3" />
+                        <div className="h-8 w-16 bg-stone-200 rounded-lg mb-2" />
+                        <div className="h-4 w-20 bg-stone-200 rounded-md" />
+                    </div>
+                ))}
+            </div>
+
+            {/* XP Balance Context Banner Skeleton */}
+            <div className="mb-12 flex flex-col sm:flex-row items-center justify-between rounded-[2rem] border-b-4 border-stone-200 bg-stone-50 p-6 sm:px-8 sm:py-6 shadow-sm gap-6 sm:gap-0 animate-pulse">
+                <div className="flex flex-col items-center sm:items-start gap-2">
+                    <div className="h-4 w-24 bg-stone-200 rounded-md" />
+                    <div className="flex items-center gap-3 mt-1">
+                        <div className="w-8 h-8 bg-stone-200 rounded-full" />
+                        <div className="h-10 w-24 bg-stone-200 rounded-xl" />
+                    </div>
+                </div>
+                <div className="w-full sm:w-[160px] h-[52px] bg-stone-200 rounded-2xl" />
+            </div>
+
+            {/* Achievements List Skeleton */}
+            <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 bg-stone-200 rounded-full animate-pulse" />
+                    <div className="h-8 w-48 bg-stone-200 rounded-lg animate-pulse" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="bg-stone-50 border-2 border-stone-200 border-b-4 rounded-2xl p-5 flex items-center gap-4 animate-pulse">
+                            <div className="w-16 h-16 bg-stone-200 rounded-2xl shrink-0" />
+                            <div className="flex-1 space-y-2">
+                                <div className="h-5 w-32 bg-stone-200 rounded-md" />
+                                <div className="h-3 w-full bg-stone-200 rounded-md" />
+                                <div className="w-full h-4 bg-stone-200 rounded-full mt-2" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
 
