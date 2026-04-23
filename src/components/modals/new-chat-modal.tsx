@@ -67,7 +67,7 @@ export const NewChatModal = ({ isOpen, onClose }: Props) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="z-[9999] max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none [&>button]:hidden">
+            <DialogContent className="z-modal max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none [&>button]:hidden">
                 <div className="relative bg-white border-2 border-stone-200 border-b-8 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col p-6 md:p-8">
                     {/* Custom Close Button */}
                     <button 

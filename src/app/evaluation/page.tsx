@@ -526,7 +526,7 @@ export default function EvaluationPage() {
 
               {/* Loading Overlay */}
             {isLoading && (
-                <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex items-center justify-center">
+                <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-modal flex items-center justify-center">
                     <div className="flex flex-col items-center gap-4 animate-pulse">
                         <div className="relative">
                             <Loader2 className="h-12 w-12 animate-spin text-sky-500" />
@@ -1073,7 +1073,7 @@ export default function EvaluationPage() {
                 }
 
                 return (
-                    <div className={cn("fixed bottom-0 left-0 right-0 z-[90] animate-in slide-in-from-bottom duration-300", feedbackIsCorrect ? "bg-green-100 border-t-2 border-green-300" : "bg-red-100 border-t-2 border-red-300")}>
+                    <div className={cn("fixed bottom-0 left-0 right-0 z-above-modal animate-in slide-in-from-bottom duration-300", feedbackIsCorrect ? "bg-green-100 border-t-2 border-green-300" : "bg-red-100 border-t-2 border-red-300")}>
                         <div className="max-w-2xl mx-auto px-4 py-4 sm:py-5 flex flex-col gap-4">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-3 min-w-0">

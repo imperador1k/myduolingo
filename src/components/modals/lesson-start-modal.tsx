@@ -46,12 +46,12 @@ export const LessonStartModal = ({ lesson, isOpen, onClose }: Props) => {
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
+                className="fixed inset-0 z-modal bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
                 onClick={onClose}
             />
 
             {/* Modal */}
-            <div className="fixed left-1/2 top-1/2 z-[100] w-[92%] max-w-sm -translate-x-1/2 -translate-y-1/2 animate-in zoom-in-95 duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]">
+            <div className="fixed left-1/2 top-1/2 z-modal w-[92%] max-w-sm -translate-x-1/2 -translate-y-1/2 animate-in zoom-in-95 duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]">
                 <div className="relative bg-white border-2 border-[#e5e7eb] border-b-8 rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col">
                     
                     {/* ── Top decorative bar ── */}

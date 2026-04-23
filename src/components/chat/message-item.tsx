@@ -84,7 +84,7 @@ export const MessageItem = ({
             className={cn(
                 "flex w-full flex-col group/msg transition-all duration-500 relative", 
                 isMe ? "items-end" : "items-start",
-                (highlightedId === msg.id || activeMenuId === msg.id) && "z-[999] overflow-visible",
+                (highlightedId === msg.id || activeMenuId === msg.id) && "z-above-modal overflow-visible",
                 highlightedId === msg.id && "scale-105 brightness-110"
             )}
         >
@@ -128,7 +128,7 @@ export const MessageItem = ({
                             animate={{ opacity: 1, y: -65, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             className={cn(
-                                "absolute bottom-full flex bg-white border-2 border-stone-200 border-b-6 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] p-1.5 z-[1000] gap-1",
+                                "absolute bottom-full flex bg-white border-2 border-stone-200 border-b-6 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] p-1.5 z-above-modal gap-1",
                                 isMe ? "right-0" : "left-0"
                             )}
                         >

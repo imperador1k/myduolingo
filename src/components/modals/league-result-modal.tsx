@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Trophy, Star, Crown, Zap, Shield, Gem } from "lucide-react";
+import useSound from "use-sound";
 import { cn } from "@/lib/utils";
 import { clearLeagueResult } from "@/actions/clear-league-result";
 
@@ -31,10 +32,12 @@ export function LeagueResultModal({ result }: Props) {
     const [isOpen, setIsOpen] = useState(true);
     const [mounted, setMounted] = useState(false);
     const [isPending, startTransition] = useTransition();
+    const [playTada] = useSound('/sounds/tada.mp3', { volume: 0.5 });
 
     useEffect(() => {
         setMounted(true);
         if (result.status === 'PROMOTED') {
+            playTada();
             const duration = 4000;
             const end = Date.now() + duration;
 
@@ -108,13 +111,13 @@ export function LeagueResultModal({ result }: Props) {
             {isOpen && (
                 <>
                     <motion.div
-                        className="fixed inset-0 bg-stone-900/80 backdrop-blur-md z-[9999]"
+                        className="fixed inset-0 bg-stone-900/80 backdrop-blur-md z-supreme"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                     />
                     <motion.div
-                        className="fixed inset-0 flex items-center justify-center p-4 z-[10000] pointer-events-none"
+                        className="fixed inset-0 flex items-center justify-center p-4 z-supreme pointer-events-none"
                     >
                         <motion.div
                             className={cn(

@@ -33,7 +33,7 @@ export const PurchaseSuccessModal = ({
     if (!isClient || !isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-stone-900/60 backdrop-blur-xl animate-in fade-in duration-500 px-4">
+        <div className="fixed inset-0 z-above-modal flex items-center justify-center bg-stone-900/60 backdrop-blur-xl animate-in fade-in duration-500 px-4">
             <div className="w-full max-w-[420px] rounded-[3rem] bg-gradient-to-b from-white to-amber-50 p-8 md:p-10 shadow-2xl flex flex-col items-center text-center border-2 border-stone-200 border-b-8 relative overflow-hidden animate-in zoom-in-90 duration-500">
                 {/* Immersive radial background */}
                 <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-amber-200/30 to-transparent -z-10" />

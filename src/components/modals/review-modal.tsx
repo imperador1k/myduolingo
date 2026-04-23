@@ -54,7 +54,7 @@ export const ReviewModal = () => {
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent className="max-w-md w-[95vw] sm:w-full p-0 bg-transparent border-none shadow-none z-[150] outline-none [&>button]:hidden flex items-center justify-center">
+            <DialogContent className="max-w-md w-[95vw] sm:w-full p-0 bg-transparent border-none shadow-none z-modal outline-none [&>button]:hidden flex items-center justify-center">
                 <DialogTitle className="sr-only">Avalia a tua experiência</DialogTitle>
                 
                 <div className="relative w-full bg-white border-2 border-stone-200 border-b-8 rounded-3xl p-6 sm:p-8 text-center flex flex-col items-center outline-none my-16">

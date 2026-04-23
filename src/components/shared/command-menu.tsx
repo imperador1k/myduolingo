@@ -37,7 +37,7 @@ export function CommandMenu() {
             open={open} 
             onOpenChange={setOpen}
             label="Menu de Navegação Global"
-            className="fixed inset-0 z-[100] flex items-start justify-center px-4 py-4 md:py-[15vh] bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
+            className="fixed inset-0 z-overlay flex items-start justify-center px-4 py-4 md:py-[15vh] bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
         >
             <div className="w-full max-w-xl bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_0_50px_-12px_rgba(0,0,0,0.25)] overflow-hidden border-2 border-slate-200/60 antialiased font-sans flex flex-col animate-in zoom-in-95 slide-in-from-top-4 duration-300">
                 <div className="flex items-center border-b-2 border-slate-100/80 px-4 py-2 bg-slate-50/50">

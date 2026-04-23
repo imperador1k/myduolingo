@@ -17,6 +17,7 @@ import { useUISounds } from "@/hooks/use-ui-sounds";
 import { PurchaseSuccessModal } from "@/components/modals/purchase-success-modal";
 import { usePurchaseStore } from "@/store/use-purchase-store";
 import { useProModalStore } from "@/store/use-pro-modal-store";
+import useSound from "use-sound";
 
 type Props = {
     hearts: number;
@@ -52,6 +53,7 @@ export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streak
     } | null>(null);
 
     const { playWhoosh, playReward } = useUISounds();
+    const [playChaching] = useSound('/sounds/chaching.mp3', { volume: 0.5 });
 
     const closePopup = () => {
         closePopupStore();
@@ -89,6 +91,7 @@ export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streak
                         setError(result.message);
                     } else {
                         // Success!
+                        playChaching();
                         playReward();
                         // Delay opening the popup slightly to ensure revalidation doesn't clash with state
                         setTimeout(() => {
@@ -116,7 +119,7 @@ export const ShopItems = ({ hearts, points, xpBoostLessons, heartShields, streak
         <>
             {/* Purchase Confirmation Modal (Portaled for Global Blur) */}
             {confirmModal && typeof document !== "undefined" && createPortal(
-                <div className="fixed inset-0 z-[999] flex items-center justify-center bg-stone-900/60 backdrop-blur-md animate-in fade-in duration-300 px-4">
+                <div className="fixed inset-0 z-above-modal flex items-center justify-center bg-stone-900/60 backdrop-blur-md animate-in fade-in duration-300 px-4">
                     <div className="w-full max-w-[420px] rounded-[2.5rem] bg-white p-8 md:p-10 shadow-2xl animate-in zoom-in-95 duration-300 border-2 border-stone-200 border-b-8 relative overflow-hidden">
                         {/* Decorative background element */}
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-50 rounded-full blur-3xl opacity-50" />

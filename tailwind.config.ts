@@ -16,6 +16,16 @@ const config: Config = {
       },
     },
     extend: {
+      zIndex: {
+        // Semantic z-index scale — use these instead of arbitrary values.
+        // 'base' and 'dropdown' use Tailwind's defaults (0, 40, 50).
+        // Anything higher must use one of these named tokens.
+        'overlay': '60',   // Mobile nav backdrop, command menu backdrop
+        'modal': '70',     // General modals (pro, hearts, lesson-start)
+        'toast': '80',     // Toasts, custom-toast, snackbars
+        'above-modal': '90',  // Modal-on-modal (shop confirm, purchase success)
+        'supreme': '9999', // League result ceremony (sits above everything)
+      },
       fontFamily: {
         sans: ["Nunito", "sans-serif"],
       },

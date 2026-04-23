@@ -27,7 +27,7 @@ export const DangerZone = () => {
     };
 
     const modalContent = (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
             {/* Backdrop */}
             <div 
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity"
@@ -35,7 +35,7 @@ export const DangerZone = () => {
             />
             
             {/* Modal Content */}
-            <div className="relative w-full max-w-md bg-white border-2 border-slate-200 border-b-8 rounded-[2rem] p-6 sm:p-8 text-center shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="z-modal w-[92%] max-w-sm bg-white border-2 border-slate-200 border-b-8 rounded-[2rem] p-6 sm:p-8 text-center shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Decorative background glowing circle */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-red-100 rounded-full opacity-50 blur-xl"></div>
                 

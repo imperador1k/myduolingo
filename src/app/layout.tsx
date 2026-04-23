@@ -42,7 +42,7 @@ export default function RootLayout({
             <OneSignalProvider />
             
             <ClerkLoading>
-              <div className="fixed inset-0 z-[999] bg-white flex items-center justify-center">
+              <div className="fixed inset-0 z-above-modal bg-white flex items-center justify-center">
                 <LoadingScreen />
               </div>
             </ClerkLoading>

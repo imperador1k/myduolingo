@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, boolean, pgEnum, date, timestamp, jsonb, unique, uuid } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, pgEnum, date, timestamp, jsonb, unique, uuid, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // Enum for challenge types
@@ -146,7 +146,11 @@ export const userProgress = pgTable("user_progress", {
     // League system — promoted/demoted weekly (BRONZE | SILVER | GOLD | PLATINUM | DIAMOND)
     league: text("league").notNull().default("BRONZE"),
     lastWeekResult: jsonb("last_week_result"),
-});
+}, (t) => ({
+    leagueIdx: index("user_progress_league_idx").on(t.league),
+    pointsIdx: index("user_progress_points_idx").on(t.points),
+    totalXpIdx: index("user_progress_total_xp_idx").on(t.totalXpEarned),
+}));
 
 
 // ===== PLACEMENT TEST HISTORY =====
@@ -229,6 +233,7 @@ export const userDailyStats = pgTable("user_daily_stats", {
     chestClaimed: boolean("chest_claimed").notNull().default(false),
 }, (t) => ({
     userDateUnq: unique("user_id_date_unique").on(t.userId, t.date),
+    dateIdx: index("user_daily_stats_date_idx").on(t.date),
 }));
 
 export const userDailyStatsRelations = relations(userDailyStats, ({ one }) => ({

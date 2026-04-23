@@ -68,7 +68,7 @@ export const UnitSearchModal = ({ units }: UnitSearchModalProps) => {
     };
 
     const modalContent = (
-        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-start justify-center pt-[15vh] px-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-modal bg-slate-900/40 backdrop-blur-sm flex items-start justify-center pt-[15vh] px-4 animate-in fade-in duration-200">
             {/* Click outside to close */}
             <div className="absolute inset-0 cursor-pointer" onClick={() => setIsOpen(false)}></div>
             

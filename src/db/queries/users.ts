@@ -11,15 +11,27 @@ export const getUserAnalytics = cache(async () => {
     const { userId } = await auth();
     if (!userId) return null;
 
-    const progress = await getUserProgress();
-    if (!progress) return null;
-
     const today = new Date();
     const last7Days = Array.from({ length: 7 }).map((_, i) => format(subDays(today, 6 - i), 'yyyy-MM-dd'));
 
-    const dailyData = await db.query.userDailyStats.findMany({
-        where: eq(userDailyStats.userId, userId)
-    });
+    const [
+        progress,
+        dailyData,
+        vocabularyList,
+        completedChallenges,
+        mistakes
+    ] = await Promise.all([
+        getUserProgress(),
+        db.query.userDailyStats.findMany({ where: eq(userDailyStats.userId, userId) }),
+        db.query.userVocabulary.findMany({ where: eq(userVocabulary.userId, userId), columns: { id: true } }),
+        db.query.challengeProgress.findMany({
+            where: and(eq(challengeProgress.userId, userId), eq(challengeProgress.completed, true)),
+            columns: { id: true }
+        }),
+        db.query.challengeMistakes.findMany({ where: eq(challengeMistakes.userId, userId), columns: { id: true } })
+    ]);
+
+    if (!progress) return null;
 
     const weeklyData = last7Days.map(dateStr => {
         const found = dailyData.find(d => d.date === dateStr);
@@ -43,26 +55,10 @@ export const getUserAnalytics = cache(async () => {
     const activeDays = weeklyData.filter(d => d.xp > 0).length;
 
     // Calculate Palavras Dominadas (Mastered Words)
-    const vocabularyList = await db.query.userVocabulary.findMany({
-        where: eq(userVocabulary.userId, userId),
-        columns: { id: true }
-    });
     const wordsMastered = vocabularyList.length;
 
     // Calculate Precisão (Accuracy)
-    const completedChallenges = await db.query.challengeProgress.findMany({
-        where: and(
-            eq(challengeProgress.userId, userId),
-            eq(challengeProgress.completed, true)
-        ),
-        columns: { id: true }
-    });
     const correctCount = completedChallenges.length;
-
-    const mistakes = await db.query.challengeMistakes.findMany({
-        where: eq(challengeMistakes.userId, userId),
-        columns: { id: true }
-    });
     const mistakeCount = mistakes.length;
 
     const totalAttempts = correctCount + mistakeCount;
@@ -132,14 +128,14 @@ export const getUserProgressById = cache(async (userId: string) => {
 
 export const createUserProgress = async (courseId: number) => {
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return { error: "Unauthorized" };
 
     const [existingProgress, course] = await Promise.all([
         db.query.userProgress.findFirst({ where: eq(userProgress.userId, userId) }),
         db.query.courses.findFirst({ where: eq(courses.id, courseId) }),
     ]);
 
-    if (!course) throw new Error("Course not found");
+    if (!course) return { error: "Course not found" };
 
     if (existingProgress) {
         await db
@@ -167,7 +163,7 @@ export const createUserProgress = async (courseId: number) => {
 
 export const updateUserInfo = async (name: string, imageUrl: string) => {
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return { error: "Unauthorized" };
     await db
         .update(userProgress)
         .set({ userName: name || "Estudante", userImageSrc: imageUrl || "/mascot.svg" })
@@ -181,73 +177,82 @@ export const reduceHearts = async () => {
     }
 
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return { error: "Unauthorized" };
     const currentProgress = await getUserProgress();
-    if (!currentProgress) throw new Error("User progress not found");
+    if (!currentProgress) return { error: "User progress not found" };
     if (currentProgress.hearts <= 0) return { error: "hearts" };
 
-    await db
+    const [updatedProgress] = await db
         .update(userProgress)
-        .set({ hearts: currentProgress.hearts - 1, lastHeartChange: new Date() })
-        .where(eq(userProgress.userId, userId));
-    return { hearts: currentProgress.hearts - 1 };
+        .set({ hearts: sql`${userProgress.hearts} - 1`, lastHeartChange: new Date() })
+        .where(eq(userProgress.userId, userId))
+        .returning({ hearts: userProgress.hearts });
+    return { hearts: updatedProgress.hearts };
 };
 
 export const addPoints = async (amount: number) => {
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return { error: "Unauthorized" };
     const currentProgress = await getUserProgress();
-    if (!currentProgress) throw new Error("User progress not found");
+    if (!currentProgress) return { error: "User progress not found" };
 
-    const currentTotalXp = currentProgress.totalXpEarned || 0;
-    await db
+    const [updatedProgress] = await db
         .update(userProgress)
-        .set({ points: currentProgress.points + amount, totalXpEarned: currentTotalXp + amount })
-        .where(eq(userProgress.userId, userId));
-    return { points: currentProgress.points + amount, totalXpEarned: currentTotalXp + amount };
+        .set({ 
+            points: sql`${userProgress.points} + ${amount}`, 
+            totalXpEarned: sql`${userProgress.totalXpEarned} + ${amount}` 
+        })
+        .where(eq(userProgress.userId, userId))
+        .returning({ points: userProgress.points, totalXpEarned: userProgress.totalXpEarned });
+    return { points: updatedProgress.points, totalXpEarned: updatedProgress.totalXpEarned };
 };
 
 export const refillHearts = async () => {
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return { error: "Unauthorized" };
     const currentProgress = await getUserProgress();
-    if (!currentProgress) throw new Error("User progress not found");
+    if (!currentProgress) return { error: "User progress not found" };
 
     if (currentProgress.hearts > 0) return { error: "has_hearts", hearts: currentProgress.hearts };
     const cost = 100;
     if (currentProgress.points < cost) return { error: "not_enough_xp", required: cost, current: currentProgress.points };
 
-    await db
+    const [updatedProgress] = await db
         .update(userProgress)
-        .set({ hearts: 5, points: currentProgress.points - cost })
-        .where(eq(userProgress.userId, userId));
+        .set({ hearts: 5, points: sql`${userProgress.points} - ${cost}` })
+        .where(eq(userProgress.userId, userId))
+        .returning({ hearts: userProgress.hearts, points: userProgress.points });
 
     createNotification(userId, "system", "Corações restaurados! Estás pronto para aprender. ❤️", "/learn").catch(console.error);
-    return { hearts: 5, points: currentProgress.points - cost };
+    return { hearts: updatedProgress.hearts, points: updatedProgress.points };
 };
 
 export const buyOneHeart = async () => {
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return { error: "Unauthorized" };
     const currentProgress = await getUserProgress();
-    if (!currentProgress) throw new Error("User progress not found");
+    if (!currentProgress) return { error: "User progress not found" };
 
     if (currentProgress.hearts >= 5) return { error: "hearts_full", hearts: currentProgress.hearts };
     const cost = 20;
     if (currentProgress.points < cost) return { error: "not_enough_xp", required: cost, current: currentProgress.points };
 
-    await db
+    const [updatedProgress] = await db
         .update(userProgress)
-        .set({ hearts: currentProgress.hearts + 1, points: currentProgress.points - cost })
-        .where(eq(userProgress.userId, userId));
-    return { hearts: currentProgress.hearts + 1, points: currentProgress.points - cost };
+        .set({ 
+            hearts: sql`${userProgress.hearts} + 1`, 
+            points: sql`${userProgress.points} - ${cost}` 
+        })
+        .where(eq(userProgress.userId, userId))
+        .returning({ hearts: userProgress.hearts, points: userProgress.points });
+    return { hearts: updatedProgress.hearts, points: updatedProgress.points };
 };
 
 export const updateStreak = async () => {
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return { error: "Unauthorized" };
     const currentProgress = await getUserProgress();
-    if (!currentProgress) throw new Error("User progress not found");
+    if (!currentProgress) return { error: "User progress not found" };
 
     const today = new Date().toISOString().split('T')[0];
     const lastStreakDate = currentProgress.lastStreakDate;
@@ -321,6 +326,7 @@ export const getWeeklyLeaderboard = cache(async () => {
             userName: userProgress.userName,
             userImageSrc: userProgress.userImageSrc,
             league: userProgress.league,
+            xpBoostLessons: userProgress.xpBoostLessons,
             // SUM xpGained for this week only; COALESCE ensures 0 fallback
             weeklyXp: sql<number>`COALESCE(SUM(CASE WHEN ${userDailyStats.date} >= ${weekStart} THEN ${userDailyStats.xpGained} ELSE 0 END), 0)`,
         })
@@ -331,8 +337,12 @@ export const getWeeklyLeaderboard = cache(async () => {
             userProgress.userName,
             userProgress.userImageSrc,
             userProgress.league,
+            userProgress.xpBoostLessons,
         )
-        .orderBy(sql`COALESCE(SUM(CASE WHEN ${userDailyStats.date} >= ${weekStart} THEN ${userDailyStats.xpGained} ELSE 0 END), 0) DESC`)
+        .orderBy(
+            sql`COALESCE(SUM(CASE WHEN ${userDailyStats.date} >= ${weekStart} THEN ${userDailyStats.xpGained} ELSE 0 END), 0) DESC`,
+            sql`${userProgress.userId} ASC`
+        )
         .limit(50);
 
     return rows;
@@ -357,7 +367,10 @@ export const getWeeklyLeaderboardByLeague = async (league: string) => {
         .leftJoin(userDailyStats, eq(userProgress.userId, userDailyStats.userId))
         .where(eq(userProgress.league, league))
         .groupBy(userProgress.userId)
-        .orderBy(sql`COALESCE(SUM(CASE WHEN ${userDailyStats.date} >= ${weekStart} THEN ${userDailyStats.xpGained} ELSE 0 END), 0) DESC`);
+        .orderBy(
+            sql`COALESCE(SUM(CASE WHEN ${userDailyStats.date} >= ${weekStart} THEN ${userDailyStats.xpGained} ELSE 0 END), 0) DESC`,
+            sql`${userProgress.userId} ASC`
+        );
 
     return rows;
 };

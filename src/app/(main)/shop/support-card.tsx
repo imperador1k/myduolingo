@@ -32,7 +32,7 @@ export const SupportCard = () => {
     };
 
     const modalContent = isOpen ? (
-        <div className="fixed inset-0 z-[99999] flex animate-in fade-in zoom-in-95 duration-200 bg-stone-900/60 backdrop-blur-sm p-4 sm:p-6 md:p-12 items-center justify-center">
+        <div className="fixed inset-0 z-supreme flex animate-in fade-in zoom-in-95 duration-200 bg-stone-900/60 backdrop-blur-sm p-4 sm:p-6 md:p-12 items-center justify-center">
             <div className="bg-white w-full h-full max-w-5xl max-h-[800px] rounded-3xl border-2 border-stone-200 shadow-2xl flex flex-col overflow-hidden relative">
                 {/* Browser Header */}
                 <div className="bg-stone-100 border-b-2 border-stone-200 px-4 py-3 flex items-center justify-between shrink-0">

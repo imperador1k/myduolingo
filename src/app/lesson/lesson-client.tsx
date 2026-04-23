@@ -479,7 +479,7 @@ export const LessonClient = ({
                         initial={{ opacity: 0 }} 
                         animate={{ opacity: 1 }} 
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-xl p-6"
+                        className="fixed inset-0 z-above-modal flex items-center justify-center bg-slate-900/60 backdrop-blur-xl p-6"
                     >
                         <motion.div 
                             initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -548,7 +548,7 @@ export const LessonClient = ({
                 <LessonHeader progress={progress} hearts={hearts} xpBoostLessons={xpBoostLessons} heartShields={heartShields} isAudioMuted={isAudioMuted} onToggleMute={() => setIsAudioMuted(!isAudioMuted)} onExit={handleExit} isPro={isPro} />
 
                 {showTransition && (
-                    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white animate-in fade-in duration-300">
+                    <div className="fixed inset-0 z-modal flex flex-col items-center justify-center bg-white animate-in fade-in duration-300">
                         <div className="w-80 h-80 animate-in zoom-in duration-500"><DuoAnimationLottie className="w-full h-full drop-shadow-2xl" /></div>
                         <h2 className="text-xl sm:text-2xl font-bold text-slate-400 mt-4 animate-pulse">A carregar a próxima...</h2>
                     </div>

@@ -281,7 +281,14 @@ async function LeaderboardData() {
                                                 )}
                                                 {/* Mobile Weekly XP */}
                                                 <div className="flex sm:hidden items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
-                                                    <Zap className="h-3 w-3 text-amber-500 fill-amber-300" />
+                                                    {user.xpBoostLessons > 0 ? (
+                                                        <div title="XP Duplo Ativo!" className="relative">
+                                                            <div className="absolute inset-0 bg-amber-400 opacity-30 blur-md rounded-full animate-pulse" />
+                                                            <Zap className="h-4 w-4 text-amber-500 fill-amber-300 animate-pulse relative z-10" />
+                                                        </div>
+                                                    ) : (
+                                                        <Zap className="h-3 w-3 text-amber-500 fill-amber-300" />
+                                                    )}
                                                     <span className="font-extrabold text-stone-700 text-xs tracking-tighter">
                                                         {user.weeklyXp} XP
                                                     </span>
@@ -291,7 +298,14 @@ async function LeaderboardData() {
 
                                         {/* Desktop Weekly XP Badge */}
                                         <div className="hidden sm:flex bg-amber-100 rounded-2xl px-5 py-2.5 border-2 border-amber-200 border-b-4 items-center gap-2 group-hover:scale-110 transition-transform">
-                                            <Zap className="h-5 w-5 text-amber-500 fill-amber-300" />
+                                            {user.xpBoostLessons > 0 ? (
+                                                <div title="XP Duplo Ativo!" className="relative flex items-center justify-center">
+                                                    <div className="absolute inset-0 bg-amber-400 opacity-40 blur-xl rounded-full animate-pulse scale-150" />
+                                                    <Zap className="h-6 w-6 text-amber-500 fill-amber-300 animate-pulse relative z-10 drop-shadow-md" />
+                                                </div>
+                                            ) : (
+                                                <Zap className="h-5 w-5 text-amber-500 fill-amber-300" />
+                                            )}
                                             <span className="font-black text-stone-700 text-2xl tracking-tighter leading-none">
                                                 {user.weeklyXp}
                                             </span>

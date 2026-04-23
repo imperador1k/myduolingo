@@ -38,7 +38,7 @@ export function CustomToastProvider({ children }: { children: ReactNode }) {
             {children}
             {/* Premium App-like Custom Toast */}
             <div className={cn(
-                "fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] transition-all duration-300 pointer-events-none",
+                "fixed bottom-6 left-1/2 -translate-x-1/2 z-toast transition-all duration-300 pointer-events-none",
                 state.isOpen ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
             )}>
                 <div className="pointer-events-auto flex items-center gap-3 bg-white px-5 py-4 rounded-3xl shadow-lg border-2 border-slate-100 border-b-4 border-b-slate-200 min-w-[320px]">

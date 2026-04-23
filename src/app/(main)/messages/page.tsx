@@ -55,7 +55,7 @@ async function MessagesData({ searchParams }: Props) {
             {/* Window Container */}
             <div className={cn(
                 "flex-1 flex flex-col bg-[#f8fafc] relative animate-in fade-in duration-500",
-                !activeConversationId ? "hidden md:flex" : "fixed inset-0 z-[100] bg-[#f8fafc] md:static md:z-auto h-[100dvh] md:h-auto"
+                !activeConversationId ? "hidden md:flex" : "fixed inset-0 z-modal bg-[#f8fafc] md:static md:z-auto h-[100dvh] md:h-auto"
             )}>
                 {activeConversationId && activeConversation ? (
                     <ChatWindow
@@ -113,7 +113,7 @@ const MessagesSkeleton = ({ activeConversationId }: { activeConversationId?: str
             {/* Window Skeleton */}
             <div className={cn(
                 "flex-1 flex flex-col bg-[#f8fafc] relative",
-                !activeConversationId ? "hidden md:flex" : "fixed inset-0 z-[100] bg-[#f8fafc] md:static md:z-auto h-[100dvh] md:h-auto"
+                !activeConversationId ? "hidden md:flex" : "fixed inset-0 z-modal bg-[#f8fafc] md:static md:z-auto h-[100dvh] md:h-auto"
             )}>
                 {activeConversationId ? (
                     <div className="w-full h-full flex flex-col animate-pulse">

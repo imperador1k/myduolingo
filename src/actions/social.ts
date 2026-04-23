@@ -9,17 +9,17 @@ import { createNotification } from "@/lib/notifications";
 
 export const toggleHighFive = async (activityId: number) => {
     const { userId: currentUserId } = await auth();
-    if (!currentUserId) throw new Error("Unauthorized");
+    if (!currentUserId) return { error: "Unauthorized" };
 
     // Check if activity exists
     const activity = await db.query.feedActivities.findFirst({
         where: eq(feedActivities.id, activityId),
     });
 
-    if (!activity) throw new Error("Atividade não encontrada");
+    if (!activity) return { error: "Atividade não encontrada" };
 
     // Don't high-five yourself
-    if (activity.userId === currentUserId) throw new Error("Não podes dar um High-Five a ti mesmo");
+    if (activity.userId === currentUserId) return { error: "Não podes dar um High-Five a ti mesmo" };
 
     // Check if the high five already exists
     const existingHighFive = await db.query.highFives.findFirst({
@@ -66,6 +66,6 @@ export const toggleHighFive = async (activityId: number) => {
         }
     } catch (e) {
         console.error("Toggle high-five error", e);
-        throw new Error("Erro ao processar o High-Five");
+        return { error: "Erro ao processar o High-Five" };
     }
 };

@@ -338,11 +338,15 @@ export const onRefillHearts = async () => {
 
     const result = await refillHearts();
 
+    if ("error" in result) {
+        return actionError("BAD_REQUEST", result.error);
+    }
+
     revalidatePath("/learn");
     revalidatePath("/shop");
     revalidatePath("/profile");
 
-    return result;
+    return { success: true, data: result };
 };
 
 /**
@@ -367,11 +371,15 @@ export const onBuyOneHeart = async () => {
 
     const result = await buyOneHeart();
 
+    if ("error" in result) {
+        return actionError("BAD_REQUEST", result.error);
+    }
+
     revalidatePath("/learn");
     revalidatePath("/shop");
     revalidatePath("/profile");
 
-    return result;
+    return { success: true, data: result };
 };
 
 /**
@@ -417,13 +425,16 @@ export const onBuyXpBoost = async () => {
 
     const result = await buyXpBoost();
 
+    if ("error" in result) {
+        return actionError("BAD_REQUEST", result.error);
+    }
+
     createNotification(userId, "system", "Boost de XP ativado! As próximas lições valem o dobro! ⚡", "/learn").catch(console.error);
 
     revalidatePath("/shop");
     revalidatePath("/learn");
 
-
-    return result;
+    return { success: true, data: result };
 };
 
 /**
@@ -440,12 +451,16 @@ export const onBuyHeartShield = async () => {
 
     const result = await buyHeartShield();
 
+    if ("error" in result) {
+        return actionError("BAD_REQUEST", result.error);
+    }
+
     createNotification(userId, "system", "Escudo de Corações equipado! A tua próxima resposta errada está protegida. 🛡️", "/learn").catch(console.error);
 
     revalidatePath("/shop");
     revalidatePath("/learn");
 
-    return result;
+    return { success: true, data: result };
 };
 
 /**
@@ -462,12 +477,16 @@ export const onBuyStreakFreeze = async () => {
 
     const result = await buyStreakFreeze();
 
+    if ("error" in result) {
+        return actionError("BAD_REQUEST", result.error);
+    }
+
     createNotification(userId, "system", "Escudo de Ofensiva equipado! A tua ofensiva está protegida por 1 dia. 🛡️", "/learn").catch(console.error);
 
     revalidatePath("/shop");
     revalidatePath("/learn");
 
-    return result;
+    return { success: true, data: result };
 };
 
 /**

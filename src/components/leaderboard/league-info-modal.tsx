@@ -84,8 +84,7 @@ export function LeagueInfoModal({ trigger }: Props) {
                     {/* ── Backdrop — z-[9999] ensures it covers sidebar & everything ── */}
                     <motion.div
                         key="league-backdrop"
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-                        style={{ zIndex: 9999 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-supreme"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -96,8 +95,7 @@ export function LeagueInfoModal({ trigger }: Props) {
                     {/* ── Modal panel — z-[10000] sits on top of backdrop ── */}
                     <motion.div
                         key="league-panel"
-                        className="fixed inset-0 flex items-center justify-center p-4 sm:p-6 pointer-events-none"
-                        style={{ zIndex: 10000 }}
+                        className="fixed inset-0 flex items-center justify-center p-4 sm:p-6 pointer-events-none z-supreme"
                     >
                         <motion.div
                             className="relative w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-[2.5rem] bg-white border-2 border-stone-200 border-b-[12px] shadow-2xl pointer-events-auto"

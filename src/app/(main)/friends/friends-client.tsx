@@ -13,6 +13,7 @@ import { onFollow, onUnfollow } from "@/actions/user-actions";
 import { toggleHighFive } from "@/actions/social";
 import { QrScannerModal } from "@/components/shared/qr-scanner-modal";
 import confetti from "canvas-confetti";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type FeedActivity = {
     id: number;
@@ -135,6 +136,11 @@ export const FriendsClient = ({
             setOpenScannerId(activityId);
             const result = await toggleHighFive(activityId);
             
+            if (result && "error" in result) {
+                toast.error(result.error as string);
+                return;
+            }
+
             // Update local state optimistically
             setLocalActivities(prev => prev.map(act => {
                 if (act.id === activityId) {
@@ -239,7 +245,7 @@ export const FriendsClient = ({
 
             {/* ── QR Code Enlarged Modal (Portaled) ── */}
             {isQrModalOpen && mounted && createPortal(
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md" onClick={() => setIsQrModalOpen(false)}>
+                <div className="fixed inset-0 z-supreme flex items-center justify-center bg-black/70 p-4 backdrop-blur-md" onClick={() => setIsQrModalOpen(false)}>
                     <div className="bg-white rounded-3xl p-8 max-w-sm w-full flex flex-col items-center relative animate-in zoom-in-95 fade-in duration-300 shadow-2xl" onClick={e => e.stopPropagation()}>
                         <button 
                             onClick={() => setIsQrModalOpen(false)}
@@ -300,11 +306,12 @@ export const FriendsClient = ({
             {activeTab === 'feed' && (
                 <div className="space-y-4 max-w-3xl mx-auto">
                     {localActivities.length === 0 ? (
-                        <div className="bg-stone-50 border-2 border-stone-200 border-dashed rounded-3xl p-10 text-center flex flex-col items-center">
-                            <div className="w-20 h-20 bg-stone-200 rounded-full flex items-center justify-center text-4xl mb-4 grayscale opacity-50">📰</div>
-                            <h3 className="text-xl font-black text-stone-700 mb-2">O teu feed está vazio</h3>
-                            <p className="text-stone-500 font-bold">Segue mais pessoas e completa lições para encheres o teu feed de conquistas épicas!</p>
-                        </div>
+                        <EmptyState
+                            title="A vila está muito silenciosa..."
+                            description="Aprender é melhor com companhia! Convida os teus amigos para competir nas ligas e vê as suas vitórias aqui."
+                            actionText="Encontrar Amigos"
+                            onAction={() => setActiveTab('search')}
+                        />
                     ) : (
                         localActivities.map((activity) => {
                             const visual = getFeedIconAndColor(activity.type);
@@ -363,14 +370,12 @@ export const FriendsClient = ({
             {activeTab === 'following' && (
                 <div className="max-w-2xl mx-auto">
                     {followingUsers.length === 0 ? (
-                        <div className="bg-stone-50 border-2 border-stone-200 border-dashed rounded-3xl p-10 text-center flex flex-col items-center">
-                            <div className="w-20 h-20 bg-stone-200 rounded-full flex items-center justify-center text-4xl mb-4 grayscale opacity-50">👥</div>
-                            <h3 className="text-xl font-black text-stone-700 mb-2">Não estás a seguir ninguém</h3>
-                            <p className="text-stone-500 font-bold">Encontra os teus amigos para veres as atualizações deles no teu feed!</p>
-                            <button onClick={() => setActiveTab('search')} className="mt-6 bg-[#1CB0F6] text-white border-2 border-[#1899D6] border-b-4 rounded-xl px-6 py-3 font-bold active:translate-y-1 active:border-b-2 transition-all">
-                                Encontrar Amigos
-                            </button>
-                        </div>
+                        <EmptyState
+                            title="Não estás a seguir ninguém"
+                            description="Encontra os teus amigos para veres as atualizações deles no teu feed!"
+                            actionText="Encontrar Amigos"
+                            onAction={() => setActiveTab('search')}
+                        />
                     ) : (
                         followingUsers.map((user) => renderUser(user, amIFollowing(user.userId), followerSet.has(user.userId)))
                     )}
@@ -381,14 +386,12 @@ export const FriendsClient = ({
             {activeTab === 'followers' && (
                 <div className="max-w-2xl mx-auto">
                     {followerUsers.length === 0 ? (
-                        <div className="bg-stone-50 border-2 border-stone-200 border-dashed rounded-3xl p-10 text-center flex flex-col items-center">
-                            <div className="w-20 h-20 bg-stone-200 rounded-full flex items-center justify-center text-4xl mb-4 grayscale opacity-50">🌟</div>
-                            <h3 className="text-xl font-black text-stone-700 mb-2">Ainda não tens seguidores</h3>
-                            <p className="text-stone-500 font-bold">Partilha o teu código ou convida amigos para iniciarem a jornada contigo!</p>
-                            <button onClick={() => setActiveTab('search')} className="mt-6 bg-[#58CC02] text-white border-2 border-[#58AA02] border-b-4 rounded-xl px-6 py-3 font-bold active:translate-y-1 active:border-b-2 transition-all">
-                                Partilhar Código
-                            </button>
-                        </div>
+                        <EmptyState
+                            title="Ainda não tens seguidores"
+                            description="Partilha o teu código ou convida amigos para iniciarem a jornada contigo!"
+                            actionText="Partilhar Código"
+                            onAction={handleShare}
+                        />
                     ) : (
                         followerUsers.map((user) => renderUser(user, amIFollowing(user.userId), followerSet.has(user.userId)))
                     )}

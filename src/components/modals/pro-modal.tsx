@@ -54,7 +54,7 @@ export const ProModal = () => {
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 z-[110] bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
+                className="fixed inset-0 z-modal bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
                 onClick={closeModal}
                 aria-hidden="true"
             />
@@ -64,7 +64,7 @@ export const ProModal = () => {
                 role="dialog"
                 aria-modal="true"
                 aria-label="Upgrade para PRO"
-                className="fixed left-1/2 top-1/2 z-[120] flex max-h-[95vh] w-[94%] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col animate-in zoom-in-95 fade-in duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]"
+                className="fixed left-1/2 top-1/2 z-above-modal flex max-h-[95vh] w-[94%] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col animate-in zoom-in-95 fade-in duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]"
             >
                 <div className="relative flex flex-col overflow-hidden rounded-[2rem] border-2 border-amber-300 border-b-8 bg-white shadow-2xl">
 

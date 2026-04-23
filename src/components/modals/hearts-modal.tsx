@@ -27,12 +27,12 @@ export const HeartsModal = () => {
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 z-[110] bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
+                className="fixed inset-0 z-modal bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
                 onClick={closeModal}
             />
 
             {/* Modal */}
-            <div className="fixed left-1/2 top-1/2 z-[120] w-[92%] max-w-sm -translate-x-1/2 -translate-y-1/2 animate-in zoom-in-95 duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]">
+            <div className="fixed left-1/2 top-1/2 z-above-modal w-[92%] max-w-sm -translate-x-1/2 -translate-y-1/2 animate-in zoom-in-95 duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]">
                 <div className="relative bg-white border-2 border-[#e5e7eb] border-b-8 rounded-3xl shadow-2xl overflow-hidden flex flex-col pt-12 pb-8 px-6 text-center">
                     
                     {/* Close button */}
