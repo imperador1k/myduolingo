@@ -339,7 +339,7 @@ export const onRefillHearts = async () => {
     const result = await refillHearts();
 
     if ("error" in result) {
-        return actionError("BAD_REQUEST", result.error);
+        return actionError("BAD_REQUEST", String(result.error));
     }
 
     revalidatePath("/learn");
@@ -372,7 +372,7 @@ export const onBuyOneHeart = async () => {
     const result = await buyOneHeart();
 
     if ("error" in result) {
-        return actionError("BAD_REQUEST", result.error);
+        return actionError("BAD_REQUEST", String(result.error));
     }
 
     revalidatePath("/learn");
@@ -426,7 +426,7 @@ export const onBuyXpBoost = async () => {
     const result = await buyXpBoost();
 
     if ("error" in result) {
-        return actionError("BAD_REQUEST", result.error);
+        return actionError("BAD_REQUEST", String(result.error));
     }
 
     createNotification(userId, "system", "Boost de XP ativado! As próximas lições valem o dobro! ⚡", "/learn").catch(console.error);
@@ -452,7 +452,7 @@ export const onBuyHeartShield = async () => {
     const result = await buyHeartShield();
 
     if ("error" in result) {
-        return actionError("BAD_REQUEST", result.error);
+        return actionError("BAD_REQUEST", String(result.error));
     }
 
     createNotification(userId, "system", "Escudo de Corações equipado! A tua próxima resposta errada está protegida. 🛡️", "/learn").catch(console.error);
@@ -478,7 +478,7 @@ export const onBuyStreakFreeze = async () => {
     const result = await buyStreakFreeze();
 
     if ("error" in result) {
-        return actionError("BAD_REQUEST", result.error);
+        return actionError("BAD_REQUEST", String(result.error));
     }
 
     createNotification(userId, "system", "Escudo de Ofensiva equipado! A tua ofensiva está protegida por 1 dia. 🛡️", "/learn").catch(console.error);
