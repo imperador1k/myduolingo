@@ -19,18 +19,28 @@ export default async function MainLayout({ children }: Props) {
     const userProgress = (await getUserProgress()) as any;
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#f3f6f8]">
-            <MobileHeader />
-            
-            {/* Sidebar handling its own flexible width state now */}
-            <Sidebar 
-                notificationCount={unreadNotifications} 
-                unreadMessageCount={unreadMessages} 
+        <div className="relative flex h-screen overflow-hidden bg-white">
+            {/* ── Background Layer: dot pattern (matches landing page) ── */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#e5e7eb_2px,transparent_2px)] [background-size:24px_24px] opacity-40"
             />
-            
+
+            <MobileHeader />
+
+            {/* Sidebar — solid bg-white sits above the dot pattern */}
+            <Sidebar
+                notificationCount={unreadNotifications}
+                unreadMessageCount={unreadMessages}
+            />
+
             {/* Independent Scrolling Main Area */}
-            <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative lg:pt-0 z-10">
-                <div className="max-w-[1056px] mx-auto pt-6 px-6 pb-24 lg:pb-8 relative min-h-full">
+            <main className="relative flex-1 h-full overflow-y-auto overflow-x-hidden z-10">
+                {/* Decorative blobs — scoped inside main so they don't bleed into the sidebar */}
+                <div aria-hidden="true" className="pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-green-400/20 blur-3xl" />
+                <div aria-hidden="true" className="pointer-events-none absolute -right-32 top-1/2 h-96 w-96 -translate-y-1/2 rounded-full bg-sky-400/15 blur-3xl" />
+
+                <div className="relative max-w-[1056px] mx-auto pt-6 px-6 pb-24 lg:pb-8 min-h-full">
                     {children}
                 </div>
             </main>

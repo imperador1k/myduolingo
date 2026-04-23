@@ -6,6 +6,7 @@ export const ActionErrorCodes = {
     INSUFFICIENT_FUNDS: "INSUFFICIENT_FUNDS",
     NOT_FOUND: "NOT_FOUND",
     CONFLICT: "CONFLICT",
+    BAD_REQUEST: "BAD_REQUEST",
     SERVER_ERROR: "SERVER_ERROR",
 } as const;
 

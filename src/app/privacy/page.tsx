@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
+
+export const metadata: Metadata = {
+    title: "Aviso de Privacidade",
+    description: "Consulta como a MyDuolingo protege os teus dados e gere a tua privacidade enquanto aprendes idiomas.",
+    alternates: {
+        canonical: "/privacy",
+    },
+};
 
 export default function PrivacyPage() {
     return (

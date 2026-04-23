@@ -3,7 +3,6 @@
 import { useTransition, useState } from "react";
 import { updateNotificationPreference } from "@/actions/user-progress";
 import { useCustomToast } from "@/components/ui/custom-toast";
-import { toast as sonnerToast } from "sonner"; // keep sonner for errors
 import { cn } from "@/lib/utils";
 import { Bell, BellOff } from "lucide-react";
 
@@ -28,7 +27,7 @@ export const NotificationToggle = ({ initialEnabled }: Props) => {
                     customToast(newValue ? "As tuas preferências foram guardadas com sucesso!" : "As notificações foram desativadas.");
                 })
                 .catch(() => {
-                    sonnerToast.error("Erro ao atualizar definições.");
+                    customToast.error("Erro ao atualizar definições.");
                     setEnabled(!newValue); // Revert on error
                 });
         });

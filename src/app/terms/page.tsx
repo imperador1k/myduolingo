@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { FileText } from "lucide-react";
+
+export const metadata: Metadata = {
+    title: "Termos de Utilização",
+    description: "Lê os termos e condições de utilização da plataforma MyDuolingo e os teus direitos como utilizador.",
+    alternates: {
+        canonical: "/terms",
+    },
+};
 
 export default function TermsPage() {
     return (

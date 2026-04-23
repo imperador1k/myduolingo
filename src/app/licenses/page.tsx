@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Code, Atom, Layers, Palette, Database, Key, Sparkles } from "lucide-react";
+
+export const metadata: Metadata = {
+    title: "Licenças de Software",
+    description: "Créditos e licenças das tecnologias de código aberto utilizadas na construção do MyDuolingo.",
+    alternates: {
+        canonical: "/licenses",
+    },
+};
 
 export default function LicensesPage() {
     return (

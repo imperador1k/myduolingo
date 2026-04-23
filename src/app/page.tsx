@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { auth } from "@clerk/nextjs/server";
@@ -6,6 +7,20 @@ import { LandingCTA } from "@/components/shared/landing-cta";
 import { LottieAnimation } from "@/components/ui/lottie-animation";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Page-level metadata overrides the global layout template.
+ * This is the most important page for SEO — the title is crafted
+ * to target high-intent keywords about language learning.
+ */
+export const metadata: Metadata = {
+  title: "Aprende Inglês a Jogar — Grátis",
+  description:
+    "A plataforma gratuita que te ensina inglês, espanhol e outros idiomas através de lições curtas e gamificadas. Ganha XP, compete em ligas e evolui com os teus amigos.",
+  alternates: {
+    canonical: "/",
+  },
+};
 
 export default async function Home() {
   const { userId } = await auth();
@@ -19,17 +34,21 @@ export default async function Home() {
       <div className="absolute -left-32 top-10 z-0 h-96 w-96 rounded-full bg-green-400/20 blur-3xl"></div>
       <div className="absolute -right-32 top-1/2 z-0 h-96 w-96 -translate-y-1/2 rounded-full bg-sky-400/15 blur-3xl"></div>
 
-      {/* Header - Made absolute to not occupy space and invisible backdrop-wise as requested */}
+      {/* 
+        Header: The logo brand name is a <span> inside a <Link>, NOT an <h1>.
+        Having two <h1> tags on a page is an SEO anti-pattern. The only <h1>
+        must be the primary page heading in the <main> content below.
+      */}
       <header className="absolute top-0 left-0 right-0 z-50 w-full bg-transparent">
         <div className="mx-auto flex w-full max-w-[1024px] items-center justify-between px-6 py-8 lg:px-8">
-          <div className="flex items-center gap-3 active:scale-95 transition-transform cursor-pointer">
+          <Link href="/" className="flex items-center gap-3 active:scale-95 transition-transform cursor-pointer">
             <div className="relative h-11 w-11 overflow-hidden rounded-xl shadow-sm border-2 border-stone-100 shadow-stone-200">
-              <Image src="/icon.png" alt="Logo" fill className="object-cover" />
+              <Image src="/icon.png" alt="MyDuolingo Logo" fill className="object-cover" />
             </div>
-            <h1 className="text-3xl font-black tracking-tight text-green-500 drop-shadow-sm">
+            <span className="text-3xl font-black tracking-tight text-green-500 drop-shadow-sm">
               duolingo
-            </h1>
-          </div>
+            </span>
+          </Link>
         </div>
       </header>
 
@@ -47,6 +66,11 @@ export default async function Home() {
 
         {/* Right side - CTA */}
         <div className="flex w-full max-w-[440px] flex-col items-center gap-8 text-center lg:items-center">
+          {/*
+            The single <h1> on this page. Optimized for the target keyword:
+            "Aprende Inglês a Jogar". Broad enough to cover all languages
+            but specific enough to rank for the primary use case.
+          */}
           <h1 className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-100 fill-mode-both text-4xl font-extrabold tracking-tight text-slate-800 lg:text-5xl lg:leading-[1.15]">
             O jeito <span className="text-green-500 font-black">grátis</span>, divertido e eficaz de aprender um idioma!
           </h1>
@@ -64,4 +88,3 @@ export default async function Home() {
     </div>
   );
 }
-
