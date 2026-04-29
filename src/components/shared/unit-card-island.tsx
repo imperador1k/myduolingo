@@ -134,8 +134,8 @@ export function UnitCardIsland({
                         style={{ borderColor: `${theme.dark}30` }}
                     />
                     
-                    {/* Living Energy Path (Animated SVG) */}
-                    <svg className="absolute inset-0 w-full h-full opacity-40">
+                    {/* Living Energy Path (Animated SVG) - Hidden on mobile for performance */}
+                    <svg className="absolute inset-0 w-full h-full opacity-40 hidden md:block">
                         <defs>
                             <linearGradient id="energyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                                 <stop offset="0%" stopColor={theme.text} stopOpacity="0" />
@@ -185,9 +185,9 @@ export function UnitCardIsland({
                                 {lesson.isCurrent && (
                                     <div className="relative group cursor-pointer z-40 flex flex-col items-center justify-center">
                                         
-                                        {/* Living Pulsing Rings */}
+                                        {/* Living Pulsing Rings - Reduced count on mobile */}
                                         <div className="absolute inset-0 flex items-center justify-center -z-10">
-                                            {[1, 2, 3].map((i) => (
+                                            {[1, 2].map((i) => (
                                                 <motion.div 
                                                     key={i}
                                                     initial={{ opacity: 0.5, scale: 0.8 }}
@@ -195,10 +195,13 @@ export function UnitCardIsland({
                                                     transition={{ 
                                                         duration: 3, 
                                                         repeat: Infinity, 
-                                                        delay: i * 0.8,
+                                                        delay: i * 1.5, // Increased delay
                                                         ease: "easeOut"
                                                     }}
-                                                    className="absolute w-[80px] h-[80px] rounded-full border-2 border-yellow-400"
+                                                    className={cn(
+                                                        "absolute w-[80px] h-[80px] rounded-full border-2 border-yellow-400 will-change-transform",
+                                                        i > 1 && "hidden sm:block" // Only 1 ring on smallest screens
+                                                    )}
                                                 />
                                             ))}
                                         </div>

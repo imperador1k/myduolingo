@@ -7,19 +7,26 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export const clearLeagueResult = async () => {
-    const { userId } = await auth();
+    try {
+        const { userId } = await auth();
 
-    if (!userId) {
-        return { success: false, error: "Unauthorized" };
+        if (!userId) {
+            return { success: false, error: "Unauthorized" };
+        }
+
+        await db
+            .update(userProgress)
+            .set({
+                lastWeekResult: null,
+            })
+            .where(eq(userProgress.userId, userId));
+
+        revalidatePath("/leaderboard");
+        revalidatePath("/");
+
+        return { success: true };
+    } catch (error) {
+        console.error("[CLEAR_LEAGUE_RESULT]", error);
+        return { success: false, error: "Internal Server Error" };
     }
-
-    await db
-        .update(userProgress)
-        .set({
-            lastWeekResult: null,
-        })
-        .where(eq(userProgress.userId, userId));
-
-    revalidatePath("/leaderboard");
-    revalidatePath("/");
 };

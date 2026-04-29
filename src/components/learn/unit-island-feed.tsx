@@ -45,12 +45,12 @@ export const UnitIslandFeed = ({ processedUnits, noHearts }: { processedUnits: U
         <motion.div 
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true, margin: "-50px" }}
             variants={{
                 hidden: {},
                 visible: {
                     transition: {
-                        staggerChildren: 0.2
+                        staggerChildren: 0.1 // Faster stagger for better feel
                     }
                 }
             }}
@@ -61,8 +61,8 @@ export const UnitIslandFeed = ({ processedUnits, noHearts }: { processedUnits: U
                     id={`unit-${unit.id}`} 
                     key={unit.id} 
                     variants={{
-                        hidden: { opacity: 0, y: 30, scale: 0.95 },
-                        visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: "easeOut" } }
+                        hidden: { opacity: 0, y: 20 },
+                        visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
                     }}
                     className="relative w-full flex flex-col items-center scroll-mt-24"
                 >

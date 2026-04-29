@@ -66,12 +66,18 @@ export function LeagueResultModal({ result }: Props) {
     }, [result.status]);
 
     const handleClose = () => {
+        // Optimistic UI: Close immediately so the user isn't stuck
+        setIsOpen(false);
+
         startTransition(async () => {
-            const res = await clearLeagueResult();
-            if (res?.error) {
-                console.error("Failed to clear league result:", res.error);
+            try {
+                const res = await clearLeagueResult();
+                if (res?.error) {
+                    console.error("Failed to clear league result:", res.error);
+                }
+            } catch (err) {
+                console.error("Critical error clearing league result:", err);
             }
-            setIsOpen(false);
         });
     };
 
