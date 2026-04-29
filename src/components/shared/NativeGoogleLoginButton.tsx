@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { SignInButton } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 
 const GoogleIcon = () => (
     <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg">
@@ -41,18 +42,35 @@ export default function NativeGoogleLoginButton() {
         setIsNative(Capacitor.isNativePlatform());
     }, []);
 
-    // For the initial migration, we use Clerk's robust web flow even on native.
-    // This avoids complex SHA-1/Redirect URI issues in Firebase/Google Console
-    // that often break native Google Login in the first build.
+    const handleNativeLogin = async () => {
+        if (!isNative) return;
+        // Abrimos a nossa própria página de login na Custom Tab
+        // O Clerk lá dentro vai tratar de tudo e o Deep Link vai trazer-nos de volta
+        await Browser.open({ 
+            url: 'https://myduolingo.vercel.app/sign-in',
+            windowName: '_blank'
+        });
+    };
+
     return (
         <div className="flex flex-col gap-2 w-full">
-            <SignInButton 
-                mode="modal" 
-                fallbackRedirectUrl="/auth-success"
-                forceRedirectUrl="/auth-success"
-            >
-                <GoogleButtonUI />
-            </SignInButton>
+            {isNative ? (
+                <button 
+                    onClick={handleNativeLogin}
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-[0.98]"
+                >
+                    <GoogleIcon />
+                    <span>Continuar com Google</span>
+                </button>
+            ) : (
+                <SignInButton 
+                    mode="modal" 
+                    fallbackRedirectUrl="/auth-success"
+                    forceRedirectUrl="/auth-success"
+                >
+                    <GoogleButtonUI />
+                </SignInButton>
+            )}
             
             {isNative && (
                 <p className="text-center text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-widest">
