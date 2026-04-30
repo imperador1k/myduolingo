@@ -63,7 +63,12 @@ export default function SSOCallbackPage() {
         <div className="flex h-full w-full min-h-screen flex-col items-center justify-center bg-white z-50 fixed inset-0">
             <AuthenticateWithRedirectCallback 
                 signUpForceRedirectUrl="/learn" 
-                signInForceRedirectUrl="/learn" 
+                signInForceRedirectUrl="/learn"
+                signUpFallbackRedirectUrl="/learn"
+                signInFallbackRedirectUrl="/learn"
+                afterSignUpUrl="/learn"
+                afterSignInUrl="/learn"
+                transferable={true}
             />
             
             <div className="relative flex flex-col items-center justify-center w-full max-w-md p-8 text-center animate-in fade-in duration-500">
