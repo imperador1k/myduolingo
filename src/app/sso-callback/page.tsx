@@ -7,41 +7,47 @@ import { LottieAnimation } from "@/components/ui/lottie-animation";
 /**
  * SSO Callback Page — handles two scenarios:
  *
- * 1. Opened INSIDE the WebView (Capacitor): AuthenticateWithRedirectCallback
- *    processes the Clerk token normally using the shared cookie jar.
+ * 1. Opened INSIDE the Capacitor WebView (after deep link bounce):
+ *    AuthenticateWithRedirectCallback processes the Clerk token.
+ *    The sign-in attempt exists in this context because the user clicked
+ *    "Continue with Google" in the WebView's <SignIn /> component.
  *
- * 2. Opened in Chrome Custom Tab (external browser during OAuth):
- *    We can't process the token here because Chrome's cookies are separate.
- *    Instead, we bounce back to the app via the custom deep link scheme,
- *    carrying the query params. The NativeBridge will catch the deep link
- *    and navigate back to this page INSIDE the WebView.
+ * 2. Opened in Chrome (external browser during OAuth redirect chain):
+ *    Clerk redirects here after Google auth. We bounce back to the app
+ *    via deep link so the WebView can process the token.
  */
 export default function SSOCallbackPage() {
-    const [isNativeBrowser, setIsNativeBrowser] = useState(false);
+    const [isBouncing, setIsBouncing] = useState(false);
 
     useEffect(() => {
-        // If we're inside the Capacitor WebView, let the Clerk component handle it
+        // Inside Capacitor WebView → let AuthenticateWithRedirectCallback handle it
         if (Capacitor.isNativePlatform()) return;
 
-        // If we're NOT in Capacitor (i.e., this is Chrome Custom Tab during OAuth),
-        // bounce back to the app with the query params so the WebView can process them
-        const queryParams = window.location.search;
-        if (queryParams) {
-            setIsNativeBrowser(true);
-            window.location.href = `myduolingo://sso-callback${queryParams}`;
+        // In Chrome (external browser) → bounce back to the native app.
+        // We check for Clerk-specific query params to confirm this is an OAuth callback.
+        const params = window.location.search;
+        const hash = window.location.hash;
+        const hasOAuthParams = params.includes('__clerk') || hash.includes('__clerk');
 
-            // Fallback message if the app doesn't open
-            const timeout = setTimeout(() => {
-                const el = document.getElementById("fallback-msg");
-                if (el) el.style.display = "block";
-            }, 3000);
+        if (!hasOAuthParams) return;
 
-            return () => clearTimeout(timeout);
-        }
+        setIsBouncing(true);
+        console.log("[SSO Callback] Bouncing to native app with params:", params);
+
+        // Send the full query string + hash to the native app
+        const deepLink = `myduolingo://sso-callback${params}${hash}`;
+        window.location.href = deepLink;
+
+        // Fallback for users on web (not native) — show a message after 3s
+        const timeout = setTimeout(() => {
+            const el = document.getElementById("fallback-msg");
+            if (el) el.style.display = "block";
+        }, 3000);
+
+        return () => clearTimeout(timeout);
     }, []);
 
-    // If we detected we're in Chrome, show a simple loading while the deep link fires
-    if (isNativeBrowser) {
+    if (isBouncing) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-white flex-col gap-4">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-green-500 border-t-transparent" />
