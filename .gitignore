@@ -70,3 +70,8 @@ android/app/google-services.json
 
 # Assets folder for generation
 /assets
+
+# Tauri
+/src-tauri/target/
+/src-tauri/gen/schemas/
+/src-tauri/bin/

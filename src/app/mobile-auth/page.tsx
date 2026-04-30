@@ -11,22 +11,26 @@ export default function MobileAuthPage() {
         if (!signInLoaded || !signUpLoaded) return;
 
         const startAuth = async () => {
-            const isSignUp = window.location.search.includes("mode=sign-up");
-            
-            try {
-                if (isSignUp) {
-                    await signUp.authenticateWithRedirect({
-                        strategy: "oauth_google",
-                        redirectUrl: "https://myduolingo.vercel.app/sso-callback",
-                        redirectUrlComplete: "https://myduolingo.vercel.app/auth-success",
-                    });
-                } else {
-                    await signIn.authenticateWithRedirect({
-                        strategy: "oauth_google",
-                        redirectUrl: "https://myduolingo.vercel.app/sso-callback",
-                        redirectUrlComplete: "https://myduolingo.vercel.app/auth-success",
-                    });
-                }
+                const searchParams = new URLSearchParams(window.location.search);
+                const isSignUp = searchParams.get("mode") === "sign-up";
+                const isDesktop = searchParams.get("desktop") === "true";
+                
+                const redirectUrl = `https://myduolingo.vercel.app/sso-callback${isDesktop ? '?desktop=true' : ''}`;
+                
+                try {
+                    if (isSignUp) {
+                        await signUp.authenticateWithRedirect({
+                            strategy: "oauth_google",
+                            redirectUrl: redirectUrl,
+                            redirectUrlComplete: "https://myduolingo.vercel.app/auth-success",
+                        });
+                    } else {
+                        await signIn.authenticateWithRedirect({
+                            strategy: "oauth_google",
+                            redirectUrl: redirectUrl,
+                            redirectUrlComplete: "https://myduolingo.vercel.app/auth-success",
+                        });
+                    }
             } catch (error) {
                 console.error("Erro ao iniciar auth:", error);
             }

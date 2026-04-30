@@ -1,0 +1,54 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "myduolingo",
+  "version": "0.1.0",
+  "identifier": "com.tauri.dev",
+  "build": {
+    "devUrl": "http://localhost:3000"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "MyDuolingo",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "url": "https://myduolingo.vercel.app"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' myduolingo:; connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.com; img-src 'self' data: https://images.clerk.dev",
+      "dangerousRemoteDomainIpcAccess": [
+        {
+          "domain": "myduolingo.vercel.app",
+          "windows": ["main"],
+          "plugins": ["deep-link", "opener", "core", "single-instance"]
+        },
+        {
+          "domain": "localhost",
+          "windows": ["main"],
+          "plugins": ["deep-link", "opener", "core", "single-instance"]
+        }
+      ]
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["myduolingo"]
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

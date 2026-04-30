@@ -19,7 +19,9 @@ export default function SSOCallbackPage() {
     // This prevents AuthenticateWithRedirectCallback from rendering in Chrome.
     const [isNative] = useState(() => {
         if (typeof window === 'undefined') return true; // SSR fallback
-        return Capacitor.isNativePlatform();
+        const isCapacitor = Capacitor.isNativePlatform();
+        const isTauri = !!(window as any).__TAURI_INTERNALS__;
+        return isCapacitor || isTauri;
     });
 
     // In Chrome: bounce back to native app via deep link

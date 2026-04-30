@@ -19,7 +19,9 @@ export default function NativeGoogleLoginButton({ mode = "sign-in" }: { mode?: "
     const [isNative, setIsNative] = useState(false);
 
     useEffect(() => {
-        setIsNative(Capacitor.isNativePlatform());
+        const isCapacitor = Capacitor.isNativePlatform();
+        const isTauri = typeof window !== 'undefined' && !!(window as any).__TAURI_INTERNALS__;
+        setIsNative(isCapacitor || isTauri);
     }, []);
 
     const handleLogin = async () => {
@@ -28,13 +30,18 @@ export default function NativeGoogleLoginButton({ mode = "sign-in" }: { mode?: "
         try {
             console.log("Iniciando Google OAuth via Browser Externo para App Nativa...");
             
+            const isTauri = typeof window !== 'undefined' && !!(window as any).__TAURI_INTERNALS__;
             // Redirecionamos para a nossa página dedicada que lidará com o início do OAuth
-            const authUrl = `https://myduolingo.vercel.app/mobile-auth?mode=${mode}`;
+            const authUrl = `https://myduolingo.vercel.app/mobile-auth?mode=${mode}${isTauri ? '&desktop=true' : ''}`;
             
             if (Capacitor.isNativePlatform()) {
                 await Browser.open({ url: authUrl, windowName: '_system' });
                 // We reset loading after 3 seconds in case they close the browser without finishing
                 setTimeout(() => setLoading(false), 3000); 
+            } else if (isTauri) {
+                const { open } = await import('@tauri-apps/plugin-opener');
+                await open(authUrl);
+                setTimeout(() => setLoading(false), 3000);
             } else {
                 window.location.href = authUrl;
             }

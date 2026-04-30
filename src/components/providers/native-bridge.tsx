@@ -23,36 +23,61 @@ export function NativeBridge() {
 
     // ── Deep Link Handler ────────────────────────────────────────────
     const setupDeepLinks = async () => {
-        await App.addListener('appUrlOpen', async (data) => {
-            console.log("[NativeBridge] App opened with URL:", data.url);
+        // --- Tauri Desktop Handler ---
+        if ((window as any).__TAURI_INTERNALS__) {
+            console.log("[NativeBridge] Tauri Desktop environment detected.");
             
-            Browser.close().catch(() => {});
-            
-            if (data.url.startsWith('myduolingo://')) {
-                // Parse the deep link to extract path + params + hash
-                const fakeUrl = new URL(data.url.replace('myduolingo://', 'https://placeholder.com/'));
-                const path = '/' + fakeUrl.pathname.replace(/^\/+/, '');
-                const search = fakeUrl.search;
-                const hash = fakeUrl.hash;
-                
-                // Build the full WebView URL for a FULL page reload.
-                // This is critical: router.push() does SPA navigation which
-                // doesn't re-initialize the Clerk SDK. window.location.href
-                // forces a full reload so Clerk can read the OAuth params fresh.
-                const targetUrl = `${window.location.origin}${path}${search}${hash}`;
-                console.log(`[NativeBridge] OAuth bounce → full reload: ${targetUrl}`);
-                window.location.href = targetUrl;
-                return;
-            }
+            // Listen for deep link events (single instance intercept)
+            const { listen } = await import('@tauri-apps/api/event');
+            listen<string[]>('app-instance-opened', (event) => {
+                const url = event.payload.find(arg => arg.startsWith('myduolingo://'));
+                if (url) {
+                    const fakeUrl = new URL(url.replace('myduolingo://', 'https://placeholder.com/'));
+                    const path = '/' + fakeUrl.pathname.replace(/^\/+/, '');
+                    const targetUrl = `${window.location.origin}${path}${fakeUrl.search}${fakeUrl.hash}`;
+                    console.log(`[NativeBridge] Tauri OAuth bounce → full reload: ${targetUrl}`);
+                    window.location.href = targetUrl;
+                }
+            });
 
-            // Standard App Links (https://myduolingo.vercel.app/*)
-            try {
-                const url = new URL(data.url);
-                window.location.href = url.pathname + url.search + url.hash;
-            } catch {
-                console.error("[NativeBridge] Failed to parse URL:", data.url);
-            }
-        });
+            // Listen for direct deep link opens
+            const { onOpenUrl } = await import('@tauri-apps/plugin-deep-link');
+            onOpenUrl((urls) => {
+                const url = urls[0];
+                if (url && url.startsWith('myduolingo://')) {
+                    const fakeUrl = new URL(url.replace('myduolingo://', 'https://placeholder.com/'));
+                    const path = '/' + fakeUrl.pathname.replace(/^\/+/, '');
+                    const targetUrl = `${window.location.origin}${path}${fakeUrl.search}${fakeUrl.hash}`;
+                    console.log(`[NativeBridge] Tauri OAuth bounce → full reload: ${targetUrl}`);
+                    window.location.href = targetUrl;
+                }
+            });
+        }
+
+        // --- Capacitor Mobile Handler ---
+        if (Capacitor.isNativePlatform()) {
+            await App.addListener('appUrlOpen', async (data) => {
+                console.log("[NativeBridge] App opened with URL:", data.url);
+                
+                Browser.close().catch(() => {});
+                
+                if (data.url.startsWith('myduolingo://')) {
+                    const fakeUrl = new URL(data.url.replace('myduolingo://', 'https://placeholder.com/'));
+                    const path = '/' + fakeUrl.pathname.replace(/^\/+/, '');
+                    const targetUrl = `${window.location.origin}${path}${fakeUrl.search}${fakeUrl.hash}`;
+                    console.log(`[NativeBridge] OAuth bounce → full reload: ${targetUrl}`);
+                    window.location.href = targetUrl;
+                    return;
+                }
+
+                try {
+                    const url = new URL(data.url);
+                    window.location.href = url.pathname + url.search + url.hash;
+                } catch {
+                    console.error("[NativeBridge] Failed to parse URL:", data.url);
+                }
+            });
+        }
     };
 
     // ── Back Button Handler ──────────────────────────────────────────
