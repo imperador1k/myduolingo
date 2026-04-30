@@ -8,46 +8,45 @@ import { LottieAnimation } from "@/components/ui/lottie-animation";
  * SSO Callback Page — handles two scenarios:
  *
  * 1. Opened INSIDE the Capacitor WebView (after deep link bounce):
- *    AuthenticateWithRedirectCallback processes the Clerk token.
- *    The sign-in attempt exists in this context because the user clicked
- *    "Continue with Google" in the WebView's <SignIn /> component.
+ *    AuthenticateWithRedirectCallback processes the Clerk token and activates the session.
  *
  * 2. Opened in Chrome (external browser during OAuth redirect chain):
- *    Clerk redirects here after Google auth. We bounce back to the app
- *    via deep link so the WebView can process the token.
+ *    We MUST NOT render AuthenticateWithRedirectCallback here (it would consume the params).
+ *    Instead, we immediately bounce back to the app via deep link with the OAuth params.
  */
 export default function SSOCallbackPage() {
-    const [isBouncing, setIsBouncing] = useState(false);
+    // Determine platform at initialization time (before first render).
+    // This prevents AuthenticateWithRedirectCallback from rendering in Chrome.
+    const [isNative] = useState(() => {
+        if (typeof window === 'undefined') return true; // SSR fallback
+        return Capacitor.isNativePlatform();
+    });
 
+    // In Chrome: bounce back to native app via deep link
     useEffect(() => {
-        // Inside Capacitor WebView → let AuthenticateWithRedirectCallback handle it
-        if (Capacitor.isNativePlatform()) return;
+        if (isNative) return;
 
-        // In Chrome (external browser) → bounce back to the native app.
-        // We check for Clerk-specific query params to confirm this is an OAuth callback.
-        const params = window.location.search;
+        const search = window.location.search;
         const hash = window.location.hash;
-        const hasOAuthParams = params.includes('__clerk') || hash.includes('__clerk');
+        const hasOAuthParams = search.includes('__clerk') || hash.includes('__clerk')
+            || search.includes('code=') || search.includes('state=');
 
         if (!hasOAuthParams) return;
 
-        setIsBouncing(true);
-        console.log("[SSO Callback] Bouncing to native app with params:", params);
+        console.log("[SSO Callback] In Chrome — bouncing to native app");
+        window.location.href = `myduolingo://sso-callback${search}${hash}`;
 
-        // Send the full query string + hash to the native app
-        const deepLink = `myduolingo://sso-callback${params}${hash}`;
-        window.location.href = deepLink;
-
-        // Fallback for users on web (not native) — show a message after 3s
+        // Fallback message if deep link doesn't work
         const timeout = setTimeout(() => {
             const el = document.getElementById("fallback-msg");
             if (el) el.style.display = "block";
         }, 3000);
 
         return () => clearTimeout(timeout);
-    }, []);
+    }, [isNative]);
 
-    if (isBouncing) {
+    // Chrome: show loading while deep link fires (AuthenticateWithRedirectCallback NOT rendered)
+    if (!isNative) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-white flex-col gap-4">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-green-500 border-t-transparent" />
@@ -59,7 +58,7 @@ export default function SSOCallbackPage() {
         );
     }
 
-    // Normal flow: inside the WebView, let Clerk process the OAuth token
+    // Native WebView: let Clerk process the OAuth token
     return (
         <div className="flex h-full w-full min-h-screen flex-col items-center justify-center bg-white z-50 fixed inset-0">
             <AuthenticateWithRedirectCallback 
