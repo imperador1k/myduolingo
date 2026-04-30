@@ -1,11 +1,12 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default-capability",
-  "description": "Core permissions for the app",
+  "description": "Permissões core para o wrapper remoto",
   "windows": ["main"],
   "permissions": [
     "core:default",
     "opener:default",
     "deep-link:default"
-  ]
+  ],
+  "remote_domains": ["myduolingo.vercel.app", "localhost", "localhost:3000"]
 }

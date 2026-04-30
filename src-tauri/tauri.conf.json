@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.tauri.dev",
   "build": {
-    "devUrl": "http://localhost:3000"
+    "devUrl": "http://localhost:3000",
+    "beforeDevCommand": "npm run dev"
   },
   "app": {
     "windows": [
@@ -13,24 +14,11 @@
         "width": 1200,
         "height": 800,
         "resizable": true,
-        "fullscreen": false,
-        "url": "https://myduolingo.vercel.app"
+        "fullscreen": false
       }
     ],
     "security": {
-      "csp": "default-src 'self' myduolingo:; connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.com; img-src 'self' data: https://images.clerk.dev",
-      "dangerousRemoteDomainIpcAccess": [
-        {
-          "domain": "myduolingo.vercel.app",
-          "windows": ["main"],
-          "plugins": ["deep-link", "opener", "core", "single-instance"]
-        },
-        {
-          "domain": "localhost",
-          "windows": ["main"],
-          "plugins": ["deep-link", "opener", "core", "single-instance"]
-        }
-      ]
+      "csp": "default-src 'self' http://localhost:3000 'unsafe-inline' 'unsafe-eval' myduolingo:; connect-src 'self' http://localhost:3000 https://*.clerk.accounts.dev https://*.clerk.com; img-src 'self' data: https://images.clerk.dev"
     }
   },
   "plugins": {
