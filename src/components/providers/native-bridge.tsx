@@ -29,27 +29,35 @@ export function NativeBridge() {
             
             // Listen for deep link events (single instance intercept)
             const { listen } = await import('@tauri-apps/api/event');
+            const { onOpenUrl: onOpenUrlTauri } = await import('@tauri-apps/plugin-deep-link');
+            
             listen<string[]>('app-instance-opened', (event) => {
-                const url = event.payload.find(arg => arg.startsWith('myduolingo://'));
-                if (url) {
-                    const fakeUrl = new URL(url.replace('myduolingo://', 'https://placeholder.com/'));
-                    const path = '/' + fakeUrl.pathname.replace(/^\/+/, '');
-                    const targetUrl = `${window.location.origin}${path}${fakeUrl.search}${fakeUrl.hash}`;
-                    console.log(`[NativeBridge] Tauri OAuth bounce → full reload: ${targetUrl}`);
-                    window.location.href = targetUrl;
+                const urlArg = event.payload.find(arg => arg.startsWith('myduolingo://'));
+                if (urlArg) {
+                    const currentOrigin = window.location.origin;
+                    const pathAndSearch = urlArg.replace("myduolingo://", "");
+                    const targetUrl = `${currentOrigin}/${pathAndSearch}`;
+                    
+                    if (window.location.href !== targetUrl) {
+                        console.log("[Tauri] Bouncing to:", targetUrl);
+                        window.location.href = targetUrl;
+                    }
                 }
             });
 
             // Listen for direct deep link opens
-            const { onOpenUrl } = await import('@tauri-apps/plugin-deep-link');
-            onOpenUrl((urls) => {
-                const url = urls[0];
-                if (url && url.startsWith('myduolingo://')) {
-                    const fakeUrl = new URL(url.replace('myduolingo://', 'https://placeholder.com/'));
-                    const path = '/' + fakeUrl.pathname.replace(/^\/+/, '');
-                    const targetUrl = `${window.location.origin}${path}${fakeUrl.search}${fakeUrl.hash}`;
-                    console.log(`[NativeBridge] Tauri OAuth bounce → full reload: ${targetUrl}`);
-                    window.location.href = targetUrl;
+            onOpenUrlTauri((urls) => {
+                console.log("[Tauri] Deep link received:", urls);
+                const url = urls.find(u => u.startsWith("myduolingo://"));
+                if (url) {
+                    const currentOrigin = window.location.origin;
+                    const pathAndSearch = url.replace("myduolingo://", "");
+                    const targetUrl = `${currentOrigin}/${pathAndSearch}`;
+                    
+                    if (window.location.href !== targetUrl) {
+                        console.log("[Tauri] Bouncing to:", targetUrl);
+                        window.location.href = targetUrl;
+                    }
                 }
             });
         }
