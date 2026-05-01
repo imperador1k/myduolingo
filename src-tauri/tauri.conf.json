@@ -39,12 +39,7 @@
       "icons/icon.ico"
     ],
     "windows": {
-      "nsis": {
-        "oneClick": true,
-        "perMachine": false,
-        "installerIcon": "icons/icon.ico",
-        "compression": "lzma"
-      }
+      "nsis": {}
     }
   }
 }
