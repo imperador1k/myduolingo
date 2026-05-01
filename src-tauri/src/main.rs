@@ -12,6 +12,17 @@ fn main() {
         }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_deep_link::init())
+        .setup(|app| {
+            // Em produção, forçamos a navegação para o URL da Vercel
+            #[cfg(not(debug_assertions))]
+            {
+                use tauri::Manager;
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.navigate("https://myduolingo.vercel.app".parse().unwrap());
+                }
+            }
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
