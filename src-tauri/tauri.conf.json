@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "myduolingo",
+  "productName": "MyDuolingo",
   "version": "0.1.0",
-  "identifier": "com.miguelpereira.myduolingo",
+  "identifier": "com.miguelsantos.myduolingo",
   "build": {
     "devUrl": "http://localhost:3000",
     "beforeDevCommand": "npm run dev"
@@ -37,6 +37,14 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "windows": {
+      "nsis": {
+        "oneClick": true,
+        "perMachine": false,
+        "installerIcon": "icons/icon.ico",
+        "compression": "lzma"
+      }
+    }
   }
 }

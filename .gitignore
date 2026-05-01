@@ -35,6 +35,16 @@ myduolingo-449c1-firebase-adminsdk-fbsvc-035fdac656.json
 # vercel
 .vercel
 
+# Tauri / Rust
+**/src-tauri/target
+**/src-tauri/gen
+**/dist
+**/node_modules
+
+# Installer specific
+/installer/dist
+/installer/src-tauri/target
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
