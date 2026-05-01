@@ -1,47 +1,55 @@
-# MyDuolingo Premium Installer 🚀
+<div align="center">
+  <img src="./public/icon.png" width="120" alt="MyDuolingo Installer Logo" />
+  <h1>🚀 MyDuolingo Web-Installer & Uninstaller</h1>
+  <p><strong>A Premium, Feedback-Driven, Single-Binary Custom Setup Engine</strong></p>
 
-Este diretório contém o código-fonte do instalador customizado para a aplicação MyDuolingo. Desenvolvido com **Tauri v2**, **React** e **Rust**, este instalador oferece uma experiência visual premium inspirada no *JetBrains Toolbox*.
-
-## 🏗️ Arquitetura
-O instalador funciona como um **Bootstrap Installer** (Web Installer):
-1.  **UI:** Interface frameless e transparente com Glassmorphism.
-2.  **Core (Rust):** Gere o download assíncrono do binário oficial via HTTPS.
-3.  **Deployment:** Executa a instalação silenciosa (`/S`) do binário principal.
-
-## 🚀 Como gerar uma nova versão
-Para atualizar o instalador oficial, siga estes passos:
-
-### 1. Build da App Principal
-Na raiz do projeto:
-```bash
-npm run tauri build
-```
-O binário será gerado em `src-tauri/target/release/bundle/msi/`.
-
-### 2. Upload para GitHub Releases
-1.  Vá para [GitHub Releases](https://github.com/imperador1k/myduolingo/releases).
-2.  Crie uma nova Release (ex: `v0.1.0`).
-3.  Carregue o ficheiro `.msi` gerado no passo anterior.
-4.  Copie o link direto do download (ex: `https://github.com/.../download/v0.1.0/MyDuolingo.msi`).
-
-### 3. Atualizar o Instalador
-No ficheiro `installer/src-tauri/src/lib.rs`, atualize a variável `url`:
-```rust
-let url = "O_TEU_LINK_COPIADO_AQUI";
-```
-
-### 4. Build do Instalador
-Dentro da pasta `installer/`:
-```bash
-npm run tauri build
-```
-O executável final para os utilizadores estará em `installer/src-tauri/target/release/bundle/nsis/`.
-
-## 🌐 Funcionalidades Profissionais
-- **i18n:** Suporte nativo para Português e Inglês.
-- **EULA:** Checkbox de aceitação de termos obrigatória.
-- **Security:** Abertura de links externos via Shell segura do Tauri.
-- **UX:** Feedback de progresso em tempo real do download.
+  [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](#)
+  [![Tauri](https://img.shields.io/badge/Tauri-FFC131?style=for-the-badge&logo=Tauri&logoColor=white)](#)
+  [![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)](#)
+</div>
 
 ---
-Desenvolvido com ❤️ por Miguel Santos.
+
+## 🌟 O que é isto?
+
+A maioria das aplicações usa os instaladores padrão e cinzentos do Windows. Nós queríamos proporcionar uma experiência de **nível Elite** (estilo JetBrains / Adobe) desde o primeiro clique. 
+
+Esta pasta contém um projeto Tauri/React **completamente independente** que serve como o motor de Instalação e Desinstalação da aplicação principal. 
+
+## 🏗️ Arquitetura "Single-Binary" Avançada
+
+Para poupar espaço e manter a elegância, este instalador adota uma arquitetura **Duas Caras (Single-Binary)**. Um único executável `.exe` (de cerca de 8MB) faz tudo, dependendo do nome com que é executado:
+
+*   **Modo SETUP (`*setup.exe` ou `*installer.exe`):**
+    *   Exibe um design Glassmorphism imersivo.
+    *   Descarrega o binário mais recente silenciosamente do GitHub via stream.
+    *   Executa o instalador NSIS invisivelmente em *background*.
+    *   Executa um "Hijack" no Registo do Windows para substituir o desinstalador padrão por si próprio.
+*   **Modo UNINSTALL (`*uninstall.exe`):**
+    *   Exibe um Formulário de Feedback (Feedback-Driven Uninstallation).
+    *   Limpa atalhos e as chaves de Registo do Windows.
+    *   **Auto-Destruição Kamikaze:** Gera um script `.bat` na cache do Windows que mata a app, apaga todos os ficheiros locais e depois apaga-se a si próprio sem deixar rasto.
+
+## 🎨 Design System
+O frontend foi construído com **React** e **CSS Puro**, focado em performance extrema e beleza:
+*   Múltiplos gradientes radiais.
+*   *Backdrop filters* (Glassmorphism).
+*   Micro-interações fluídas.
+*   Barra de título customizada (`data-tauri-drag-region`).
+
+## 🛠️ Como Compilar para Produção
+
+Se pretendes contribuir ou gerar o instalador do zero, certifica-te de que o teu URL no `src-tauri/src/lib.rs` aponta para o teu release no GitHub.
+
+```bash
+# 1. Instalar dependências Node
+npm install
+
+# 2. Compilar o binário Windows (.exe)
+npm run tauri build
+```
+O teu executável final com poderes mágicos estará em:
+`src-tauri/target/release/myduolingo-installer.exe`
+
+---
+> Desenvolvido com 🥷 sabedoria para proporcionar a melhor UI/UX desde o primeiro contacto.
