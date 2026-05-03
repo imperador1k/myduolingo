@@ -14,7 +14,8 @@
         "width": 1200,
         "height": 800,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "maximized": true
       }
     ],
     "security": {
@@ -26,6 +27,12 @@
       "desktop": {
         "schemes": ["myduolingo"]
       }
+    },
+    "updater": {
+      "endpoints": [
+        "https://github.com/imperador1k/myduolingo/releases/latest/download/updater.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEU5RTQzQUVFNUU3Qzg5OTgKUldTWWlYeGU3anJrNmYxdW5WZUF5ZjQ2dnBiRlUrcXZHaDlsUzFuS1VGc1pJWVo1OVZxQUJ0ZVMK"
     }
   },
   "bundle": {

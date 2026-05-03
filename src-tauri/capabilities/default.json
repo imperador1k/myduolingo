@@ -6,7 +6,9 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "deep-link:default"
+    "deep-link:default",
+    "updater:default",
+    "process:allow-restart"
   ],
   "remote_domains": ["myduolingo.vercel.app", "localhost", "localhost:3000"]
 }

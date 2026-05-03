@@ -11,6 +11,7 @@ import { TTSUnlocker } from "@/components/shared/tts-unlocker";
 import { ReviewModal } from "@/components/modals/review-modal";
 import { GlobalPresenceProvider } from "@/components/providers/global-presence-provider";
 import { NativeBridge } from "@/components/providers/native-bridge";
+import { NativeUpdater } from "@/components/providers/native-updater";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"] });
@@ -88,6 +89,7 @@ export default function RootLayout({
             <Toaster richColors />
             <OneSignalProvider />
             <NativeBridge />
+            <NativeUpdater />
             
             <ClerkLoading>
               <div className="fixed inset-0 z-above-modal bg-white flex items-center justify-center">

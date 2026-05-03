@@ -73,6 +73,10 @@ node_modules/
 *.keystore
 *.jks
 
+# Tauri signer
+.tauri
+updater.json
+
 # Sensitive Configs
 appConfig.json
 google-services.json
