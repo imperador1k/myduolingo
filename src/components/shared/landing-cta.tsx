@@ -29,7 +29,7 @@ export const LandingCTA = ({ userId }: LandingCTAProps) => {
         </Link>
       ) : (
         <>
-          <Link href="/sign-up" className="w-full">
+          <Link href="/onboarding" className="w-full">
             <Button 
               size="lg" 
               className="w-full bg-green-500 hover:bg-green-600 text-white font-bold uppercase tracking-wide border-b-4 border-green-700 h-12 rounded-xl"
