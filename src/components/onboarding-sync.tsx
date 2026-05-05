@@ -6,7 +6,11 @@ import { useOnboardingStore } from "@/store/use-onboarding-store";
 import { onSelectCourse } from "@/actions/user-progress";
 import { useRouter } from "next/navigation";
 
-export const OnboardingSync = () => {
+interface OnboardingSyncProps {
+  isFullScreen?: boolean;
+}
+
+export const OnboardingSync = ({ isFullScreen }: OnboardingSyncProps) => {
   const { user, isLoaded: isUserLoaded } = useUser();
   const { 
     selectedCourse, 
@@ -14,30 +18,59 @@ export const OnboardingSync = () => {
     experienceLevel, 
     placementResults,
     isOnboardingComplete,
-    completeOnboarding 
   } = useOnboardingStore();
   const [isSyncing, setIsSyncing] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const syncData = async () => {
-      // Only sync if user is logged in, onboarding was completed locally, 
-      // and we have a course selected
-      if (isUserLoaded && user && selectedCourse && isOnboardingComplete && !isSyncing) {
+      // 1. Try to get data from Store (Email Signup flow)
+      // 2. Try to get data from Cookies (OAuth/Google flow)
+      
+      let dataToSync = null;
+
+      if (selectedCourse && isOnboardingComplete) {
+        dataToSync = {
+          courseId: selectedCourse,
+          motivation,
+          experienceLevel,
+          cefrLevel: placementResults?.level || null
+        };
+      } else {
+        // Look for cookie (OAuth flow)
+        const cookies = document.cookie.split("; ");
+        const onboardingCookie = cookies.find(row => row.startsWith("onboarding_data="));
+        if (onboardingCookie) {
+          try {
+            dataToSync = JSON.parse(decodeURIComponent(onboardingCookie.split("=")[1]));
+            // Map cookie fields to expected names
+            if (dataToSync.selectedCourse) {
+              dataToSync.courseId = dataToSync.selectedCourse;
+            }
+          } catch (e) {
+            console.error("Erro ao ler cookie de onboarding:", e);
+          }
+        }
+      }
+
+      if (isUserLoaded && user && dataToSync && !isSyncing) {
         setIsSyncing(true);
         try {
-          console.log("Sincronizando dados de onboarding para o utilizador:", user.id);
+          console.log("Sincronizando dados para o utilizador:", user.id);
           
-          await onSelectCourse(selectedCourse, motivation, experienceLevel, placementResults?.level);
+          await onSelectCourse(
+            dataToSync.courseId, 
+            dataToSync.motivation, 
+            dataToSync.experienceLevel, 
+            dataToSync.cefrLevel
+          );
           
-          // Clear onboarding status so we don't sync again
-          // We keep the data for now but mark it as handled
-          // Actually, let's just reset the whole store if we want to be clean
-          // but for now, just marking it as not complete is enough to stop the sync
+          // Cleanup
           localStorage.removeItem("onboarding-storage");
+          document.cookie = "onboarding_data=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
           document.cookie = "onboarding_completed=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
           
-          // Redirect to learn to show the new course
+          // Trigger server-side refresh
           router.refresh();
         } catch (error) {
           console.error("Erro ao sincronizar onboarding:", error);
@@ -48,7 +81,7 @@ export const OnboardingSync = () => {
     };
 
     syncData();
-  }, [isUserLoaded, user, selectedCourse, isOnboardingComplete, motivation, experienceLevel, isSyncing, router]);
+  }, [isUserLoaded, user, selectedCourse, isOnboardingComplete, motivation, experienceLevel, placementResults, isSyncing, router]);
 
-  return null; // Invisible component
+  return null;
 };

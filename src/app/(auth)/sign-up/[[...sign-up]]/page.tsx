@@ -8,6 +8,7 @@ import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useOnboardingStore } from "@/store/use-onboarding-store";
 import { Eye, EyeOff } from "lucide-react";
+import { onSelectCourse } from "@/actions/user-progress";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0, scale: 0.95, y: 20 },
@@ -35,9 +36,15 @@ const itemVariants: Variants = {
 };
 
 export default function CustomSignUp() {
-  const { isLoaded, signUp, setActive } = useSignUp();
+  const { 
+    selectedCourse, 
+    motivation, 
+    experienceLevel, 
+    placementResults,
+    isOnboardingComplete,
+  } = useOnboardingStore();
+  const { isLoaded, signUp } = useSignUp();
   const { isSignedIn } = useUser();
-  const { isOnboardingComplete } = useOnboardingStore();
   const [isHydrated, setIsHydrated] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -75,10 +82,34 @@ export default function CustomSignUp() {
   }, [isHydrated, isOnboardingComplete, router]);
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      router.push("/learn");
-    }
-  }, [isLoaded, isSignedIn, router]);
+    const syncAndRedirect = async () => {
+      if (isLoaded && isSignedIn && isHydrated) {
+        // If we have onboarding data, sync it before redirecting
+        if (selectedCourse && isOnboardingComplete) {
+          try {
+            console.log("Sincronizando onboarding pós-signup...");
+            await onSelectCourse(
+              selectedCourse, 
+              motivation, 
+              experienceLevel, 
+              placementResults?.level
+            );
+            
+            // Clear local onboarding data
+            localStorage.removeItem("onboarding-storage");
+            document.cookie = "onboarding_data=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            document.cookie = "onboarding_completed=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          } catch (error) {
+            console.error("Erro na sincronização pós-signup:", error);
+          }
+        }
+        
+        router.push("/learn");
+      }
+    };
+
+    syncAndRedirect();
+  }, [isLoaded, isSignedIn, isHydrated, selectedCourse, isOnboardingComplete, motivation, experienceLevel, placementResults, router]);
 
   const handleGoogleSignUp = async () => {
     if (!isLoaded) return;

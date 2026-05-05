@@ -47,7 +47,7 @@ const variants = {
 
 export const OnboardingClient = ({ courses }: OnboardingClientProps) => {
   const router = useRouter();
-  const { step, setStep, prevStep, nextStep, selectedCourse, motivation, experienceLevel, completeOnboarding } = useOnboardingStore();
+  const { step, setStep, prevStep, nextStep, selectedCourse, motivation, experienceLevel, placementResults, completeOnboarding } = useOnboardingStore();
 
   const progress = (step / TOTAL_STEPS) * 100;
   
@@ -95,8 +95,18 @@ export const OnboardingClient = ({ courses }: OnboardingClientProps) => {
       nextStep();
     } else {
       completeOnboarding();
-      // Set a cookie to allow middleware to verify onboarding completion
+      
+      // Save full onboarding data to a cookie for server-side syncing
+      const onboardingData = {
+        selectedCourse,
+        motivation,
+        experienceLevel,
+        cefrLevel: placementResults?.level || null
+      };
+      
+      document.cookie = `onboarding_data=${JSON.stringify(onboardingData)}; path=/; max-age=3600; SameSite=Lax`;
       document.cookie = "onboarding_completed=true; path=/; max-age=3600; SameSite=Lax";
+      
       router.push("/sign-up");
     }
   };

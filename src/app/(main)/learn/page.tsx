@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import { UnitSearchModal } from "@/components/modals/unit-search-modal";
 import Link from "next/link";
 import { getUnits, getUserProgress, getCourses } from "@/db/queries";
@@ -37,15 +38,46 @@ export default function LearnPage() {
     );
 }
 
+import { cookies } from "next/headers";
+import { OnboardingSync } from "@/components/onboarding-sync";
+
 // --- ASYNC SERVER COMPONENT FOR DATA FETCHING ---
 async function LearnData() {
     const userProgress = await getUserProgress();
+    const cookieStore = await cookies();
+    const onboardingCookie = cookieStore.get("onboarding_data");
+
+    // If no progress but we have onboarding data, show a sync loading screen
+    if (!userProgress || !userProgress.activeCourseId) {
+        if (onboardingCookie) {
+            return (
+                <div className="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center p-6">
+                    <OnboardingSync isFullScreen />
+                    <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-500">
+                        <div className="w-48 h-48 relative">
+                            <Image src="/marco.png" alt="Marco" fill className="object-contain animate-bounce" />
+                        </div>
+                        <div className="space-y-2 text-center">
+                            <h2 className="text-2xl font-black text-slate-700 uppercase tracking-tight">A Preparar o teu Mundo...</h2>
+                            <p className="text-slate-500 font-bold">Estamos a configurar o teu curso épico. Só um momento! 🦉</p>
+                        </div>
+                        <div className="flex gap-2 mt-4">
+                            {[0, 1, 2].map((i) => (
+                                <div key={i} className="w-3 h-3 bg-[#58cc02] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        redirect("/courses");
+    }
+
     const units = await getUnits();
+    if (!units || units.length === 0) redirect("/courses");
+
     const courses = await getCourses();
     const isPro = await checkSubscription();
-
-    if (!userProgress || !userProgress.activeCourseId) redirect("/courses");
-    if (!units || units.length === 0) redirect("/courses");
 
     const activeCourse = courses.find(c => c.id === userProgress.activeCourseId);
     
