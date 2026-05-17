@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { validateVaultToken } from "@/lib/vault-token";
 
 const isPublicRoute = createRouteMatcher([
     "/",
@@ -7,7 +8,7 @@ const isPublicRoute = createRouteMatcher([
     "/sign-in(.*)",
     "/sign-up(.*)",
     "/forgot-password(.*)",
-    "/admin-login(.*)", // Crucial: explicitly mark as public
+    "/admin-login(.*)",
     "/auth-success(.*)",
     "/sso-callback(.*)",
     "/mobile-auth(.*)",
@@ -19,12 +20,10 @@ const isPublicRoute = createRouteMatcher([
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 
 export default clerkMiddleware(async (auth, request) => {
-    // PREVENT INFINITE LOOP: If we are already on the admin-login page, let it load!
     if (request.nextUrl.pathname.startsWith("/admin-login")) {
         return NextResponse.next();
     }
 
-    // Protection for /sign-up: must have completed onboarding
     if (request.nextUrl.pathname.startsWith("/sign-up")) {
         const onboardingCookie = request.cookies.get("onboarding_completed");
         if (!onboardingCookie || onboardingCookie.value !== "true") {
@@ -32,27 +31,26 @@ export default clerkMiddleware(async (auth, request) => {
         }
     }
 
-    // Military-grade Zero Trust for /admin route
     if (isAdminRoute(request)) {
         const { userId } = await auth();
         const vaultLoginUrl = new URL("/admin-login", request.url);
 
-        // LAYER 1: Basic Clerk Authentication
         if (!userId) {
             return NextResponse.redirect(new URL("/", request.url));
         }
 
-        // LAYER 2: Master Key (Allowlist)
         const allowedIds = process.env.ADMIN_ALLOWED_USER_IDS?.split(",").map(id => id.trim()) || [];
         if (!allowedIds.includes(userId)) {
-            // Unconditionally reject bypassing the allowlist
             return NextResponse.redirect(new URL("/", request.url));
         }
 
-        // LAYER 3: SUDO MODE (Custom Secure Cookie)
         const vaultCookie = request.cookies.get("admin_vault_session");
-        if (!vaultCookie || vaultCookie.value !== "authorized") {
-            // Force strict redirection to the Vault login
+        if (!vaultCookie) {
+            return NextResponse.redirect(vaultLoginUrl);
+        }
+
+        const vaultUserId = validateVaultToken(vaultCookie.value);
+        if (!vaultUserId || vaultUserId !== userId) {
             return NextResponse.redirect(vaultLoginUrl);
         }
     }

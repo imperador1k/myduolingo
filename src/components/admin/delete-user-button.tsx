@@ -26,7 +26,7 @@ export function DeleteUserButton({ userId, userName }: DeleteUserButtonProps) {
                     if (result.success) {
                         toast.success("Utilizador purgado com sucesso de todos os sistemas.");
                     } else {
-                        toast.error(result.error || "Operação abortada.");
+                        toast.error((result as any).message || "Operação abortada.");
                     }
                 })
                 .catch(() => toast.error("Falha ao comunicar com o servidor."));

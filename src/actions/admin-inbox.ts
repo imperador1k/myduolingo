@@ -6,13 +6,18 @@ import { eq, desc, and, gte } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
 import { getSupportReplyEmail } from "@/lib/email-templates";
+import { validateAdmin } from "@/lib/admin-guard";
+import { ticketReplySchema, getFirstZodError } from "@/lib/admin-validators";
+import { actionError } from "@/lib/action-error";
+import { sanitizeHtml } from "@/lib/html-sanitizer";
+import { emailRateLimit } from "@/lib/ratelimit";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export type InboxItemType = "ticket" | "review";
 
 export type InboxItem = {
-    id: string; // "ticket_1" vs "review_2" for unique frontend keys
+    id: string;
     realId: number;
     type: InboxItemType;
     userName: string;
@@ -22,7 +27,7 @@ export type InboxItem = {
     message: string;
     createdAt: Date | null;
     isUnread: boolean;
-    rating?: number; // Só para reviews
+    rating?: number;
 };
 
 export async function getInboxItems(showArchived: boolean = false): Promise<InboxItem[]> {
@@ -30,7 +35,6 @@ export async function getInboxItems(showArchived: boolean = false): Promise<Inbo
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        // Obter tickets
         const tickets = await db.query.supportTickets.findMany({
             where: showArchived
                 ? and(eq(supportTickets.status, "resolved"), gte(supportTickets.createdAt, sevenDaysAgo))
@@ -43,7 +47,6 @@ export async function getInboxItems(showArchived: boolean = false): Promise<Inbo
             }
         });
 
-        // Obter reviews
         const reviews = await db.query.userReviews.findMany({
             where: showArchived
                 ? and(eq(userReviews.read, true), gte(userReviews.createdAt, sevenDaysAgo))
@@ -51,7 +54,6 @@ export async function getInboxItems(showArchived: boolean = false): Promise<Inbo
             orderBy: [desc(userReviews.createdAt)],
         });
 
-        // Formatar para a InboxItem partilhada
         const formattedTickets: InboxItem[] = tickets.map(t => ({
             id: `ticket_${t.id}`,
             realId: t.id,
@@ -62,7 +64,7 @@ export async function getInboxItems(showArchived: boolean = false): Promise<Inbo
             subject: t.subject,
             message: t.message,
             createdAt: t.createdAt,
-            isUnread: true, // Se está open, assumimos como unread na UI
+            isUnread: true,
         }));
 
         const formattedReviews: InboxItem[] = reviews.map(r => ({
@@ -78,7 +80,6 @@ export async function getInboxItems(showArchived: boolean = false): Promise<Inbo
             rating: r.rating,
         }));
 
-        // Juntar e ordenar por data decrescente (mais recentes primeiro)
         const allItems = [...formattedTickets, ...formattedReviews].sort((a, b) => {
             const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -87,7 +88,7 @@ export async function getInboxItems(showArchived: boolean = false): Promise<Inbo
 
         return allItems;
     } catch (error) {
-        console.error("Failed to get inbox items:", error);
+        console.error("Failed to get inbox items");
         return [];
     }
 }
@@ -100,7 +101,7 @@ export async function resolveSupportTicket(id: number) {
         revalidatePath("/admin/inbox");
         return { success: true };
     } catch (error) {
-        return { success: false, error: "Failed to resolve ticket" };
+        return { success: false, error: "Falha ao resolver ticket" };
     }
 }
 
@@ -112,7 +113,7 @@ export async function dismissUserReview(id: number) {
         revalidatePath("/admin/inbox");
         return { success: true };
     } catch (error) {
-        return { success: false, error: "Failed to dismiss review" };
+        return { success: false, error: "Falha ao descartar avaliação" };
     }
 }
 
@@ -124,7 +125,7 @@ export async function reopenSupportTicket(id: number) {
         revalidatePath("/admin/inbox");
         return { success: true };
     } catch (error) {
-        return { success: false, error: "Failed to reopen ticket" };
+        return { success: false, error: "Falha ao reabrir ticket" };
     }
 }
 
@@ -136,31 +137,55 @@ export async function reopenUserReview(id: number) {
         revalidatePath("/admin/inbox");
         return { success: true };
     } catch (error) {
-        return { success: false, error: "Failed to reopen review" };
+        return { success: false, error: "Falha ao reabrir avaliação" };
     }
 }
 
 export async function replyToTicket(ticketId: number, userEmail: string, subject: string, messageContent: string, userName: string = "Estudante") {
+    await validateAdmin();
+
     if (!resend) {
-        return { success: false, error: "Serviço de email indisponível" };
+        return actionError("SERVER_ERROR", "Serviço de email indisponível");
+    }
+
+    const parsed = ticketReplySchema.safeParse({
+        ticketId,
+        userEmail,
+        subject,
+        messageContent,
+        userName,
+    });
+
+    if (!parsed.success) {
+        return actionError("INVALID_PAYLOAD", getFirstZodError(parsed));
+    }
+
+    const { userId } = await validateAdmin();
+    const rateLimitResult = await emailRateLimit.limit(userId);
+
+    if (!rateLimitResult.success) {
+        return actionError("RATE_LIMIT_EXCEEDED", "Demasiados emails enviados. Aguarda antes de tentar novamente.");
     }
 
     try {
-        const htmlContent = getSupportReplyEmail(userName, messageContent, subject);
+        const sanitizedContent = sanitizeHtml(messageContent);
+        const sanitizedSubject = subject.replace(/[<>]/g, "");
+        const sanitizedName = userName.replace(/[<>]/g, "");
+
+        const htmlContent = getSupportReplyEmail(sanitizedName, sanitizedContent, sanitizedSubject);
 
         await resend.emails.send({
             from: "Equipa MyDuolingo <suporte@miguelweb.dev>",
-            to: userEmail,
-            subject: `Re: ${subject}`,
+            to: parsed.data.userEmail,
+            subject: `Re: ${sanitizedSubject}`,
             html: htmlContent,
         });
 
-        // Marcar como resolvido na base de dados
         await resolveSupportTicket(ticketId);
 
         return { success: true };
     } catch (error) {
-        console.error("Failed to send reply:", error);
-        return { success: false, error: "Falha ao enviar o email de resposta" };
+        console.error("Failed to send reply");
+        return actionError("SERVER_ERROR", "Falha ao enviar o email de resposta");
     }
 }

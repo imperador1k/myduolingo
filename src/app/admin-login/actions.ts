@@ -7,6 +7,7 @@ import { adminAuthAttempts } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { createVaultToken } from "@/lib/vault-token";
 
 export async function authenticateVault(prevState: any, formData: FormData) {
     const { userId } = await auth();
@@ -14,15 +15,12 @@ export async function authenticateVault(prevState: any, formData: FormData) {
         return { error: "Acesso Negado (No Auth)" };
     }
 
-    // Small delay to simulate secure terminal check and prevent brute-force feeling
     await new Promise((resolve) => setTimeout(resolve, 600));
 
-    // Get the user's attempt record
     const [record] = await db.select().from(adminAuthAttempts).where(eq(adminAuthAttempts.userId, userId));
 
     const now = new Date();
-    
-    // Check if locked out
+
     if (record && record.lockoutUntil && record.lockoutUntil > now) {
         const remainingMillis = record.lockoutUntil.getTime() - now.getTime();
         const remainingMinutes = Math.ceil(remainingMillis / (1000 * 60));
@@ -33,7 +31,7 @@ export async function authenticateVault(prevState: any, formData: FormData) {
     const sudoHash = process.env.ADMIN_SUDO_HASH;
 
     if (!sudoHash) {
-        return { error: "Erro de Configuração: Admin Hash não existe no servidor." };
+        return { error: "Erro de Configuração do Servidor" };
     }
 
     const isMatch = bcrypt.compareSync(password, sudoHash);
@@ -43,13 +41,11 @@ export async function authenticateVault(prevState: any, formData: FormData) {
         let lockout: Date | null = null;
         let errorMsg = `Acesso Negado. Tentativa ${currentAttempts}/5.`;
 
-        // Apply Lockout if reached 5 attempts
         if (currentAttempts >= 5) {
-            lockout = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes from now
+            lockout = new Date(now.getTime() + 30 * 60 * 1000);
             errorMsg = "Cofre Bloqueado. Tenta novamente em 30 minutos.";
         }
 
-        // Upsert DB Record
         if (record) {
             await db.update(adminAuthAttempts)
                 .set({ attempts: currentAttempts, lockoutUntil: lockout })
@@ -62,20 +58,23 @@ export async function authenticateVault(prevState: any, formData: FormData) {
         return { error: errorMsg };
     }
 
-    // Success -> Reset attempts
     if (record) {
         await db.update(adminAuthAttempts)
             .set({ attempts: 0, lockoutUntil: null })
             .where(eq(adminAuthAttempts.id, record.id));
     }
 
-    cookies().set("admin_vault_session", "authorized", {
+    const vaultToken = createVaultToken(userId);
+
+    cookies().set("admin_vault_session", vaultToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 3600, // 1 hour
+        maxAge: COOKIE_MAX_AGE,
         path: "/",
-        sameSite: "lax",
+        sameSite: "strict",
     });
 
     redirect("/admin");
 }
+
+const COOKIE_MAX_AGE = 3600;

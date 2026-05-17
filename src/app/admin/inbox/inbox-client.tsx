@@ -103,7 +103,7 @@ export function InboxClient({ initialItems }: Props) {
             if (response.success) {
                 toast.success("🚀 Resposta enviada com sucesso!");
             } else {
-                throw new Error(response.error);
+                throw new Error((response as any).message || "Falha ao enviar resposta");
             }
         } catch (error: any) {
             setItems(previousItems);

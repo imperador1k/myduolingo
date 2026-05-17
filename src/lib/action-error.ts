@@ -8,6 +8,7 @@ export const ActionErrorCodes = {
     CONFLICT: "CONFLICT",
     BAD_REQUEST: "BAD_REQUEST",
     SERVER_ERROR: "SERVER_ERROR",
+    FORBIDDEN: "FORBIDDEN",
 } as const;
 
 export type ErrorCode = keyof typeof ActionErrorCodes;

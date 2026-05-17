@@ -8,6 +8,23 @@ import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
+const processedEvents = new Map<string, number>();
+const EVENT_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function isEventProcessed(eventId: string): boolean {
+    const cached = processedEvents.get(eventId);
+    if (!cached) return false;
+    if (Date.now() - cached > EVENT_CACHE_TTL) {
+        processedEvents.delete(eventId);
+        return false;
+    }
+    return true;
+}
+
+function markEventProcessed(eventId: string) {
+    processedEvents.set(eventId, Date.now());
+}
+
 export async function POST(req: Request) {
     const body = await req.text();
     const signature = headers().get("Stripe-Signature") as string;
@@ -20,20 +37,26 @@ export async function POST(req: Request) {
             signature,
             process.env.STRIPE_WEBHOOK_SECRET!
         );
-    } catch (error: any) {
-        return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
+    } catch (error) {
+        console.error("Webhook signature verification failed");
+        return new NextResponse("Webhook Error", { status: 400 });
     }
+
+    if (!event.id || isEventProcessed(event.id)) {
+        return new NextResponse(null, { status: 200 });
+    }
+
+    markEventProcessed(event.id);
 
     const session = event.data.object as Stripe.Checkout.Session;
 
-    // EVENT 1: Checkout Session Completed (New Subscription First Time)
     if (event.type === "checkout.session.completed") {
         const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
         ) as Stripe.Subscription;
 
         if (!session?.metadata?.userId) {
-            return new NextResponse("User ID is required", { status: 400 });
+            return new NextResponse("Missing user ID", { status: 400 });
         }
 
         try {
@@ -46,15 +69,12 @@ export async function POST(req: Request) {
                     (subscription as any).current_period_end * 1000
                 ),
             });
-        } catch (error: any) {
-            console.error("DB_INSERT_ERROR (checkout.session.completed):", error);
-            // It might already exist if the webhook fired twice or a glitch happened, 
-            // Postgres unique constraints would throw an error here.
-            return new NextResponse("Database Error Insert", { status: 500 });
+        } catch (error) {
+            console.error("DB error on checkout.session.completed");
+            return new NextResponse("Database Error", { status: 500 });
         }
     }
 
-    // EVENT 2: Invoice Payment Succeeded (Subscription Renewal Monthly)
     if (event.type === "invoice.payment_succeeded") {
         const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
@@ -70,9 +90,9 @@ export async function POST(req: Request) {
                     ),
                 })
                 .where(eq(userSubscriptions.stripeSubscriptionId, subscription.id));
-        } catch (error: any) {
-            console.error("DB_UPDATE_ERROR (invoice.payment_succeeded):", error);
-            return new NextResponse("Database Error Update", { status: 500 });
+        } catch (error) {
+            console.error("DB error on invoice.payment_succeeded");
+            return new NextResponse("Database Error", { status: 500 });
         }
     }
 

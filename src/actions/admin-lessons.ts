@@ -6,41 +6,57 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { validateAdmin, logAdminAction } from "@/lib/admin-guard";
+import { lessonSchema, getFirstZodError } from "@/lib/admin-validators";
+import { actionError } from "@/lib/action-error";
 
 export async function saveLessonAction(formData: FormData) {
     await validateAdmin();
 
-    const id = formData.get("id") as string | null;
-    const title = formData.get("title") as string;
-    const order = formData.get("order") as string;
-    const unitId = formData.get("unitId") as string;
+    const rawId = formData.get("id") as string | null;
+    const rawTitle = formData.get("title") as string;
+    const rawOrder = formData.get("order") as string;
+    const rawUnitId = formData.get("unitId") as string;
 
-    if (!title || !order || !unitId) {
-        throw new Error("Faltam campos obrigatórios para guardar a Lição.");
+    const parsed = lessonSchema.safeParse({
+        id: rawId,
+        title: rawTitle,
+        order: rawOrder,
+        unitId: rawUnitId,
+    });
+
+    if (!parsed.success) {
+        return actionError("INVALID_PAYLOAD", getFirstZodError(parsed));
     }
 
-    if (id) {
-        // UPDATE
-        const updateData = {
-            title,
-            order: parseInt(order),
-            unitId: parseInt(unitId),
-        };
+    const { id, title, order, unitId } = parsed.data;
+    const orderNum = parseInt(order);
+    const unitIdNum = parseInt(unitId);
 
-        await db.update(lessons)
-            .set(updateData)
-            .where(eq(lessons.id, parseInt(id)));
+    try {
+        if (id) {
+            const updateData = {
+                title,
+                order: orderNum,
+                unitId: unitIdNum,
+            };
 
-        await logAdminAction("UPDATE_LESSON", id, JSON.stringify(updateData));
-    } else {
-        // CREATE
-        const [newLesson] = await db.insert(lessons).values({
-            title,
-            order: parseInt(order),
-            unitId: parseInt(unitId),
-        }).returning();
+            await db.update(lessons)
+                .set(updateData)
+                .where(eq(lessons.id, parseInt(id)));
 
-        await logAdminAction("CREATE_LESSON", newLesson.id.toString(), JSON.stringify({ title, unitId }));
+            await logAdminAction("UPDATE_LESSON", id, JSON.stringify({ title, unitId }));
+        } else {
+            const [newLesson] = await db.insert(lessons).values({
+                title,
+                order: orderNum,
+                unitId: unitIdNum,
+            }).returning();
+
+            await logAdminAction("CREATE_LESSON", newLesson.id.toString(), JSON.stringify({ title, unitId }));
+        }
+    } catch (error) {
+        console.error("[LESSON_SAVE_ERROR]", error);
+        return actionError("SERVER_ERROR", "Erro ao guardar a lição. Tenta novamente.");
     }
 
     revalidatePath("/admin/lessons");

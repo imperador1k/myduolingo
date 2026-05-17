@@ -20,7 +20,14 @@ async function assertAdmin() {
 
 function cleanText(text: any): string {
     if (!text) return "";
-    return String(text).trim();
+    return String(text)
+        .trim()
+        .replace(/<[^>]*>/g, "")
+        .replace(/[<>"'&]/g, (char) => {
+            const map: Record<string, string> = { "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#x27;", "&": "&amp;" };
+            return map[char] || char;
+        })
+        .substring(0, 1000);
 }
 
 const VALID_TYPES = ["SELECT", "ASSIST", "INSERT", "MATCH", "DICTATION"] as const;

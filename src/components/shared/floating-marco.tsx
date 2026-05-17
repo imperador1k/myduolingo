@@ -201,14 +201,19 @@ export const FloatingMarco = () => {
             chip.contentEditable = "false";
             chip.className = "bg-[#58CC02] text-white px-2 py-0.5 mx-1 rounded-md font-extrabold text-sm select-none inline-flex items-center shadow-sm cursor-default";
             chip.dataset.cmd = cmd.cmd;
-            chip.innerHTML = `<span class="mr-1">${cmd.icon}</span>${cmd.cmd}`;
-            
+            const iconSpan = document.createElement("span");
+            iconSpan.className = "mr-1";
+            iconSpan.textContent = cmd.icon;
+            const cmdSpan = document.createTextNode(cmd.cmd);
+            chip.appendChild(iconSpan);
+            chip.appendChild(cmdSpan);
+
             range.insertNode(chip);
-            
+
             const space = document.createTextNode("\u00A0");
             range.setStartAfter(chip);
             range.insertNode(space);
-            
+
             range.setStartAfter(space);
             range.collapse(true);
             selection.removeAllRanges();
@@ -218,7 +223,12 @@ export const FloatingMarco = () => {
              chip.contentEditable = "false";
              chip.className = "bg-[#58CC02] text-white px-2 py-0.5 mx-1 rounded-md font-extrabold text-sm select-none inline-flex items-center shadow-sm cursor-default";
              chip.dataset.cmd = cmd.cmd;
-             chip.innerHTML = `<span class="mr-1">${cmd.icon}</span>${cmd.cmd}`;
+             const iconSpan = document.createElement("span");
+             iconSpan.className = "mr-1";
+             iconSpan.textContent = cmd.icon;
+             const cmdSpan = document.createTextNode(cmd.cmd);
+             chip.appendChild(iconSpan);
+             chip.appendChild(cmdSpan);
              editorRef.current.appendChild(chip);
              editorRef.current.appendChild(document.createTextNode("\u00A0"));
              
