@@ -233,7 +233,7 @@ export default function CustomSignIn() {
   const isEmailMfa = mfaStrategy === "email_code";
 
   return (
-    <div className="min-h-[100dvh] w-screen overflow-hidden flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 relative p-4 select-none">
+    <div className="min-h-[100dvh] w-full overflow-hidden flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 relative p-4 select-none">
       {/* Background Dots Overlay */}
       <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-40 pointer-events-none z-0"></div>
 
@@ -347,11 +347,11 @@ export default function CustomSignIn() {
           variants={cardVariants}
           initial="hidden"
           animate={isShaking ? { x: [-10, 10, -10, 10, -5, 5, 0] } : "visible"}
-          className="w-full bg-white border-2 border-slate-200 border-b-[8px] rounded-[2rem] p-8 sm:p-10 relative z-20 shadow-xl shadow-slate-200/40"
+          className="w-full bg-white border-2 border-slate-200 border-b-[8px] rounded-[2rem] p-8 lg:p-8 relative z-20 shadow-xl shadow-slate-200/40"
         >
           {/* Mascot (Marco) Overlapping Card top */}
           <motion.div
-            className="w-28 h-28 sm:w-32 sm:h-32 relative -mt-20 sm:-mt-24 mx-auto mb-2 drop-shadow-lg z-30 pointer-events-none"
+            className="w-28 h-28 lg:w-24 lg:h-24 relative -mt-20 lg:-mt-16 mx-auto mb-2 drop-shadow-lg z-30 pointer-events-none"
             animate={{ y: [-3, 3, -3] }}
             transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
           >
@@ -379,7 +379,7 @@ export default function CustomSignIn() {
                   variants={itemVariants}
                   className="text-center space-y-1"
                 >
-                  <h1 className="text-3xl sm:text-4xl font-black text-[#042c60]">
+                  <h1 className="text-3xl lg:text-3xl font-black text-[#042c60]">
                     Entrar
                   </h1>
                   <p className="text-slate-400 font-bold text-xs sm:text-sm">
@@ -413,7 +413,7 @@ export default function CustomSignIn() {
                     whileTap={{ scale: 0.97 }}
                     onClick={handleGoogleSignIn}
                     disabled={isLoading}
-                    className="w-full h-14 sm:h-16 bg-white border-2 border-slate-200 border-b-[6px] active:border-b-2 active:translate-y-[4px] transition-all rounded-2xl flex items-center justify-center gap-3 text-slate-700 font-black hover:bg-slate-50 disabled:opacity-70 text-base sm:text-lg outline-none cursor-pointer"
+                    className="w-full h-14 lg:h-12 bg-white border-2 border-slate-200 border-b-[6px] active:border-b-2 active:translate-y-[4px] transition-all rounded-2xl flex items-center justify-center gap-3 text-slate-700 font-black hover:bg-slate-50 disabled:opacity-70 text-sm sm:text-base lg:text-sm outline-none cursor-pointer"
                   >
                     {isLoading ? (
                       <div className="w-5 h-5 border-3 border-sky-400/30 border-t-sky-400 rounded-full animate-spin" />
@@ -460,7 +460,7 @@ export default function CustomSignIn() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="w-full h-14 sm:h-16 px-5 bg-slate-50 border-2 border-slate-200 focus:bg-white focus:border-[#1cb0f6] rounded-2xl font-black text-slate-700 text-base sm:text-lg focus:ring-0 outline-none transition-all"
+                        className="w-full h-14 lg:h-12 px-5 bg-slate-50 border-2 border-slate-200 focus:bg-white focus:border-[#1cb0f6] rounded-2xl font-black text-slate-700 text-sm sm:text-base lg:text-sm focus:ring-0 outline-none transition-all"
                       />
                       <div className="relative">
                         <input
@@ -469,7 +469,7 @@ export default function CustomSignIn() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
-                          className="w-full h-14 sm:h-16 px-5 bg-slate-50 border-2 border-slate-200 focus:bg-white focus:border-[#1cb0f6] rounded-2xl font-black text-slate-700 text-base sm:text-lg focus:ring-0 outline-none transition-all pr-12"
+                          className="w-full h-14 lg:h-12 px-5 bg-slate-50 border-2 border-slate-200 focus:bg-white focus:border-[#1cb0f6] rounded-2xl font-black text-slate-700 text-sm sm:text-base lg:text-sm focus:ring-0 outline-none transition-all pr-12"
                         />
                         <button
                           type="button"
@@ -505,7 +505,7 @@ export default function CustomSignIn() {
                       whileTap={{ scale: 0.97 }}
                       type="submit"
                       disabled={isLoading || !email || !password}
-                      className="w-full h-14 sm:h-16 bg-[#58cc02] text-white border-b-[6px] border-[#46a302] hover:bg-[#4eb302] active:border-b-0 active:translate-y-[6px] transition-all rounded-2xl font-black tracking-widest uppercase flex items-center justify-center text-base sm:text-lg disabled:opacity-50 outline-none cursor-pointer"
+                      className="w-full h-14 lg:h-12 bg-[#58cc02] text-white border-b-[6px] border-[#46a302] hover:bg-[#4eb302] active:border-b-0 active:translate-y-[6px] transition-all rounded-2xl font-black tracking-widest uppercase flex items-center justify-center text-sm sm:text-base lg:text-sm disabled:opacity-50 outline-none cursor-pointer"
                     >
                       {isLoading ? (
                         <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
@@ -609,7 +609,7 @@ export default function CustomSignIn() {
                       }
                       required
                       autoFocus
-                      className={`w-full h-20 sm:h-24 text-center text-4xl sm:text-5xl tracking-[0.4em] font-black bg-slate-50 border-2 border-slate-200 focus:bg-white focus:ring-0 outline-none transition-all text-slate-700 rounded-2xl ${isEmailMfa ? "focus:border-amber-400" : "focus:border-[#1cb0f6]"}`}
+                      className={`w-full h-20 lg:h-16 text-center text-4xl lg:text-3xl tracking-[0.4em] font-black bg-slate-50 border-2 border-slate-200 focus:bg-white focus:ring-0 outline-none transition-all text-slate-700 rounded-2xl ${isEmailMfa ? "focus:border-amber-400" : "focus:border-[#1cb0f6]"}`}
                     />
                   </motion.div>
 
@@ -631,7 +631,7 @@ export default function CustomSignIn() {
                       whileTap={{ scale: 0.97 }}
                       type="submit"
                       disabled={isLoading || code.length < 6}
-                      className={`w-full h-14 sm:h-16 border-b-[6px] rounded-2xl flex items-center justify-center font-black text-white uppercase tracking-widest shadow-sm active:border-b-0 active:translate-y-[6px] transition-all disabled:opacity-50 text-base sm:text-lg outline-none cursor-pointer ${isEmailMfa ? "bg-amber-500 border-amber-600 hover:bg-amber-400" : "bg-[#1cb0f6] border-[#1899d6] hover:bg-[#1899d6]"}`}
+                      className={`w-full h-14 lg:h-12 border-b-[6px] rounded-2xl flex items-center justify-center font-black text-white uppercase tracking-widest shadow-sm active:border-b-0 active:translate-y-[6px] transition-all disabled:opacity-50 text-sm sm:text-base lg:text-sm outline-none cursor-pointer ${isEmailMfa ? "bg-amber-500 border-amber-600 hover:bg-amber-400" : "bg-[#1cb0f6] border-[#1899d6] hover:bg-[#1899d6]"}`}
                     >
                       {isLoading ? (
                         <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
