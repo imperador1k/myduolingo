@@ -17,7 +17,8 @@ import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"] });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://myduolingo.vercel.app";
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://myduolingo.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
@@ -74,10 +75,11 @@ export const metadata: Metadata = {
   },
 };
 
-
 import { UISoundsProvider } from "@/components/providers/ui-sound-provider";
 
 export const dynamic = "force-dynamic";
+
+import { Analytics } from "@vercel/analytics/react";
 
 export default function RootLayout({
   children,
@@ -94,7 +96,7 @@ export default function RootLayout({
               <OneSignalProvider />
               <NativeBridge />
               <NativeUpdater />
-              
+
               <ClerkLoading>
                 <div className="fixed inset-0 z-above-modal bg-white flex items-center justify-center">
                   <LoadingScreen />
@@ -103,18 +105,18 @@ export default function RootLayout({
 
               <ClerkLoaded>
                 <GlobalPresenceProvider>
-                    <OnboardingSync />
-                    <TTSUnlocker />
-                    <ReviewModal />
-                    {children}
-                    <FloatingMarco />
+                  <OnboardingSync />
+                  <TTSUnlocker />
+                  <ReviewModal />
+                  {children}
+                  <FloatingMarco />
                 </GlobalPresenceProvider>
               </ClerkLoaded>
             </UISoundsProvider>
           </CustomToastProvider>
+          <Analytics />
         </body>
       </html>
     </ClerkProvider>
   );
 }
-
