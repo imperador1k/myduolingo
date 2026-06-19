@@ -12,6 +12,9 @@ import { useGlobalPresence } from "@/components/providers/global-presence-provid
 import { useAuth } from "@clerk/nextjs";
 import { createClerkSupabaseClient } from "@/lib/supabaseClient";
 import { useUISounds } from "@/hooks/use-ui-sounds";
+import { decryptMessage, decryptConversationKey } from "@/lib/crypto";
+import { getConversationKey } from "@/actions/crypto";
+import localforage from "localforage";
 
 type Conversation = {
   id: string;
@@ -43,6 +46,75 @@ type Conversation = {
 type Props = {
   conversations: Conversation[];
 };
+
+function LastMessagePreview({
+  conversationId,
+  message,
+}: {
+  conversationId: string;
+  message: NonNullable<Conversation["lastMessage"]>;
+}) {
+  const [decryptedText, setDecryptedText] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (message.content.startsWith("[e2ee-v2]:")) {
+      const decrypt = async () => {
+        try {
+          const ciphertext = message.content.replace("[e2ee-v2]:", "");
+          let conversationKey: CryptoKey | null = null;
+          const localRoomKeys =
+            (await localforage.getItem<Record<string, CryptoKey>>(
+              "e2e_room_keys",
+            )) || {};
+          conversationKey = localRoomKeys[conversationId];
+
+          if (!conversationKey) {
+            const encryptedRoomKeyBase64 =
+              await getConversationKey(conversationId);
+            if (encryptedRoomKeyBase64) {
+              const myPrivateKey =
+                await localforage.getItem<CryptoKey>("e2e_private_key");
+              if (myPrivateKey) {
+                conversationKey = await decryptConversationKey(
+                  encryptedRoomKeyBase64,
+                  myPrivateKey,
+                );
+                localRoomKeys[conversationId] = conversationKey;
+                await localforage.setItem("e2e_room_keys", localRoomKeys);
+              }
+            }
+          }
+
+          if (conversationKey) {
+            const text = await decryptMessage(ciphertext, conversationKey);
+            if (isMounted) setDecryptedText(text);
+          }
+        } catch (error) {
+          console.error("Preview decryption failed", error);
+        }
+      };
+      decrypt();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [message.content, conversationId]);
+
+  const isOldSignalMsg = message.content.startsWith("[e2ee]:");
+  const displayContent =
+    decryptedText ??
+    (isOldSignalMsg ? "🔒 Mensagem Encriptada" : message.content);
+
+  return (
+    <>
+      {message.senderId === "me" && "Tu: "}
+      {displayContent}
+    </>
+  );
+}
 
 export const ChatSidebar = ({ conversations }: Props) => {
   const searchParams = useSearchParams();
@@ -469,10 +541,10 @@ export const ChatSidebar = ({ conversations }: Props) => {
                     )}
                   >
                     {conv.lastMessage ? (
-                      <>
-                        {conv.lastMessage.senderId === "me" && "Tu: "}{" "}
-                        {conv.lastMessage.content}
-                      </>
+                      <LastMessagePreview
+                        conversationId={conv.id}
+                        message={conv.lastMessage}
+                      />
                     ) : (
                       "Começa uma conversa!"
                     )}

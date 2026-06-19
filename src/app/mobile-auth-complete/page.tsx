@@ -66,10 +66,10 @@ export default function MobileAuthCompletePage() {
           <Check className="h-8 w-8 text-[#58CC02]" strokeWidth={3} />
         </div>
         <h1 className="text-2xl font-black text-slate-800 tracking-tight">
-          Login Efetuado!
+          Login feito com sucesso!
         </h1>
         <p className="text-slate-500 font-bold max-w-xs">
-          A aplicação já foi iniciada. Pode fechar esta janela com segurança.
+          Pode fechar esta aba.
         </p>
       </div>
     );
@@ -79,7 +79,7 @@ export default function MobileAuthCompletePage() {
     <div className="flex min-h-screen items-center justify-center bg-white flex-col gap-4 p-6 text-center">
       <Loader2 className="h-8 w-8 animate-spin text-[#58CC02]" />
       <p className="text-slate-500 font-bold">
-        A finalizar a ligação com a App...
+        Login feito com sucesso, pode fechar esta aba.
       </p>
     </div>
   );

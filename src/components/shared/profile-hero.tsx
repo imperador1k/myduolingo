@@ -122,10 +122,10 @@ export const ProfileHero = ({
         )}
       </div>
 
-      <div className="relative z-10 w-full bg-white rounded-[3rem] border-2 border-stone-200 border-b-8 p-8 pt-24 md:pt-8 shadow-sm flex flex-col md:flex-row items-center md:items-center gap-6 md:gap-10 mt-16 md:mt-12 transition-all hover:shadow-md">
+      <div className="relative z-10 w-full bg-white rounded-[3rem] border-2 border-stone-200 border-b-8 p-8 pt-16 lg:pt-8 shadow-sm flex flex-col lg:flex-row items-center lg:items-center gap-6 lg:gap-10 mt-16 lg:mt-12 transition-all hover:shadow-md flex-wrap lg:flex-nowrap">
         {/* Avatar Bento Box breaking out */}
-        <div className="absolute -top-20 flex left-1/2 max-md:-translate-x-1/2 md:left-12 md:translate-x-0">
-          <div className="relative flex h-32 w-32 md:h-36 md:w-36 shrink-0 items-center justify-center rounded-[2rem] md:rounded-[2.5rem] bg-white text-5xl md:text-6xl shadow-2xl ring-4 md:ring-8 ring-white overflow-hidden border-2 border-stone-100 border-b-8 shadow-stone-200/50 group-hover:scale-105 transition-all duration-500 cursor-pointer">
+        <div className="absolute -top-20 flex left-1/2 max-lg:-translate-x-1/2 lg:left-12 lg:translate-x-0">
+          <div className="relative flex h-32 w-32 lg:h-36 lg:w-36 shrink-0 items-center justify-center rounded-[2rem] lg:rounded-[2.5rem] bg-white text-5xl lg:text-6xl shadow-2xl ring-4 lg:ring-8 ring-white overflow-hidden border-2 border-stone-100 border-b-8 shadow-stone-200/50 group-hover:scale-105 transition-all duration-500 cursor-pointer">
             {imageUrl ? (
               <Image
                 src={imageUrl}
@@ -142,13 +142,15 @@ export const ProfileHero = ({
         </div>
 
         {/* Content Area */}
-        <div className="md:ml-[170px] w-full md:flex-1 flex flex-col items-center md:items-start text-center md:text-left mt-10 md:mt-0 min-w-0 px-2 lg:px-0">
+        <div className="lg:ml-[170px] w-full lg:flex-1 flex flex-col items-center lg:items-start text-center lg:text-left mt-0 min-w-0 px-2 lg:px-0">
           <div className="flex flex-col gap-1 w-full">
-            <h1 className="text-3xl lg:text-4xl font-black text-stone-700 tracking-tight drop-shadow-sm uppercase break-words line-clamp-2 xl:line-clamp-none flex items-center justify-center md:justify-start">
-              {name || username || "Estudante"}
+            <h1 className="text-3xl lg:text-4xl font-black text-stone-700 tracking-tight drop-shadow-sm uppercase break-words line-clamp-2 xl:line-clamp-none flex flex-col sm:flex-row items-center justify-center lg:justify-start">
+              <span className="truncate">
+                {name || username || "Estudante"}
+              </span>
               {isPro && (
                 <BadgeCheck
-                  className="h-6 w-6 lg:h-8 lg:w-8 text-amber-500 fill-amber-300 ml-2 shrink-0 inline-block"
+                  className="h-6 w-6 lg:h-8 lg:w-8 text-amber-500 fill-amber-300 sm:ml-2 mt-1 sm:mt-0 shrink-0 inline-block"
                   aria-hidden="true"
                 />
               )}
@@ -169,7 +171,7 @@ export const ProfileHero = ({
         </div>
 
         {/* Action Buttons Hub - Tactile and floating */}
-        <div className="mt-4 md:mt-0 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 shrink-0 w-full md:w-auto flex-wrap">
+        <div className="mt-4 lg:mt-0 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 shrink-0 w-full lg:w-auto flex-wrap">
           {actions}
         </div>
       </div>

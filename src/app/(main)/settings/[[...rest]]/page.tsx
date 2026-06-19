@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import { currentUser } from "@clerk/nextjs/server";
-import { SignOutButton } from "@clerk/nextjs";
 import { EditProfileButton } from "@/components/shared/edit-profile-button";
 import { NotificationToggle } from "@/components/shared/notification-toggle";
 import { getUserProgress } from "@/db/queries";
@@ -16,8 +15,12 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { DangerZone } from "@/components/settings/danger-zone";
+import { SignOutZone } from "@/components/settings/sign-out-zone";
 import { SubscriptionCard } from "@/components/settings/subscription-card";
 import { checkSubscription } from "@/lib/subscription";
+import { E2ESettings } from "@/components/settings/e2e-settings";
+import { ActiveSessions } from "@/components/settings/active-sessions";
+import { ConnectedAccounts } from "@/components/settings/connected-accounts";
 
 export const dynamic = "force-dynamic";
 
@@ -145,6 +148,16 @@ async function SettingsData() {
         </div>
       </div>
 
+      {/* Security & Encryption (E2EE) */}
+      <div className="flex flex-col gap-6">
+        <E2ESettings />
+        <div className="bg-white border-2 border-stone-200 border-b-8 rounded-[2rem] p-6 md:p-8 flex flex-col gap-8">
+          <ActiveSessions />
+          <hr className="border-2 border-stone-100 rounded-full" />
+          <ConnectedAccounts />
+        </div>
+      </div>
+
       {/* Support & Legal (The Compliance Grid) */}
       <div>
         <h3 className="text-xl font-black text-stone-800 mb-4">
@@ -186,11 +199,7 @@ async function SettingsData() {
 
       {/* Action Buttons */}
       <div className="mt-8 flex flex-col gap-8">
-        <SignOutButton>
-          <button className="w-full md:w-auto mx-auto block bg-white text-rose-500 border-2 border-rose-200 border-b-6 rounded-2xl px-8 py-4 font-black uppercase tracking-wider hover:bg-rose-50 active:translate-y-1 active:border-b-0 transition-all text-center">
-            Terminar Sessão
-          </button>
-        </SignOutButton>
+        <SignOutZone />
 
         <DangerZone />
       </div>

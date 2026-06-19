@@ -9,6 +9,14 @@ import { useRef, useEffect, memo } from "react";
 
 import { type ChatMessage } from "@/hooks/use-realtime-messages";
 
+import { decryptMessage, decryptConversationKey } from "@/lib/crypto";
+import { getConversationKey } from "@/actions/crypto";
+import localforage from "localforage";
+import { useState } from "react";
+
+// Cache to prevent UI lag
+const decryptedMessageCache = new Map<string, Promise<string>>();
+
 type MessageItemProps = {
   msg: ChatMessage;
   i: number;
@@ -23,6 +31,7 @@ type MessageItemProps = {
   setSelectedImage: (url: string | null) => void;
   truncate: (text: string, length?: number) => string;
   formatTimestamp: (date: Date) => string;
+  isGroup?: boolean; // We need to know if it's a group
 };
 
 export const MessageItem = memo(
@@ -40,11 +49,92 @@ export const MessageItem = memo(
     setSelectedImage,
     truncate,
     formatTimestamp,
+    isGroup = false,
   }: MessageItemProps) => {
     const isMe = msg.senderId === userId;
     const isTemp = msg.id?.toString().startsWith("temp-");
     const isGif = (content: string) => content.includes("giphy.com/media");
-    const isImage = msg.type === "image" || isGif(msg.content);
+
+    // E2EE Decryption State
+    const [decryptedText, setDecryptedText] = useState<string | null>(null);
+    const [isDecrypting, setIsDecrypting] = useState(false);
+
+    useEffect(() => {
+      if (msg.type === "text" && msg.content.startsWith("[e2ee-v2]:")) {
+        let isMounted = true;
+
+        const executeDecryption = async () => {
+          setIsDecrypting(true);
+          try {
+            let decryptPromise = decryptedMessageCache.get(msg.id.toString());
+
+            if (!decryptPromise) {
+              const ciphertext = msg.content.replace("[e2ee-v2]:", "");
+
+              // Find the conversation key
+              let conversationKey: CryptoKey | null = null;
+              const localRoomKeys =
+                (await localforage.getItem<Record<string, CryptoKey>>(
+                  "e2e_room_keys",
+                )) || {};
+              conversationKey = localRoomKeys[msg.conversationId.toString()];
+
+              if (!conversationKey) {
+                // Fetch encrypted room key from server
+                const encryptedRoomKeyBase64 = await getConversationKey(
+                  msg.conversationId.toString(),
+                );
+                if (encryptedRoomKeyBase64) {
+                  const myPrivateKey =
+                    await localforage.getItem<CryptoKey>("e2e_private_key");
+                  if (myPrivateKey) {
+                    conversationKey = await decryptConversationKey(
+                      encryptedRoomKeyBase64,
+                      myPrivateKey,
+                    );
+                    localRoomKeys[msg.conversationId.toString()] =
+                      conversationKey;
+                    await localforage.setItem("e2e_room_keys", localRoomKeys);
+                  }
+                }
+              }
+
+              if (!conversationKey) {
+                throw new Error("Missing conversation key");
+              }
+
+              decryptPromise = decryptMessage(ciphertext, conversationKey);
+              decryptedMessageCache.set(msg.id.toString(), decryptPromise);
+            }
+
+            const text = await decryptPromise;
+            if (isMounted) setDecryptedText(text);
+          } catch (e) {
+            console.error("Decryption failed", e);
+            if (isMounted)
+              setDecryptedText("🔒 Mensagem encriptada (Erro de Chave)");
+          } finally {
+            if (isMounted) setIsDecrypting(false);
+          }
+        };
+
+        executeDecryption();
+        return () => {
+          isMounted = false;
+        };
+      } else {
+        setDecryptedText(null); // Reset if not encrypted
+      }
+    }, [msg.content, msg.id, msg.conversationId]);
+
+    const isOldSignalMsg =
+      msg.type === "text" && msg.content.startsWith("[e2ee]:");
+    const displayContent =
+      decryptedText ??
+      (isOldSignalMsg
+        ? "🔒 Mensagem protegida por E2EE (Protocolo Antigo)"
+        : msg.content);
+    const isImage = msg.type === "image" || isGif(displayContent);
     const isFile = msg.type === "file";
     const hasReactions = msg.reactions && msg.reactions.length > 0;
 
@@ -117,7 +207,7 @@ export const MessageItem = memo(
             setActiveMenuId(msg.id);
           }}
           className={cn(
-            "max-w-[75%] rounded-[1.5rem] text-[15px] overflow-visible relative border-2 border-b-[6px] transition-all animate-in fade-in slide-in-from-bottom-1 duration-300 shadow-sm cursor-pointer",
+            "max-w-[75%] rounded-[1.5rem] text-[15px] overflow-visible relative border-2 border-b-[6px] transition-all animate-in fade-in slide-in-from-bottom-1 duration-300 shadow-sm cursor-pointer break-words break-all whitespace-pre-wrap",
             isMe
               ? "bg-[#1CB0F6] text-white border-[#1CB0F6] rounded-tr-md self-end"
               : "bg-white text-stone-700 border-stone-200 rounded-tl-md self-start",
@@ -170,10 +260,14 @@ export const MessageItem = memo(
             )}
           </AnimatePresence>
 
-          {isImage ? (
+          {isDecrypting ? (
+            <div className="px-5 py-3 font-bold text-stone-500 italic animate-pulse">
+              A desencriptar...
+            </div>
+          ) : isImage ? (
             <div className="relative group overflow-hidden rounded-2xl">
               <img
-                src={msg.content}
+                src={displayContent}
                 alt="Image"
                 className="rounded-2xl object-cover max-h-72 w-auto bg-stone-200"
                 loading="lazy"
@@ -192,7 +286,7 @@ export const MessageItem = memo(
                   {msg.fileName || "Ficheiro"}
                 </span>
                 <a
-                  href={msg.content}
+                  href={displayContent}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={cn(
@@ -206,7 +300,7 @@ export const MessageItem = memo(
             </div>
           ) : (
             <div className="px-5 py-3 font-bold leading-relaxed">
-              {msg.content}
+              {displayContent}
             </div>
           )}
         </div>

@@ -38,6 +38,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLongPress } from "@/hooks/use-long-press";
 import dynamic from "next/dynamic";
 import { MessageItem } from "./message-item";
+import { SignalOnboarding } from "./signal-onboarding";
+import {
+  getConversationKey,
+  saveConversationKeys,
+  getE2EPublicKey,
+} from "@/actions/crypto";
+import {
+  generateConversationKey,
+  encryptConversationKeyForUser,
+  encryptMessage,
+  decryptConversationKey,
+  importPublicKey,
+} from "@/lib/crypto";
+import localforage from "localforage";
 
 type Props = {
   userId: string;
@@ -169,18 +183,18 @@ export const ChatWindow = ({
   }, [messages.length, conversationId, userId]); // Depend on messages.length to avoid scrolling on reactions
 
   const handleSubmit = async (formData: FormData) => {
-    const content = formData.get("content")?.toString();
-    if (!content || isSending) return;
+    const rawContent = formData.get("content")?.toString();
+    if (!rawContent || isSending) return;
 
     setIsSending(true);
     const optimisticId = `temp-${Date.now()}`;
 
-    // Optimistic UI update
+    // Optimistic UI update (shows plaintext to sender)
     addOptimisticMessage({
       id: optimisticId,
       senderId: userId,
       conversationId: Number(conversationId),
-      content: content,
+      content: rawContent,
       type: "text",
       createdAt: new Date(),
       read: false,
@@ -191,14 +205,93 @@ export const ChatWindow = ({
     setTimeout(scrollToBottom, 50);
 
     try {
+      let finalContent = rawContent;
+
+      // E2EE Encryption flow for 1-on-1 and Group chats
+      if (partner?.userId || isGroup) {
+        let conversationKey: CryptoKey | null = null;
+
+        // 1. Try to load Conversation Key locally
+        const localRoomKeys =
+          (await localforage.getItem<Record<string, CryptoKey>>(
+            "e2e_room_keys",
+          )) || {};
+        conversationKey = localRoomKeys[conversationId];
+
+        // 2. Try to fetch from server if not local
+        if (!conversationKey) {
+          const encryptedRoomKeyBase64 =
+            await getConversationKey(conversationId);
+          if (encryptedRoomKeyBase64) {
+            const myPrivateKey =
+              await localforage.getItem<CryptoKey>("e2e_private_key");
+            if (myPrivateKey) {
+              conversationKey = await decryptConversationKey(
+                encryptedRoomKeyBase64,
+                myPrivateKey,
+              );
+              localRoomKeys[conversationId] = conversationKey;
+              await localforage.setItem("e2e_room_keys", localRoomKeys);
+            }
+          }
+        }
+
+        // 3. Generate a new one if it doesn't exist anywhere
+        if (!conversationKey) {
+          const myPrivateKey =
+            await localforage.getItem<CryptoKey>("e2e_private_key");
+          if (myPrivateKey) {
+            conversationKey = await generateConversationKey();
+            localRoomKeys[conversationId] = conversationKey;
+            await localforage.setItem("e2e_room_keys", localRoomKeys);
+
+            // Fetch public keys of all participants
+            const targetIds = isGroup
+              ? participants.map((p) => p.userId)
+              : [partner!.userId, userId];
+            const keysPayload = [];
+
+            for (const tId of targetIds) {
+              const pubKeyStr = await getE2EPublicKey(tId);
+              if (pubKeyStr) {
+                const pubKey = await importPublicKey(pubKeyStr);
+                const encryptedForUser = await encryptConversationKeyForUser(
+                  conversationKey,
+                  pubKey,
+                );
+                keysPayload.push({
+                  userId: tId,
+                  encryptedRoomKey: encryptedForUser,
+                });
+              }
+            }
+
+            // Save to server
+            if (keysPayload.length > 0) {
+              await saveConversationKeys(conversationId, keysPayload);
+            }
+          }
+        }
+
+        // 4. Encrypt the message
+        if (conversationKey) {
+          const encryptedStr = await encryptMessage(
+            rawContent,
+            conversationKey,
+          );
+          finalContent = `[e2ee-v2]:${encryptedStr}`;
+        }
+      }
+
       await sendMessage(
         String(conversationId),
-        content,
+        finalContent,
         undefined,
         replyingTo?.id ? Number(replyingTo.id) : undefined,
       );
       setReplyingTo(null);
     } catch (error) {
+      console.error("Erro E2EE ou envio", error);
       toast.error("Erro ao enviar mensagem");
     } finally {
       setIsSending(false);
@@ -424,10 +517,19 @@ export const ChatWindow = ({
                     ? "Online"
                     : "Offline"}
               </span>
+              {!isGroup && (
+                <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium border border-emerald-100 max-w-max">
+                  <span className="leading-none text-emerald-500">🔒</span>
+                  Protegido com E2EE
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Signal Onboarding flow for DMs */}
+      {!isGroup && <SignalOnboarding />}
 
       {/* Message Canvas */}
       <div
@@ -456,6 +558,7 @@ export const ChatWindow = ({
             setSelectedImage={setSelectedImage}
             truncate={truncate}
             formatTimestamp={formatTimestamp}
+            isGroup={isGroup}
           />
         ))}
 

@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { SignOutButton } from "@clerk/nextjs";
 import { getUserProgress, getCompletedLessonsCount } from "@/db/queries";
 import { ACHIEVEMENTS, Achievement } from "@/constants/achievements";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ import { AchievementsList } from "@/components/shared/achievements-list";
 import { NotificationToggle } from "@/components/shared/notification-toggle";
 import { ProfileHero } from "@/components/shared/profile-hero";
 import { ShareProfileModal } from "@/components/modals/share-profile-modal";
+import { SignOutZone } from "@/components/settings/sign-out-zone";
 
 export const dynamic = "force-dynamic";
 
@@ -93,13 +93,13 @@ async function ProfileData() {
         actions={
           <>
             <ShareProfileModal username={userProgress.userName}>
-              <div className="w-full sm:w-auto sm:min-w-[160px] flex-1 h-12 sm:h-14">
+              <div className="w-full sm:w-auto h-11 sm:h-12">
                 <Button
                   variant="sidebarOutline"
-                  className="w-full h-full gap-2 rounded-[1.2rem] sm:rounded-[1.5rem] px-4 sm:px-6 border-2 hover:bg-slate-100 hover:text-slate-700 hover:border-slate-300 bg-white text-slate-600 border-slate-200 transition-all"
+                  className="w-full h-full gap-2 rounded-xl sm:rounded-2xl px-4 sm:px-5 border-2 hover:bg-slate-100 hover:text-slate-700 hover:border-slate-300 bg-white text-slate-600 border-slate-200 transition-all"
                 >
-                  <Share2 className="h-5 w-5 md:h-6 md:w-6" />
-                  <span className="uppercase tracking-widest font-black text-[12px] sm:text-sm">
+                  <Share2 className="h-4 w-4 md:h-5 md:w-5" />
+                  <span className="uppercase tracking-widest font-black text-[11px] sm:text-[12px]">
                     Partilhar
                   </span>
                 </Button>
@@ -107,18 +107,32 @@ async function ProfileData() {
             </ShareProfileModal>
             <Link
               href="/settings"
-              className="w-full sm:w-auto sm:min-w-[160px] flex-1 h-12 sm:h-14 block"
+              className="w-full sm:w-auto h-11 sm:h-12 block"
             >
               <Button
                 variant="primary"
-                className="w-full h-full gap-2 rounded-[1.2rem] sm:rounded-[1.5rem] px-4 sm:px-6 transition-all"
+                className="w-full h-full gap-2 rounded-xl sm:rounded-2xl px-4 sm:px-5 transition-all"
               >
-                <Settings className="h-5 w-5 md:h-6 md:w-6" />
-                <span className="uppercase tracking-widest font-black text-[12px] sm:text-sm">
+                <Settings className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="uppercase tracking-widest font-black text-[11px] sm:text-[12px]">
                   Definições
                 </span>
               </Button>
             </Link>
+            <SignOutZone
+              trigger={
+                <Button
+                  type="button"
+                  variant="sidebarOutline"
+                  className="w-full h-full gap-2 rounded-xl sm:rounded-2xl px-4 sm:px-5 border-2 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-300 bg-white text-rose-400 border-rose-200 transition-all"
+                >
+                  <LogOut className="h-4 w-4 md:h-5 md:w-5" />
+                  <span className="uppercase tracking-widest font-black text-[11px] sm:text-[12px]">
+                    Sair
+                  </span>
+                </Button>
+              }
+            />
           </>
         }
       />
@@ -129,11 +143,13 @@ async function ProfileData() {
           <div
             key={i}
             className={cn(
-              "flex flex-col items-center justify-center rounded-3xl border-b-4 border-2 p-6 transition-all shadow-sm hover:shadow-md hover:-translate-y-1 hover:brightness-105",
+              "group flex flex-col items-center justify-center rounded-[2.5rem] border-b-8 border-2 p-6 transition-all duration-300 shadow-sm cursor-pointer hover:shadow-md hover:-translate-y-2 active:translate-y-0 active:border-b-0 active:mb-[8px]",
               stat.color,
             )}
           >
-            {stat.icon}
+            <div className="group-hover:bounce transition-transform duration-300">
+              {stat.icon}
+            </div>
             <p className="mt-3 text-2xl font-black text-slate-700 drop-shadow-sm">
               {stat.value}
             </p>
@@ -174,21 +190,6 @@ async function ProfileData() {
         achievements={achievements}
         userProgress={userProgress}
       />
-
-      {/* Zone Rules Context */}
-      <div className="flex flex-col gap-4 mt-8">
-        <div className="rounded-3xl border-2 border-slate-200 p-6 bg-white">
-          <h3 className="font-extrabold text-slate-700 mb-4 text-lg">
-            Zona de Perigo
-          </h3>
-          <SignOutButton redirectUrl="/">
-            <button className="flex w-full items-center justify-center gap-3 rounded-2xl border-b-4 border-2 border-rose-200 bg-rose-50 px-12 py-5 text-sm font-black uppercase tracking-widest text-rose-500 transition-all hover:bg-rose-100 hover:border-rose-300 active:scale-95 active:border-b-2">
-              <LogOut className="h-5 w-5" />
-              Terminar Sessão do MyDuolingo
-            </button>
-          </SignOutButton>
-        </div>
-      </div>
     </>
   );
 }

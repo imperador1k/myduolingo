@@ -180,6 +180,13 @@ export const userProgress = pgTable(
     lastWeekResult: jsonb("last_week_result"),
     // Customization
     userBannerSrc: text("user_banner_src"),
+    // Signal Protocol E2EE (Deprecated)
+    signalRegistrationId: integer("signal_registration_id"),
+    signalIdentityKey: text("signal_identity_key"), // base64 public identity key
+    // Advanced WebCrypto E2EE
+    e2ePublicKey: text("e2e_public_key"), // RSA-OAEP public key
+    e2eEncryptedPrivateKey: text("e2e_encrypted_private_key"), // Private key encrypted with PIN
+    e2eSalt: text("e2e_salt"), // Salt used for PBKDF2 PIN derivation
   },
   (t) => ({
     leagueIdx: index("user_progress_league_idx").on(t.league),
@@ -620,5 +627,70 @@ export const userProgressRelations = relations(
     followers: many(follows, { relationName: "following" }),
     following: many(follows, { relationName: "follower" }),
     notifications: many(notifications),
+  }),
+);
+
+// ===== SIGNAL PROTOCOL (E2EE) DEPRECATED =====
+
+export const signalPreKeys = pgTable("signal_pre_keys", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .references(() => userProgress.userId, { onDelete: "cascade" })
+    .notNull(),
+  keyId: integer("key_id").notNull(),
+  publicKey: text("public_key").notNull(), // base64
+});
+
+export const signalPreKeysRelations = relations(signalPreKeys, ({ one }) => ({
+  user: one(userProgress, {
+    fields: [signalPreKeys.userId],
+    references: [userProgress.userId],
+  }),
+}));
+
+export const signalSignedPreKeys = pgTable("signal_signed_pre_keys", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .references(() => userProgress.userId, { onDelete: "cascade" })
+    .notNull(),
+  keyId: integer("key_id").notNull(),
+  publicKey: text("public_key").notNull(), // base64
+  signature: text("signature").notNull(), // base64
+});
+
+export const signalSignedPreKeysRelations = relations(
+  signalSignedPreKeys,
+  ({ one }) => ({
+    user: one(userProgress, {
+      fields: [signalSignedPreKeys.userId],
+      references: [userProgress.userId],
+    }),
+  }),
+);
+
+// ===== ADVANCED WEBCRYPTO E2EE =====
+
+export const conversationKeys = pgTable("conversation_keys", {
+  id: serial("id").primaryKey(),
+  conversationId: uuid("conversation_id")
+    .references(() => conversations.id, { onDelete: "cascade" })
+    .notNull(),
+  userId: text("user_id")
+    .references(() => userProgress.userId, { onDelete: "cascade" })
+    .notNull(),
+  encryptedRoomKey: text("encrypted_room_key").notNull(), // Room key encrypted with user's RSA public key
+});
+
+export const conversationKeysRelations = relations(
+  conversationKeys,
+  ({ one }) => ({
+    conversation: one(conversations, {
+      fields: [conversationKeys.conversationId],
+      references: [conversations.id],
+    }),
+    user: one(userProgress, {
+      fields: [conversationKeys.userId],
+      references: [userProgress.userId],
+    }),
   }),
 );
