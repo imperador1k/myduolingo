@@ -41,34 +41,26 @@ export default function SSOCallbackPage() {
     setMounted(true);
   }, []);
 
-  // In Chrome: bounce back to native app via deep link
+  // In Chrome: bounce the full URL back to the native Tauri app via deep link
   useEffect(() => {
     if (!mounted) return;
+    // Never bounce if we're already inside the native app
+    if (isNative) return;
 
     const search = window.location.search;
     const hash = window.location.hash;
     const isDesktopBounce = search.includes("desktop=true");
 
-    // If we are already in the native app, we don't want to bounce to the custom scheme.
-    // If we are on localhost AND it's a normal web login (not desktop bounce), don't bounce.
-    if (
-      isNative ||
-      (!isDesktopBounce && window.location.hostname === "localhost")
-    )
-      return;
+    // If this is a desktop (Tauri) OAuth flow, always bounce back.
+    // Clerk params may arrive in many formats — we pass the full URL as-is.
+    if (!isDesktopBounce) return;
 
-    const hasOAuthParams =
-      search.includes("__clerk") ||
-      hash.includes("__clerk") ||
-      search.includes("code=") ||
-      search.includes("state=");
-
-    if (!hasOAuthParams) return;
-
-    console.log("[SSO Callback] In Chrome — bouncing to native app");
+    console.log(
+      "[SSO Callback] In Chrome — bouncing to native app via deep link",
+    );
     window.location.href = `myduolingo://sso-callback${search}${hash}`;
 
-    // Fallback message if deep link doesn't work
+    // Fallback message if deep link doesn't open the app in 3s
     const timeout = setTimeout(() => {
       const el = document.getElementById("fallback-msg");
       if (el) el.style.display = "block";

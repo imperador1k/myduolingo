@@ -1,22 +1,31 @@
 "use client";
 import { useEffect } from "react";
-import { useSignIn, useSignUp } from "@clerk/nextjs";
+import { useSignIn, useSignUp, useUser } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 
 export default function MobileAuthPage() {
   const { signIn, isLoaded: signInLoaded } = useSignIn();
   const { signUp, isLoaded: signUpLoaded } = useSignUp();
+  const { isSignedIn, isLoaded: userLoaded } = useUser();
 
   useEffect(() => {
-    if (!signInLoaded || !signUpLoaded) return;
+    if (!signInLoaded || !signUpLoaded || !userLoaded) return;
 
     const startAuth = async () => {
       const searchParams = new URLSearchParams(window.location.search);
       const isSignUp = searchParams.get("mode") === "sign-up";
       const isDesktop = searchParams.get("desktop") === "true";
 
+      // If user is already signed in (in Chrome) and this is a desktop flow,
+      // go directly to sso-callback so Tauri gets the deep link bounce.
+      if (isSignedIn && isDesktop) {
+        window.location.href = `${window.location.origin}/sso-callback?desktop=true`;
+        return;
+      }
+
       const redirectUrl = `${window.location.origin}/sso-callback${isDesktop ? "?desktop=true" : ""}`;
-      const completeUrl = `${window.location.origin}/auth-success`;
+      // Both paths (redirect and complete) must hit sso-callback so the bounce fires
+      const completeUrl = redirectUrl;
 
       try {
         if (isSignUp) {
@@ -38,7 +47,7 @@ export default function MobileAuthPage() {
     };
 
     startAuth();
-  }, [signInLoaded, signUpLoaded, signIn, signUp]);
+  }, [signInLoaded, signUpLoaded, userLoaded, isSignedIn, signIn, signUp]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white flex-col gap-4">

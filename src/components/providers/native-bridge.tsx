@@ -20,15 +20,19 @@ export function NativeBridge() {
 
   useEffect(() => {
     const isCapacitor = Capacitor.isNativePlatform();
+    // Use UserAgent as the primary detection — same strategy as all other files.
+    // __TAURI_INTERNALS__ is a fallback in case withGlobalTauri is enabled.
     const isTauri =
-      typeof window !== "undefined" && !!(window as any).__TAURI_INTERNALS__;
+      typeof window !== "undefined" &&
+      (navigator.userAgent.includes("TauriDesktop") ||
+        !!(window as any).__TAURI_INTERNALS__);
 
     if (!isCapacitor && !isTauri) return;
 
     // ── Deep Link Handler ────────────────────────────────────────────
     const setupDeepLinks = async () => {
       // --- Tauri Desktop Handler ---
-      if ((window as any).__TAURI_INTERNALS__) {
+      if (isTauri) {
         if (process.env.NODE_ENV !== "production")
           console.log("[NativeBridge] Tauri Desktop environment detected.");
 
