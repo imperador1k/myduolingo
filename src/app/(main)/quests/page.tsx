@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChestClient } from "./chest-client";
+import { QuestsHeader } from "@/components/quests/quests-header";
 
 // Map string icon references to Lucide components
 const IconMap: Record<string, React.ElementType> = {
@@ -36,15 +37,8 @@ export const dynamic = "force-dynamic";
 export default function QuestsPage() {
   return (
     <div className="max-w-5xl mx-auto py-10 px-4 space-y-16 pb-32">
-      {/* Header (Synchronous) */}
-      <div className="text-center space-y-3">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-stone-700 uppercase">
-          Missões e Troféus
-        </h1>
-        <p className="text-stone-400 font-bold text-lg">
-          Completa missões diárias e domina a sala das tuas conquistas.
-        </p>
-      </div>
+      {/* Header (Client Component with Modal) */}
+      <QuestsHeader />
 
       <Suspense fallback={<QuestsSkeleton />}>
         <QuestsData />
@@ -112,7 +106,7 @@ async function QuestsData() {
     <>
       {/* Section 1: Daily Quests */}
       <section className="space-y-6">
-        <div className="bg-white border-2 border-stone-200 border-b-8 rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+        <div className="bg-gradient-to-b from-stone-50 to-white border-4 border-stone-200 border-b-[12px] rounded-[2.5rem] p-6 md:p-8 relative overflow-hidden shadow-sm">
           {/* Baú Header (Client Interactive Component) */}
           <ChestClient
             completedQuestsCount={completedQuestsCount}
@@ -132,7 +126,7 @@ async function QuestsData() {
               return (
                 <div
                   key={quest.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-5 border-b-2 border-stone-100 last:border-0 group"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-5 border-b-4 border-stone-100 last:border-0 group hover:bg-stone-50/50 rounded-2xl px-2 transition-colors -mx-2"
                 >
                   <div className="flex items-center gap-4">
                     <div
@@ -202,9 +196,9 @@ async function QuestsData() {
 
       {/* Section 2: Trophy Room */}
       <section className="space-y-6 pt-4">
-        <div className="flex items-center gap-3 px-2 mb-8">
-          <Crown className="h-8 w-8 text-amber-500 fill-amber-200" />
-          <h2 className="text-2xl font-black text-stone-700 uppercase">
+        <div className="flex items-center gap-3 px-2 mb-8 mt-12">
+          <Crown className="h-10 w-10 text-amber-500 fill-amber-200" />
+          <h2 className="text-3xl font-black text-stone-700 uppercase tracking-tight">
             Sala de Troféus
           </h2>
         </div>
@@ -215,17 +209,20 @@ async function QuestsData() {
               return (
                 <div
                   key={index}
-                  className="bg-gradient-to-b from-yellow-50 to-amber-50/50 border-2 border-amber-200 border-b-8 rounded-3xl p-6 flex flex-col items-center text-center transition-all hover:border-b-[6px] hover:translate-y-[2px] cursor-pointer group shadow-sm"
+                  className="bg-gradient-to-b from-yellow-50 to-amber-100 border-4 border-amber-200 border-b-[12px] rounded-[2.5rem] p-6 flex flex-col items-center text-center transition-all hover:-translate-y-2 hover:shadow-xl cursor-pointer group shadow-sm relative overflow-hidden"
                 >
-                  <div className="text-6xl mb-4 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)] group-hover:scale-110 transition-transform duration-300 relative">
+                  {/* Background Glow */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-amber-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 group-hover:opacity-60 transition-opacity pointer-events-none"></div>
+
+                  <div className="text-6xl mb-4 drop-shadow-[0_4px_10px_rgba(251,191,36,0.6)] group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300 relative z-10">
                     {trophy.icon}
                     {/* Sparkles effect container */}
                     <div className="absolute inset-0 bg-[url('/sparkles.svg')] opacity-0 group-hover:opacity-100 animate-pulse bg-cover pointer-events-none mix-blend-screen" />
                   </div>
-                  <h3 className="font-black text-xl md:text-2xl text-amber-700 tracking-tight leading-tight mb-2">
+                  <h3 className="font-black text-xl md:text-2xl text-amber-800 tracking-tight leading-tight mb-2 relative z-10">
                     {trophy.title}
                   </h3>
-                  <p className="text-xs font-bold text-amber-600/80 leading-relaxed">
+                  <p className="text-xs font-bold text-amber-600/90 leading-relaxed relative z-10">
                     {trophy.description}
                   </p>
                 </div>
@@ -234,15 +231,15 @@ async function QuestsData() {
               return (
                 <div
                   key={index}
-                  className="bg-stone-50 border-2 border-stone-200 border-b-8 rounded-3xl p-6 flex flex-col items-center text-center grayscale opacity-60 hover:opacity-80 transition-opacity cursor-not-allowed group"
+                  className="bg-stone-50 border-4 border-stone-200 border-b-[8px] rounded-[2.5rem] p-6 flex flex-col items-center text-center grayscale opacity-70 hover:opacity-100 transition-opacity cursor-not-allowed group"
                 >
                   <div className="text-5xl md:text-6xl mb-4 opacity-50 group-hover:opacity-80 transition-opacity drop-shadow-sm">
                     {trophy.icon}
                   </div>
-                  <h3 className="font-black text-lg md:text-xl text-stone-500 tracking-tight leading-tight mb-2">
+                  <h3 className="font-black text-lg md:text-xl text-stone-400 tracking-tight leading-tight mb-2">
                     {trophy.title}
                   </h3>
-                  <div className="mt-auto px-3 py-1.5 bg-stone-200 rounded-lg border-2 border-stone-300">
+                  <div className="mt-auto px-4 py-2 bg-stone-200 rounded-[1rem] border-b-4 border-stone-300">
                     <p className="text-[10px] uppercase tracking-widest font-black text-stone-500 leading-tight">
                       Bloqueado
                     </p>

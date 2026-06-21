@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { getUserProgress, getCompletedLessonsCount } from "@/db/queries";
+import { getUserCertificates } from "@/actions/certificates";
 import { ACHIEVEMENTS, Achievement } from "@/constants/achievements";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AchievementsList } from "@/components/shared/achievements-list";
+import { CertificationsList } from "@/components/shared/certifications-list";
 import { NotificationToggle } from "@/components/shared/notification-toggle";
 import { ProfileHero } from "@/components/shared/profile-hero";
 import { ShareProfileModal } from "@/components/modals/share-profile-modal";
@@ -41,6 +43,8 @@ async function ProfileData() {
   if (!user || !userProgress) {
     redirect("/courses");
   }
+
+  const certificates = await getUserCertificates(userProgress.userId);
 
   const streak = userProgress.streak || 0;
   const totalXpEarned = userProgress.totalXpEarned || userProgress.points || 0;
@@ -92,7 +96,7 @@ async function ProfileData() {
         bannerColorTo="from-rose-400 to-fuchsia-500"
         actions={
           <>
-            <ShareProfileModal username={userProgress.userName}>
+            <ShareProfileModal userId={user.id}>
               <div className="w-full sm:w-auto h-11 sm:h-12">
                 <Button
                   variant="sidebarOutline"
@@ -184,6 +188,9 @@ async function ProfileData() {
           </Button>
         </Link>
       </div>
+
+      {/* Official Certifications */}
+      <CertificationsList certifications={certificates as any} />
 
       {/* Gamified Achievements List */}
       <AchievementsList

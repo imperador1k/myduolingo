@@ -15,37 +15,15 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getUserProgress } from "@/db/queries";
 import { checkSubscription } from "@/lib/subscription";
+import { PracticeHeader } from "@/components/practice/practice-header";
 
 export const dynamic = "force-dynamic";
 
 export default function PracticePage() {
   return (
     <div className="flex flex-col gap-8 px-4 sm:px-6 py-8 max-w-[1056px] mx-auto w-full">
-      {/* ── Header (Synchronous) ── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-2 border-stone-200 pb-6 animate-in fade-in duration-500">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-indigo-100 rounded-2xl border-b-4 border-indigo-200 flex items-center justify-center shrink-0">
-            <Bot className="w-7 h-7 text-indigo-500" strokeWidth={2.5} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-stone-700">
-              Área de Prática AI
-            </h1>
-            <p className="text-stone-500 font-medium mt-0.5">
-              Melhora o teu Português com a IA.
-            </p>
-          </div>
-        </div>
-        <Link href="/practice/history">
-          <Button
-            variant="ghost"
-            className="text-stone-400 hover:text-stone-600 font-bold tracking-wide uppercase"
-          >
-            <History className="w-5 h-5 mr-2" />
-            Ver Histórico
-          </Button>
-        </Link>
-      </div>
+      {/* ── Header (Client Component with Modal) ── */}
+      <PracticeHeader />
 
       <Suspense fallback={<PracticeSkeleton />}>
         <PracticeData />
@@ -225,50 +203,55 @@ async function PracticeData() {
           </div>
         </>
       ) : (
-        <div className="bg-white rounded-3xl p-8 sm:p-12 border-2 border-stone-200 border-b-8 flex flex-col items-center text-center mt-4 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl opacity-50 z-0 translate-x-10 -translate-y-10" />
+        <div className="bg-gradient-to-br from-[#0F172A] via-[#1E1B4B] to-[#312E81] rounded-[2.5rem] p-8 sm:p-14 border-4 border-indigo-900/50 border-b-[12px] flex flex-col items-center text-center mt-4 shadow-[0_20px_50px_rgba(49,46,129,0.5)] relative overflow-hidden group">
+          {/* Cosmic Background Effects */}
+          <div className="absolute inset-0 bg-[url('/sparkles.svg')] opacity-30 mix-blend-color-dodge pointer-events-none"></div>
+          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-indigo-500 rounded-full mix-blend-screen blur-[100px] opacity-20 pointer-events-none"></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-500 rounded-full mix-blend-screen blur-[100px] opacity-20 pointer-events-none"></div>
 
-          <div className="w-24 h-24 bg-stone-100 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner border-b-4 border-stone-200 relative z-10">
-            <Lock className="w-10 h-10 text-stone-400" strokeWidth={3} />
+          <div className="w-32 h-32 bg-gradient-to-br from-indigo-900 to-slate-900 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-[inset_0_-4px_10px_rgba(0,0,0,0.5)] border-4 border-indigo-800 relative z-10 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500">
+            <div className="absolute inset-0 bg-indigo-500 opacity-20 blur-xl animate-pulse rounded-full"></div>
+            <Lock className="w-14 h-14 text-indigo-400" strokeWidth={2.5} />
           </div>
 
-          <h3 className="text-3xl font-black text-stone-700 mb-3 relative z-10">
+          <h3 className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-200 via-white to-fuchsia-200 mb-4 relative z-10 drop-shadow-lg uppercase tracking-tight">
             Prática com IA Bloqueada
           </h3>
-          <p className="text-stone-500 font-bold text-base max-w-lg mb-8 relative z-10">
+          <p className="text-indigo-200/80 font-bold text-lg max-w-xl mb-10 relative z-10 leading-relaxed">
             Eleva o teu nível com o plano MyDuolingo PRO e acede à nossa
-            Inteligência Artificial sem limites.
+            Inteligência Artificial sem limites. A derradeira experiência de
+            aprendizagem.
           </p>
 
-          <div className="flex flex-col gap-4 text-left bg-stone-50 p-6 rounded-2xl border-2 border-stone-200 mb-10 w-full max-w-md relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                <HeartPulse className="w-4 h-4 text-rose-500" strokeWidth={3} />
+          <div className="flex flex-col gap-4 text-left bg-black/30 backdrop-blur-md p-8 rounded-[2rem] border-2 border-white/10 mb-12 w-full max-w-lg relative z-10 shadow-xl">
+            <div className="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-400 to-red-500 flex items-center justify-center shrink-0 shadow-lg">
+                <HeartPulse className="w-5 h-5 text-white" strokeWidth={3} />
               </div>
-              <span className="font-bold text-stone-600 text-sm md:text-base">
+              <span className="font-black text-white tracking-wide">
                 Vidas Ilimitadas
               </span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4 text-indigo-500" strokeWidth={3} />
+            <div className="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shrink-0 shadow-lg">
+                <Bot className="w-5 h-5 text-white" strokeWidth={3} />
               </div>
-              <span className="font-bold text-stone-600 text-sm md:text-base">
-                Prática Ilimitada com IA (Fala, Escuta e mais)
+              <span className="font-black text-white tracking-wide">
+                Prática Ilimitada com IA
               </span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                <Sparkles className="w-4 h-4 text-amber-500" strokeWidth={3} />
+            <div className="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-lg">
+                <Sparkles className="w-5 h-5 text-white" strokeWidth={3} />
               </div>
-              <span className="font-bold text-stone-600 text-sm md:text-base">
+              <span className="font-black text-white tracking-wide">
                 Experiência Sem Anúncios
               </span>
             </div>
           </div>
 
           <Link href="/shop" className="w-full sm:w-auto relative z-10">
-            <span className="inline-block w-full bg-indigo-500 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest border-b-8 border-indigo-600 active:border-b-4 active:translate-y-1 transition-all hover:bg-indigo-400 shadow-sm text-sm md:text-base">
+            <span className="inline-flex w-full min-w-[280px] bg-gradient-to-r from-fuchsia-600 to-indigo-600 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest border-b-8 border-indigo-900 active:border-b-0 active:translate-y-[8px] transition-all hover:brightness-110 shadow-[0_0_30px_rgba(79,70,229,0.5)] justify-center text-lg animate-pulse hover:animate-none">
               DESBLOQUEAR PRO
             </span>
           </Link>

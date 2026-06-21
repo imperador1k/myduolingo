@@ -697,3 +697,28 @@ export const conversationKeysRelations = relations(
     }),
   }),
 );
+
+// ===== COURSE CERTIFICATES =====
+
+export const certificates = pgTable("certificates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .references(() => userProgress.userId, { onDelete: "cascade" })
+    .notNull(),
+  courseId: integer("course_id")
+    .references(() => courses.id, { onDelete: "cascade" })
+    .notNull(),
+  userName: text("user_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const certificatesRelations = relations(certificates, ({ one }) => ({
+  user: one(userProgress, {
+    fields: [certificates.userId],
+    references: [userProgress.userId],
+  }),
+  course: one(courses, {
+    fields: [certificates.courseId],
+    references: [courses.id],
+  }),
+}));

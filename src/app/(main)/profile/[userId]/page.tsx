@@ -5,11 +5,13 @@ import {
   isFollowingUser,
   getCompletedLessonsCount,
 } from "@/db/queries";
+import { getUserCertificates } from "@/actions/certificates";
 import { ACHIEVEMENTS, Achievement } from "@/constants/achievements";
 import { Flame, Target, Heart, Zap, MessageSquareText } from "lucide-react";
 import { FollowButton } from "@/components/shared/follow-button";
 import { ProfileHero } from "@/components/shared/profile-hero";
 import { AchievementsList } from "@/components/shared/achievements-list";
+import { CertificationsList } from "@/components/shared/certifications-list";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
@@ -25,6 +27,7 @@ export default async function PublicProfilePage({ params }: Props) {
   const userProgress = await getUserProgressById(params.userId);
   const completedLessons = await getCompletedLessonsCount(params.userId);
   const isFollowing = await isFollowingUser(params.userId);
+  const certificates = await getUserCertificates(params.userId);
   const { userId: currentUserId } = await auth();
   const isOwnProfile = currentUserId === params.userId;
 
@@ -87,7 +90,7 @@ export default async function PublicProfilePage({ params }: Props) {
                 <FollowButton
                   userId={params.userId}
                   isFollowing={isFollowing}
-                  className="w-full h-full text-[12px] sm:text-sm font-black uppercase tracking-widest rounded-[1.2rem] sm:rounded-[1.5rem] px-4 sm:px-6"
+                  className="w-full h-full"
                 />
               </div>
               <div className="w-full sm:w-auto sm:min-w-[160px] flex-1 h-12 sm:h-14">
@@ -95,15 +98,10 @@ export default async function PublicProfilePage({ params }: Props) {
                   href={`/messages?userId=${params.userId}`}
                   className="w-full block h-full"
                 >
-                  <Button
-                    variant="secondary"
-                    className="w-full h-full gap-2 rounded-[1.2rem] sm:rounded-[1.5rem] px-4 sm:px-6 border-b-4 border-stone-300 active:border-b-0 active:translate-y-1 transition-all"
-                  >
-                    <MessageSquareText className="h-5 w-5 sm:h-6 sm:w-6 text-stone-500" />
-                    <span className="font-black uppercase tracking-widest text-[12px] sm:text-sm">
-                      Mensagem
-                    </span>
-                  </Button>
+                  <button className="w-full h-full flex items-center justify-center gap-2 rounded-[1.2rem] sm:rounded-[1.5rem] px-4 sm:px-6 bg-stone-100 text-[#1CB0F6] font-black uppercase tracking-widest text-[12px] sm:text-sm border-2 border-stone-200 border-b-4 hover:bg-stone-200 hover:border-stone-300 active:translate-y-1 active:border-b-0 transition-all shadow-sm">
+                    <MessageSquareText className="h-5 w-5 sm:h-6 sm:w-6" />
+                    <span>Mensagem</span>
+                  </button>
                 </Link>
               </div>
             </>
@@ -176,6 +174,9 @@ export default async function PublicProfilePage({ params }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Official Certifications */}
+      <CertificationsList certifications={certificates as any} />
 
       {/* Gamified Achievements List */}
       <AchievementsList

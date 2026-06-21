@@ -17,6 +17,7 @@ const isPublicRoute = createRouteMatcher([
   "/native-callback(.*)",
   "/api/webhooks(.*)",
   "/api/auth/native-google",
+  "/certificate(.*)",
 ]);
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
