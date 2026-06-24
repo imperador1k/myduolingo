@@ -630,6 +630,7 @@ export const userProgressRelations = relations(
     followers: many(follows, { relationName: "following" }),
     following: many(follows, { relationName: "follower" }),
     notifications: many(notifications),
+    survivalSessions: many(survivalSessions),
   }),
 );
 
@@ -720,5 +721,149 @@ export const certificatesRelations = relations(certificates, ({ one }) => ({
   course: one(courses, {
     fields: [certificates.courseId],
     references: [courses.id],
+  }),
+}));
+
+// ===== SURVIVAL MODE SCENARIOS =====
+export const survivalScenarios = pgTable("survival_scenarios", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  aiRole: text("ai_role").notNull(), // e.g., "A strict border control officer in Madrid"
+  userRole: text("user_role").notNull(), // e.g., "A tourist who lost their passport"
+  npcBaseImage: text("npc_base_image").notNull().default("/npc/base_body.png"),
+  npcClothes: jsonb("npc_clothes").notNull().default([]), // ["/npc/police_hat.png", "/npc/police_uniform.png"]
+  storyContext: text("story_context").notNull().default(""), // Ex: "Ias a 120km/h e a polícia mandou-te parar."
+  hint: text("hint").notNull().default(""), // Ex: "Sê educado e compreensivo."
+  targetLevel: text("target_level").notNull(), // e.g., "A1", "B2"
+  courseId: integer("course_id").references(() => courses.id, {
+    onDelete: "cascade",
+  }),
+  unitId: integer("unit_id").references(() => units.id, {
+    onDelete: "cascade",
+  }),
+});
+
+export const survivalScenariosRelations = relations(
+  survivalScenarios,
+  ({ one, many }) => ({
+    course: one(courses, {
+      fields: [survivalScenarios.courseId],
+      references: [courses.id],
+    }),
+    unit: one(units, {
+      fields: [survivalScenarios.unitId],
+      references: [units.id],
+    }),
+    sessions: many(survivalSessions),
+  }),
+);
+
+// ===== SURVIVAL SESSIONS (Chat State) =====
+export const survivalSessions = pgTable("survival_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .references(() => userProgress.userId, { onDelete: "cascade" })
+    .notNull(),
+  scenarioId: integer("scenario_id")
+    .references(() => survivalScenarios.id, { onDelete: "cascade" })
+    .notNull(),
+  chatHistory: jsonb("chat_history").notNull().default([]),
+  status: text("status", { enum: ["active", "completed", "failed"] })
+    .notNull()
+    .default("active"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const survivalSessionsRelations = relations(
+  survivalSessions,
+  ({ one }) => ({
+    user: one(userProgress, {
+      fields: [survivalSessions.userId],
+      references: [userProgress.userId],
+    }),
+    scenario: one(survivalScenarios, {
+      fields: [survivalSessions.scenarioId],
+      references: [survivalScenarios.id],
+    }),
+  }),
+);
+
+// ===== KNOWLEDGE FEED =====
+
+export const knowledgePosts = pgTable("knowledge_posts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  originalSourceUrl: text("original_source_url"),
+  targetLanguage: text("target_language").notNull(),
+  cefrLevel: text("cefr_level").notNull(),
+  title: text("title").notNull(),
+  category: text("category").notNull(),
+  body: text("body").notNull(),
+  author: text("author").notNull().default("System"),
+  authorImg: text("author_img").notNull().default("https://i.pravatar.cc/150"),
+  bgClass: text("bg_class").notNull().default("from-slate-900 to-black"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const userReadHistory = pgTable("user_read_history", {
+  userId: text("user_id")
+    .references(() => userProgress.userId, { onDelete: "cascade" })
+    .notNull(),
+  postId: uuid("post_id")
+    .references(() => knowledgePosts.id, { onDelete: "cascade" })
+    .notNull(),
+  readAt: timestamp("read_at").defaultNow().notNull(),
+});
+
+export const knowledgeSaves = pgTable("knowledge_saves", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .references(() => userProgress.userId, { onDelete: "cascade" })
+    .notNull(),
+  postId: uuid("post_id")
+    .references(() => knowledgePosts.id, { onDelete: "cascade" })
+    .notNull(),
+  savedAt: timestamp("saved_at").defaultNow().notNull(),
+});
+
+export const knowledgeLikes = pgTable("knowledge_likes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .references(() => userProgress.userId, { onDelete: "cascade" })
+    .notNull(),
+  postId: uuid("post_id")
+    .references(() => knowledgePosts.id, { onDelete: "cascade" })
+    .notNull(),
+  likedAt: timestamp("liked_at").defaultNow().notNull(),
+});
+
+export const knowledgePostsRelations = relations(
+  knowledgePosts,
+  ({ many }) => ({
+    saves: many(knowledgeSaves),
+    likes: many(knowledgeLikes),
+    reads: many(userReadHistory),
+  }),
+);
+
+export const knowledgeSavesRelations = relations(knowledgeSaves, ({ one }) => ({
+  user: one(userProgress, {
+    fields: [knowledgeSaves.userId],
+    references: [userProgress.userId],
+  }),
+  post: one(knowledgePosts, {
+    fields: [knowledgeSaves.postId],
+    references: [knowledgePosts.id],
+  }),
+}));
+
+export const knowledgeLikesRelations = relations(knowledgeLikes, ({ one }) => ({
+  user: one(userProgress, {
+    fields: [knowledgeLikes.userId],
+    references: [userProgress.userId],
+  }),
+  post: one(knowledgePosts, {
+    fields: [knowledgeLikes.postId],
+    references: [knowledgePosts.id],
   }),
 }));

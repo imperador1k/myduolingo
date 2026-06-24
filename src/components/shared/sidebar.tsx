@@ -27,6 +27,7 @@ import {
   Target,
   Gamepad2,
   LifeBuoy,
+  Compass,
 } from "lucide-react";
 import { useUISounds } from "@/hooks/use-ui-sounds";
 import { useUser } from "@clerk/nextjs";
@@ -183,6 +184,13 @@ export const Sidebar = ({
           isActive={pathname === "/learn"}
           isCollapsed={isCollapsed}
           iconSrc={<BookOpen className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />}
+        />
+        <SidebarItem
+          label="Feed"
+          href="/feed"
+          isActive={pathname === "/feed"}
+          isCollapsed={isCollapsed}
+          iconSrc={<Compass className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />}
         />
         <SidebarItem
           label="Practice AI"

@@ -190,6 +190,14 @@ const MobileNavContent = ({
     return null;
   }
 
+  // Also hide for survival chat sessions to ensure immersive experience
+  if (
+    pathname.startsWith("/practice/survival/") &&
+    pathname.split("/").length > 3
+  ) {
+    return null;
+  }
+
   const toggleMenu = () => setIsOpen(!isOpen);
 
   const closeMenu = () => setIsOpen(false);
@@ -199,12 +207,12 @@ const MobileNavContent = ({
       {/* Backdrop overlay to close menu when clicking outside */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-stone-900/20 backdrop-blur-sm lg:hidden transition-opacity"
+          className="fixed inset-0 z-[60] bg-stone-900/20 backdrop-blur-sm lg:hidden transition-opacity"
           onClick={closeMenu}
         />
       )}
 
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-center justify-end lg:hidden pointer-events-none pb-4 px-4 w-full h-full">
+      <div className="fixed bottom-0 left-0 right-0 z-[70] flex flex-col items-center justify-end lg:hidden pointer-events-none pb-4 px-4 w-full h-full">
         {/* Expanded Menu - Toy Box */}
         <div
           className={cn(
@@ -214,8 +222,16 @@ const MobileNavContent = ({
               : "opacity-0 translate-y-10 scale-95 pointer-events-none",
           )}
         >
-          <div className="bg-white dark:bg-slate-900 border-2 border-stone-200 dark:border-slate-800 border-b-8 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 w-full mb-6 relative z-40">
+          <div className="bg-white dark:bg-slate-900 border-2 border-stone-200 dark:border-slate-800 border-b-8 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 w-full mb-6 relative z-[75]">
             <div className="grid grid-cols-3 gap-y-6 gap-x-2">
+              <ExpandedMobileItem
+                href="/shop"
+                icon={<ShoppingBag strokeWidth={2.5} className="h-7 w-7" />}
+                label="Loja"
+                isActive={pathname === "/shop"}
+                onClick={closeMenu}
+                colorTheme="sky"
+              />
               <ExpandedMobileItem
                 href="/friends"
                 icon={<Users strokeWidth={2.5} className="h-7 w-7" />}
@@ -344,7 +360,7 @@ const MobileNavContent = ({
           />
 
           {/* Central Toggle Button */}
-          <div className="relative z-50 flex items-center justify-center -mt-8">
+          <div className="relative z-[80] flex items-center justify-center -mt-8">
             <button
               onClick={toggleMenu}
               className={cn(
@@ -363,10 +379,26 @@ const MobileNavContent = ({
           </div>
 
           <MobileItem
-            href="/shop"
-            icon={<ShoppingBag strokeWidth={2.5} className="h-6 w-6" />}
-            label="Loja"
-            isActive={pathname === "/shop"}
+            href="/feed"
+            icon={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-6 w-6"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+              </svg>
+            }
+            label="Feed"
+            isActive={pathname === "/feed"}
           />
           <MobileItem
             href="/profile"

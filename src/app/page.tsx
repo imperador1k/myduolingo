@@ -28,7 +28,7 @@ export default async function Home() {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-white dark:bg-slate-900">
       {/* Background Pattern */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(#e5e7eb_2px,transparent_2px)] [background-size:24px_24px] opacity-40"></div>
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(#e5e7eb_2px,transparent_2px)] dark:bg-[radial-gradient(#1e293b_2px,transparent_2px)] [background-size:24px_24px] opacity-40"></div>
 
       {/* Floating decorative blobs for Duolingo vibe */}
       <div className="absolute -left-32 top-10 z-0 h-96 w-96 rounded-full bg-green-400/20 blur-3xl"></div>
@@ -45,7 +45,7 @@ export default async function Home() {
             href="/"
             className="flex items-center gap-3 active:scale-95 transition-transform cursor-pointer"
           >
-            <div className="relative h-11 w-11 overflow-hidden rounded-xl shadow-sm border-2 border-stone-100 shadow-stone-200">
+            <div className="relative h-11 w-11 overflow-hidden rounded-xl shadow-sm border-2 border-stone-100 dark:border-slate-800 shadow-stone-200 dark:shadow-none">
               <Image
                 src="/icon.png"
                 alt="MyDuolingo Logo"
@@ -65,7 +65,7 @@ export default async function Home() {
         {/* Left side - Lottie Hero Animation */}
         <div className="relative flex h-[320px] w-[320px] shrink-0 items-center justify-center lg:h-[480px] lg:w-[480px]">
           {/* Subtle glowing ring behind lottie */}
-          <div className="absolute inset-10 rounded-full bg-green-100/60 blur-2xl"></div>
+          <div className="absolute inset-10 rounded-full bg-green-100/60 dark:bg-green-900/10 blur-2xl"></div>
           <div className="relative z-10 w-full h-full animate-in zoom-in duration-700 ease-out fill-mode-both">
             <LottieAnimation className="h-full w-full drop-shadow-xl" />
           </div>
@@ -78,7 +78,7 @@ export default async function Home() {
             "Aprende Inglês a Jogar". Broad enough to cover all languages
             but specific enough to rank for the primary use case.
           */}
-          <h1 className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-100 fill-mode-both text-4xl font-extrabold tracking-tight text-slate-800 lg:text-5xl lg:leading-[1.15]">
+          <h1 className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-100 fill-mode-both text-4xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100 lg:text-5xl lg:leading-[1.15]">
             O jeito <span className="text-green-500 font-black">grátis</span>,
             divertido e eficaz de aprender um idioma!
           </h1>

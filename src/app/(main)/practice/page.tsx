@@ -10,6 +10,7 @@ import {
   History,
   Sparkles,
   Lock,
+  ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -162,6 +163,28 @@ async function PracticeData() {
                 <p className="mt-2 text-stone-500 dark:text-slate-400 font-medium leading-relaxed">
                   Ouve um áudio gerado pela AI e analisa o conteúdo. Treina o
                   teu ouvido.
+                </p>
+              </div>
+            </Link>
+
+            {/* Survival Mode Card */}
+            <Link
+              href="/practice/survival"
+              className="group text-left bg-white dark:bg-slate-900 rounded-xl border-2 border-stone-200 dark:border-slate-800 border-b-8 p-8 flex gap-6 items-start transition-all active:translate-y-1 active:border-b-4 hover:bg-stone-50 dark:bg-slate-950 md:col-span-2 lg:col-span-1"
+            >
+              <div className="w-16 h-16 rounded-full flex items-center justify-center border-b-4 bg-slate-800 border-slate-950 shrink-0 group-hover:-translate-y-1 transition-transform">
+                <ShieldAlert className="h-8 w-8 text-white" strokeWidth={2.5} />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-stone-700 dark:text-slate-200 flex items-center gap-2">
+                  Modo Sobrevivência{" "}
+                  <span className="bg-sky-500 text-white text-[10px] px-2 py-0.5 rounded-md uppercase tracking-wider">
+                    Novo
+                  </span>
+                </h3>
+                <p className="mt-2 text-stone-500 dark:text-slate-400 font-medium leading-relaxed">
+                  Enfrenta cenários caóticos com NPCs reais num roleplay
+                  imersivo por chat!
                 </p>
               </div>
             </Link>
