@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { CopyMinus, Zap, Sparkles, HelpCircle, Gamepad2 } from "lucide-react";
+import {
+  CopyMinus,
+  Zap,
+  Sparkles,
+  HelpCircle,
+  Gamepad2,
+  Dices,
+} from "lucide-react";
 import { ArcadeInfoModal } from "@/components/modals/arcade-info-modal";
 
 export default function ArcadeHub() {
@@ -112,8 +119,8 @@ export default function ArcadeHub() {
           </Link>
         </div>
 
-        {/* Meteoros Card (Full Width) */}
-        <div className="bg-gradient-to-b from-amber-50 to-amber-100 border-4 border-amber-200 border-b-[12px] rounded-[2.5rem] p-8 flex flex-col items-center text-center transition-all hover:-translate-y-2 hover:shadow-xl group relative overflow-hidden col-span-1 md:col-span-2">
+        {/* Meteoros Card */}
+        <div className="bg-gradient-to-b from-amber-50 to-amber-100 border-4 border-amber-200 border-b-[12px] rounded-[2.5rem] p-8 flex flex-col items-center text-center transition-all hover:-translate-y-2 hover:shadow-xl group relative overflow-hidden">
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-amber-300 rounded-full mix-blend-multiply filter blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity"></div>
 
           {/* Badge */}
@@ -140,11 +147,42 @@ export default function ArcadeHub() {
 
           <Link
             href="/arcade/meteoros"
-            className="w-full md:w-1/2 mt-auto relative z-10"
+            className="w-full mt-auto relative z-10"
           >
             <button className="w-full py-5 bg-amber-500 hover:bg-amber-600 text-white font-black text-lg uppercase tracking-widest rounded-[1.5rem] border-b-8 border-amber-700 active:border-b-0 active:translate-y-[8px] transition-all shadow-sm flex items-center justify-center gap-2 relative overflow-hidden">
               <span className="absolute inset-0 bg-white/20 w-12 h-full skew-x-12 -ml-20 group-hover:animate-[shimmer_1.5s_infinite]" />
               JOGAR AGORA
+            </button>
+          </Link>
+        </div>
+
+        {/* Casino Card (PRO) */}
+        <div className="bg-gradient-to-b from-slate-800 to-slate-900 border-4 border-slate-700 border-b-[12px] rounded-[2.5rem] p-8 flex flex-col items-center text-center transition-all hover:-translate-y-2 hover:shadow-xl group relative overflow-hidden">
+          {/* Pacman/Neon aesthetics */}
+          <div className="absolute top-[-20px] left-[-20px] w-32 h-32 bg-cyan-500 rounded-full mix-blend-screen filter blur-[60px] opacity-30 group-hover:opacity-50 transition-opacity"></div>
+          <div className="absolute bottom-[-20px] right-[-20px] w-32 h-32 bg-pink-500 rounded-full mix-blend-screen filter blur-[60px] opacity-30 group-hover:opacity-50 transition-opacity"></div>
+
+          {/* PRO Badge */}
+          <div className="absolute top-6 left-6 bg-yellow-500 text-black text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm z-10 rotate-[-10deg] border-2 border-yellow-300">
+            PRO
+          </div>
+
+          <div className="h-28 w-28 bg-slate-950 rounded-[2rem] border-4 border-cyan-500 border-b-[6px] flex items-center justify-center text-cyan-400 mb-8 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-[0_0_20px_rgba(6,182,212,0.5)] relative z-10">
+            <Dices className="h-12 w-12 text-cyan-400" strokeWidth={2.5} />
+          </div>
+
+          <h2 className="text-3xl font-black text-white mb-3 uppercase tracking-wide relative z-10 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+            Casino 8-Bit
+          </h2>
+
+          <p className="text-slate-300 font-bold mb-10 relative z-10 leading-relaxed px-4">
+            Aposta no teu conhecimento! Double or Nothing, Word Sniper e muita
+            adrenalina.
+          </p>
+
+          <Link href="/arcade/casino" className="w-full mt-auto relative z-10">
+            <button className="w-full py-5 bg-pink-500 hover:bg-pink-600 text-white font-black text-lg uppercase tracking-widest rounded-[1.5rem] border-b-8 border-pink-700 active:border-b-0 active:translate-y-[8px] transition-all shadow-sm flex items-center justify-center gap-2">
+              ENTRAR NO CASINO
             </button>
           </Link>
         </div>

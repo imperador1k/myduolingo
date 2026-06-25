@@ -9,6 +9,7 @@ import {
   gradeWritingOutput,
   savePlacementResult,
   getActiveLanguage,
+  getEvaluationStatus,
   type PlacementQuestion,
   type ComprehensionData,
   type WritingTopic,
@@ -99,10 +100,16 @@ export default function EvaluationPage() {
   const [phase, setPhase] = useState<Phase>("welcome");
   const [isLoading, startTransition] = useTransition();
 
-  // Language selector
   const [selectedLanguage, setSelectedLanguage] = useState("English");
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [languageLoaded, setLanguageLoaded] = useState(false);
+
+  const [evalStatus, setEvalStatus] = useState<{
+    lastLevel: string | null;
+    canTakeTest: boolean;
+    hoursUntilNext: number;
+  } | null>(null);
+  const [statusLoading, setStatusLoading] = useState(false);
 
   // Data stores
   const [allQuestions, setAllQuestions] = useState<PlacementQuestion[]>([]);
@@ -182,6 +189,16 @@ export default function EvaluationPage() {
       setLanguageLoaded(true);
     });
   }, []);
+
+  useEffect(() => {
+    if (selectedLanguage) {
+      setStatusLoading(true);
+      getEvaluationStatus(selectedLanguage).then((status) => {
+        setEvalStatus(status);
+        setStatusLoading(false);
+      });
+    }
+  }, [selectedLanguage]);
 
   // ============================================================
   // PHASE 0: WELCOME → Start test
@@ -742,7 +759,7 @@ export default function EvaluationPage() {
                     {/* Settings gear */}
                     <button
                       onClick={() => setIsInfoModalOpen(true)}
-                      className="w-12 h-12 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-800 border-b-4 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all hover:scale-110 active:scale-95 active:border-b-0 active:translate-y-1"
+                      className="w-12 h-12 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border-2 border-slate-200 dark:border-slate-800 border-b-4 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all hover:scale-110 active:scale-95 active:border-b-0 active:translate-y-1"
                     >
                       <Info className="w-5 h-5" />
                     </button>
@@ -1059,7 +1076,7 @@ export default function EvaluationPage() {
                     <select
                       value={selectedLanguage}
                       onChange={(e) => setSelectedLanguage(e.target.value)}
-                      className="w-full h-14 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 dark:bg-slate-800 px-5 rounded-[1.25rem] text-lg font-black text-slate-700 dark:text-slate-200 cursor-pointer outline-none border-2 border-slate-200 dark:border-slate-800 hover:border-slate-300 transition-all appearance-none"
+                      className="w-full h-14 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 px-5 rounded-[1.25rem] text-lg font-black text-slate-700 dark:text-slate-200 cursor-pointer outline-none border-2 border-slate-200 dark:border-slate-800 hover:border-slate-300 transition-all appearance-none"
                     >
                       {SUPPORTED_LANGUAGES.map((lang) => (
                         <option key={lang.value} value={lang.value}>
@@ -1087,19 +1104,69 @@ export default function EvaluationPage() {
                 )}
               </motion.div>
 
+              {/* ── EVALUATION STATUS BOX ── */}
+              {evalStatus?.lastLevel && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.58 }}
+                  className="bg-sky-50 dark:bg-sky-900/20 border-2 border-sky-200 dark:border-sky-800 rounded-3xl p-4 flex items-start gap-4"
+                >
+                  <Trophy className="w-8 h-8 text-sky-500 shrink-0 mt-1" />
+                  <div>
+                    <p className="font-bold text-slate-800 dark:text-sky-100 text-lg">
+                      A tua última avaliação foi de{" "}
+                      <span className="text-sky-600 dark:text-sky-400 font-black">
+                        {evalStatus.lastLevel}
+                      </span>
+                    </p>
+                    {!evalStatus.canTakeTest && (
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mt-1">
+                        Volta daqui a {Math.ceil(evalStatus.hoursUntilNext)}{" "}
+                        horas para realizares um novo teste.
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
               {/* ── PILLAR 3: Tactical CTA ── */}
               <motion.button
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.62 }}
-                whileHover={{ scale: isLoading || !languageLoaded ? 1 : 1.02 }}
-                whileTap={{ scale: isLoading || !languageLoaded ? 1 : 0.97 }}
+                whileHover={{
+                  scale:
+                    isLoading ||
+                    !languageLoaded ||
+                    statusLoading ||
+                    (evalStatus && !evalStatus.canTakeTest)
+                      ? 1
+                      : 1.02,
+                }}
+                whileTap={{
+                  scale:
+                    isLoading ||
+                    !languageLoaded ||
+                    statusLoading ||
+                    (evalStatus && !evalStatus.canTakeTest)
+                      ? 1
+                      : 0.97,
+                }}
                 onClick={handleStartTest}
-                disabled={isLoading || !languageLoaded}
+                disabled={
+                  isLoading ||
+                  !languageLoaded ||
+                  statusLoading ||
+                  (evalStatus ? !evalStatus.canTakeTest : false)
+                }
                 className={cn(
                   "w-full py-6 text-2xl font-black uppercase tracking-widest text-white rounded-[1.75rem] border-b-[8px] active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center gap-4 shadow-lg relative overflow-hidden",
-                  isLoading || !languageLoaded
-                    ? "bg-slate-200 border-slate-300 text-slate-400 cursor-not-allowed"
+                  isLoading ||
+                    !languageLoaded ||
+                    statusLoading ||
+                    (evalStatus && !evalStatus.canTakeTest)
+                    ? "bg-slate-200 border-slate-300 text-slate-400 cursor-not-allowed dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500"
                     : "bg-gradient-to-b from-[#58CC02] to-[#46a302] border-[#378200] cursor-pointer shadow-[0_8px_32px_rgba(88,204,2,0.4)]",
                 )}
               >
@@ -1107,9 +1174,14 @@ export default function EvaluationPage() {
                 {!(isLoading || !languageLoaded) && (
                   <div className="pointer-events-none absolute top-0 left-0 right-0 h-1/2 bg-white/10 rounded-t-[1.75rem]" />
                 )}
-                {isLoading ? (
+                {isLoading || statusLoading ? (
                   <>
                     <Loader2 className="h-7 w-7 animate-spin" />A PREPARAR...
+                  </>
+                ) : evalStatus && !evalStatus.canTakeTest ? (
+                  <>
+                    <Zap className="h-7 w-7 stroke-[3] fill-current opacity-50" />
+                    INDISPONÍVEL
                   </>
                 ) : (
                   <>
@@ -1691,7 +1763,7 @@ export default function EvaluationPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <Link
                       href="/learn"
-                      className="flex flex-col items-center justify-center gap-3 py-6 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-8 rounded-[2rem] font-black text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-950 transition-all active:translate-y-1 active:border-b-4 group"
+                      className="flex flex-col items-center justify-center gap-3 py-6 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-8 rounded-[2rem] font-black text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-950 transition-all active:translate-y-1 active:border-b-4 group"
                     >
                       <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Home className="h-6 w-6" />

@@ -22,6 +22,34 @@ export async function getActiveLanguage(): Promise<string | null> {
 }
 
 // ============================================================
+// Helper: Get evaluation status (last evaluation & daily limit)
+// ============================================================
+export async function getEvaluationStatus(language: string) {
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  const history = await db.query.placementTestHistory.findFirst({
+    where: (pt, { eq, and }) =>
+      and(eq(pt.userId, userId), eq(pt.languageTested, language)),
+    orderBy: (pt, { desc }) => [desc(pt.createdAt)],
+  });
+
+  if (!history) {
+    return { lastLevel: null, canTakeTest: true, hoursUntilNext: 0 };
+  }
+
+  const now = new Date();
+  const testDate = new Date(history.createdAt || new Date(0));
+  const diffHours = (now.getTime() - testDate.getTime()) / (1000 * 60 * 60);
+
+  return {
+    lastLevel: history.finalLevel,
+    canTakeTest: diffHours >= 24,
+    hoursUntilNext: Math.max(0, 24 - diffHours),
+  };
+}
+
+// ============================================================
 // Helper: Robust JSON extraction from LLM response
 // ============================================================
 function extractJSON(text: string): string {

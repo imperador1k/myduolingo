@@ -5,41 +5,20 @@ import { ChevronLeft, Trash2, BookmarkCheck, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
-// Mock Data for now (until we fetch from Supabase)
-const MOCK_SAVED = [
-  {
-    id: "1",
-    title: "O Primeiro Computador",
-    category: "TECHNOLOGY",
-    body: "Sabias que o primeiro computador eletrónico, o ENIAC, pesava mais de 27 toneladas e ocupava uma sala inteira? Foi construído em 1945 e era usado para cálculos militares complexos durante a Segunda Guerra Mundial.",
-    language: "PT",
-    level: "B1",
-    author: "HistóriaTech",
-    savedAt: "Há 2 horas",
-    bgClass: "from-sky-100 to-sky-50 dark:from-sky-900 dark:to-sky-950",
-  },
-  {
-    id: "3",
-    title: "Polvos Têm 3 Corações",
-    category: "SCIENCE",
-    body: "Os polvos são criaturas incríveis: têm três corações e o seu sangue é azul. Dois corações bombeiam sangue para as guelras, enquanto o terceiro bombeia para o resto do corpo.",
-    language: "PT",
-    level: "B2",
-    author: "BioMundo",
-    savedAt: "Ontem",
-    bgClass:
-      "from-emerald-100 to-emerald-50 dark:from-emerald-900 dark:to-emerald-950",
-  },
-];
+import { toggleSave } from "@/actions/feed";
 
-export default function SavedPostsClient() {
+export default function SavedPostsClient({
+  initialSavedPosts = [],
+}: {
+  initialSavedPosts?: any[];
+}) {
   const router = useRouter();
-  const [savedPosts, setSavedPosts] = useState(MOCK_SAVED);
+  const [savedPosts, setSavedPosts] = useState(initialSavedPosts);
 
-  const handleRemove = (id: string) => {
+  const handleRemove = async (id: string) => {
     // Optimistic UI Removal
     setSavedPosts(savedPosts.filter((p) => p.id !== id));
-    // Here we will call: await toggleSave(id)
+    await toggleSave(id);
   };
 
   return (
@@ -99,64 +78,65 @@ export default function SavedPostsClient() {
             </button>
           </div>
         ) : (
-          <div className="grid gap-6">
-            {savedPosts.map((post, i) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className={`bg-gradient-to-br ${post.bgClass} p-6 rounded-[32px] border-4 border-white/10 shadow-xl relative group overflow-hidden`}
-              >
-                {/* Abstract Shape */}
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/50 dark:bg-white/5 rounded-full blur-2xl"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {savedPosts.map((post) => {
+              const authorName = post.creator?.name || "System";
 
-                <div className="flex items-start justify-between gap-4 mb-4 relative z-10">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold px-2 py-1 bg-black/5 dark:bg-white/20 backdrop-blur-md rounded-lg text-slate-800 dark:text-white">
-                        {post.category} • {post.level}
-                      </span>
-                      <span className="text-xs font-medium text-slate-500 dark:text-white/60">
-                        {post.savedAt}
-                      </span>
+              return (
+                <motion.div
+                  key={post.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className={`p-6 rounded-[32px] bg-gradient-to-br ${post.bgClass} flex flex-col justify-between border-4 border-white/50 dark:border-slate-900/50 shadow-xl`}
+                >
+                  {/* Abstract Shape */}
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/50 dark:bg-white/5 rounded-full blur-2xl"></div>
+
+                  <div className="flex items-start justify-between gap-4 mb-4 relative z-10">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[10px] font-black tracking-wider px-2 py-0.5 bg-black/10 dark:bg-white/20 rounded-full backdrop-blur-md text-slate-700 dark:text-white inline-block">
+                          {post.category} • {post.cefrLevel}
+                        </span>
+                        <span className="text-xs font-medium text-slate-500 dark:text-white/60">
+                          {post.savedAt}
+                        </span>
+                      </div>
+                      <h2 className="text-2xl font-black text-slate-900 dark:text-white drop-shadow-md">
+                        {post.title}
+                      </h2>
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 dark:text-white drop-shadow-md">
-                      {post.title}
-                    </h2>
+
+                    <button
+                      onClick={() => handleRemove(post.id)}
+                      className="p-3 bg-white/50 dark:bg-white/10 backdrop-blur-md rounded-2xl hover:bg-rose-500 hover:text-white text-slate-500 dark:text-white/50 transition-all border-b-4 border-black/10 dark:border-black/20 hover:border-rose-700 active:scale-95 active:border-b-0 active:translate-y-1 shrink-0"
+                      title="Remover do Cofre"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
 
-                  <button
-                    onClick={() => handleRemove(post.id)}
-                    className="p-3 bg-white/50 dark:bg-white/10 backdrop-blur-md rounded-2xl hover:bg-rose-500 hover:text-white text-slate-500 dark:text-white/50 transition-all border-b-4 border-black/10 dark:border-black/20 hover:border-rose-700 active:scale-95 active:border-b-0 active:translate-y-1 shrink-0"
-                    title="Remover do Cofre"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
+                  <p className="text-slate-700 dark:text-slate-100/90 font-medium leading-relaxed relative z-10 text-[15px]">
+                    {post.body}
+                  </p>
 
-                <p className="text-slate-700 dark:text-slate-100/90 font-medium leading-relaxed relative z-10 text-[15px]">
-                  {post.body}
-                </p>
-
-                <div className="mt-6 flex items-center justify-between relative z-10 pt-4 border-t border-black/10 dark:border-white/10">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 border-2 border-white dark:border-white/20 flex items-center justify-center">
-                      <span className="text-xs font-bold text-slate-800 dark:text-white">
-                        {post.author.charAt(0)}
+                  <div className="mt-6 flex items-center justify-between relative z-10 pt-4 border-t border-black/10 dark:border-white/10">
+                    <div className="flex items-center gap-2 mt-4 text-xs font-bold text-slate-600 dark:text-white/60">
+                      <span className="w-6 h-6 rounded-full bg-black/10 dark:bg-white/20 flex items-center justify-center">
+                        {authorName.charAt(0)}
                       </span>
+                      <span>{authorName}</span>
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-white/80">
-                      @{post.author}
-                    </span>
-                  </div>
 
-                  <button className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-white/70 dark:hover:text-white transition-colors">
-                    Ler original <ExternalLink className="w-4 h-4" />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+                    <button className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-white/70 dark:hover:text-white transition-colors">
+                      Ler original <ExternalLink className="w-4 h-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>

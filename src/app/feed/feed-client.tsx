@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Heart,
   Share2,
@@ -11,64 +11,70 @@ import {
   CheckCircle2,
   X,
   Send,
+  Plus,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { CreatePostModal } from "@/components/feed/create-post-modal";
+import { HappyStarLottie, CatLottie } from "@/components/ui/lottie-animation";
 import {
   toggleLike,
   toggleSave,
   getShareableContacts,
   sharePostToChat,
+  markPostAsRead,
 } from "@/actions/feed";
 
-// Mock Data
-const MOCK_POSTS = [
-  {
-    id: "1",
-    title: "O Primeiro Computador",
-    category: "TECHNOLOGY",
-    body: "Sabias que o primeiro computador eletrónico, o ENIAC, pesava mais de 27 toneladas e ocupava uma sala inteira? Foi construído em 1945 e era usado para cálculos militares complexos durante a Segunda Guerra Mundial.",
-    language: "PT",
-    level: "B1",
-    likes: 124000,
-    shares: 1200,
-    author: "HistóriaTech",
-    authorImg: "https://i.pravatar.cc/150?u=1",
-    bgClass: "from-sky-100 to-stone-50 dark:from-sky-900 dark:to-slate-950",
-  },
-  {
-    id: "2",
-    title: "A Guerra Mais Curta",
-    category: "HISTORY",
-    body: "A guerra mais curta da história ocorreu entre o Reino Unido e Zanzibar em 1896. Durou exatamente 38 minutos! Zanzibar rendeu-se após o seu palácio ter sido bombardeado por navios britânicos.",
-    language: "PT",
-    level: "A2",
-    likes: 85000,
-    shares: 800,
-    author: "CuriosoHistory",
-    authorImg: "https://i.pravatar.cc/150?u=2",
-    bgClass: "from-amber-100 to-stone-50 dark:from-amber-900 dark:to-slate-950",
-  },
-  {
-    id: "3",
-    title: "Polvos Têm 3 Corações",
-    category: "SCIENCE",
-    body: "Os polvos são criaturas incríveis: têm três corações e o seu sangue é azul. Dois corações bombeiam sangue para as guelras, enquanto o terceiro bombeia para o resto do corpo.",
-    language: "PT",
-    level: "B2",
-    likes: 420000,
-    shares: 12000,
-    author: "BioMundo",
-    authorImg: "https://i.pravatar.cc/150?u=3",
-    bgClass:
-      "from-emerald-100 to-stone-50 dark:from-emerald-900 dark:to-slate-950",
-  },
-];
+// Types
+type Post = {
+  id: string;
+  title: string;
+  category: string;
+  body: string;
+  targetLanguage: string;
+  cefrLevel: string;
+  bgClass: string;
+  likes: any[];
+  saves: any[];
+  creator: any;
+};
 
-export default function FeedClient() {
+export default function FeedClient({
+  initialPosts = [],
+}: {
+  initialPosts?: any[];
+}) {
   const router = useRouter();
-  const [posts] = useState(MOCK_POSTS);
+  const [posts] = useState<Post[]>(initialPosts);
+
+  // Initialize active post and track reads via IntersectionObserver
+  useEffect(() => {
+    if (posts.length > 0) {
+      setActivePostId(posts[0].id);
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.getAttribute("data-post-id");
+              if (id) {
+                setActivePostId(id);
+                // Fire and forget, marks it as read in the background
+                markPostAsRead(id).catch(console.error);
+              }
+            }
+          });
+        },
+        { threshold: 0.6 },
+      ); // 60% of the post needs to be visible to count as read
+
+      const elements = document.querySelectorAll(".snap-start");
+      elements.forEach((el) => observer.observe(el));
+
+      return () => observer.disconnect();
+    }
+  }, [posts]);
 
   // PC Drag-to-Scroll State
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -106,12 +112,12 @@ export default function FeedClient() {
   // Social States
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
-
-  // Share Modal State
+  const [activePostId, setActivePostId] = useState<string>("post-1");
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeSharePostId, setActiveSharePostId] = useState<string | null>(
     null,
   );
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [friends, setFriends] = useState<any[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
   const [sharingTo, setSharingTo] = useState<string | null>(null);
@@ -257,12 +263,20 @@ export default function FeedClient() {
         <div className="flex items-center font-black text-xl tracking-widest drop-shadow-md text-slate-800 dark:text-white">
           FEED
         </div>
-        <button
-          onClick={() => router.push("/feed/saved")}
-          className="p-3 bg-amber-500/20 backdrop-blur-md rounded-2xl pointer-events-auto hover:bg-amber-500/30 transition-all active:scale-95 border-b-4 border-amber-500/20"
-        >
-          <Bookmark className="w-6 h-6 text-amber-500 dark:text-amber-400 fill-amber-500/20 dark:fill-amber-400/20" />
-        </button>
+        <div className="flex items-center gap-2 pointer-events-auto">
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="p-3 bg-sky-500/20 backdrop-blur-md rounded-2xl hover:bg-sky-500/30 transition-all active:scale-95 border-b-4 border-sky-500/20"
+          >
+            <Plus className="w-6 h-6 text-sky-600 dark:text-sky-400 stroke-[3]" />
+          </button>
+          <button
+            onClick={() => router.push("/feed/saved")}
+            className="p-3 bg-amber-500/20 backdrop-blur-md rounded-2xl hover:bg-amber-500/30 transition-all active:scale-95 border-b-4 border-amber-500/20"
+          >
+            <Bookmark className="w-6 h-6 text-amber-500 dark:text-amber-400 fill-amber-500/20 dark:fill-amber-400/20" />
+          </button>
+        </div>
       </div>
 
       {/* Centered Phone-like Container for PC */}
@@ -277,133 +291,166 @@ export default function FeedClient() {
           isDragging ? "cursor-grabbing snap-none" : "cursor-grab",
         )}
       >
-        {posts.map((post) => {
-          const isLiked = likedPosts.has(post.id);
-          const isSaved = savedPosts.has(post.id);
+        {posts.length === 0 ? (
+          <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center text-slate-500 dark:text-slate-400">
+            <CatLottie className="w-48 h-48 mb-4 opacity-50" />
+            <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">
+              Feed Vazio!
+            </h2>
+            <p className="font-medium max-w-[250px] mx-auto">
+              Já viste tudo o que tinhas a ver! 🚀 Volta mais tarde para mais
+              curiosidades ou cria a tua própria.
+            </p>
+          </div>
+        ) : (
+          posts.map((post) => {
+            const isLiked = likedPosts.has(post.id);
+            const isSaved =
+              savedPosts.has(post.id) || (post.saves?.length || 0) > 0;
+            const likeCount = (post.likes?.length || 0) + (isLiked ? 1 : 0);
+            const shareCount = 0; // Temporary placeholder for shares
 
-          return (
-            <div
-              key={post.id}
-              className="h-full w-full snap-start relative flex flex-col justify-end overflow-hidden"
-            >
-              {/* Background Image / Color */}
+            const authorName = post.creator?.name || "System";
+            const authorImg =
+              post.creator?.imageSrc || "https://i.pravatar.cc/150";
+
+            return (
               <div
+                key={post.id}
+                data-post-id={post.id}
                 className={cn(
-                  "absolute inset-0 bg-gradient-to-b opacity-100 dark:opacity-80",
-                  post.bgClass,
+                  "snap-start w-full h-[100dvh] md:h-[95dvh] flex flex-col justify-end relative overflow-hidden",
                 )}
               >
-                {/* Abstract Blur blobs to make it look premium */}
-                <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full blur-[100px] opacity-60 dark:opacity-30 bg-white"></div>
-              </div>
+                {/* Background Image / Color */}
+                <div
+                  className={cn(
+                    "absolute inset-0 bg-gradient-to-b opacity-100 dark:opacity-80",
+                    post.bgClass,
+                  )}
+                >
+                  {/* Abstract Blur blobs to make it look premium */}
+                  <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full blur-[100px] opacity-60 dark:opacity-30 bg-white"></div>
+                </div>
 
-              {/* Dark gradient at bottom for text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-stone-100 via-stone-100/80 dark:from-black dark:via-black/40 to-transparent"></div>
+                {/* Dark gradient at bottom for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-100 via-stone-100/80 dark:from-black dark:via-black/40 to-transparent"></div>
 
-              {/* Bottom Content Area */}
-              <div className="relative w-full p-4 pb-8 flex items-end justify-between pointer-events-none z-10">
-                {/* Left Side: Post Info */}
-                <div className="flex-1 pr-16 pointer-events-auto mb-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-11 h-11 rounded-full overflow-hidden border border-white/20">
-                      <img
-                        src={post.authorImg}
-                        alt={post.author}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-1">
-                        <span className="font-bold text-base text-slate-800 dark:text-white drop-shadow-md">
-                          {post.author}
-                        </span>
-                        <CheckCircle2 className="w-4 h-4 text-sky-500 dark:text-sky-400 fill-sky-500/20 dark:fill-sky-400/20" />
+                {/* Bottom Content Area */}
+                <div className="relative w-full p-4 pb-8 flex items-end justify-between pointer-events-none z-10">
+                  {/* Left Side: Post Info */}
+                  <div className="flex-1 pr-16 pointer-events-auto mb-4">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="relative">
+                        <img
+                          src={authorImg}
+                          alt={authorName}
+                          className="w-12 h-12 rounded-full border-2 border-white/20 shadow-md object-cover"
+                        />
+                        <div className="absolute -bottom-1 -right-1 bg-rose-500 rounded-full p-0.5 border-2 border-slate-900">
+                          <Plus className="w-3 h-3 text-white" />
+                        </div>
                       </div>
-                      <span className="text-xs font-semibold px-2 py-0.5 bg-black/5 dark:bg-white/10 backdrop-blur-md rounded w-fit mt-1 text-slate-600 dark:text-white">
-                        {post.category} • {post.level}
-                      </span>
+                      <div>
+                        <div className="flex items-center gap-1">
+                          <span className="font-bold text-slate-800 dark:text-white drop-shadow-md">
+                            {authorName}
+                          </span>
+                          <CheckCircle2 className="w-4 h-4 text-sky-500" />
+                        </div>
+                        <span className="text-[10px] font-black tracking-wider px-2 py-0.5 bg-black/10 dark:bg-white/20 rounded-full backdrop-blur-md text-slate-700 dark:text-white inline-block mt-0.5">
+                          {post.category} • {post.cefrLevel}
+                        </span>
+                      </div>
+                    </div>
+
+                    <h2 className="text-xl font-black mb-2 text-slate-900 dark:text-white drop-shadow-md">
+                      {post.title}
+                    </h2>
+                    <div className="text-[15px] text-slate-700 dark:text-slate-100 font-medium leading-snug drop-shadow-sm select-none">
+                      {renderInteractiveBody(post.body)}
                     </div>
                   </div>
 
-                  <h2 className="text-xl font-black mb-2 text-slate-900 dark:text-white drop-shadow-md">
-                    {post.title}
-                  </h2>
-                  <div className="text-[15px] text-slate-700 dark:text-slate-100 font-medium leading-snug drop-shadow-sm select-none">
-                    {renderInteractiveBody(post.body)}
-                  </div>
-                </div>
+                  {/* Right Side: Interactions */}
+                  <div className="flex flex-col items-center gap-5 pb-4 pointer-events-auto shrink-0">
+                    <div className="relative mb-2">
+                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
+                        <img
+                          src={authorImg}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-rose-500 rounded-full w-5 h-5 flex items-center justify-center border border-white cursor-pointer active:scale-90 transition-transform">
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="white"
+                        >
+                          <path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"></path>
+                        </svg>
+                      </div>
+                    </div>
 
-                {/* Right Side: Interactions */}
-                <div className="flex flex-col items-center gap-5 pb-4 pointer-events-auto shrink-0">
-                  <div className="relative mb-2">
-                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
-                      <img
-                        src={post.authorImg}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
+                    <button
+                      onClick={() => handleLike(post.id)}
+                      className="flex flex-col items-center gap-1 group"
+                    >
+                      <Heart
+                        className={cn(
+                          "w-9 h-9 group-active:scale-90 transition-all drop-shadow-lg",
+                          isLiked
+                            ? "text-rose-500 fill-rose-500"
+                            : "text-slate-600 dark:text-white",
+                        )}
                       />
-                    </div>
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-rose-500 rounded-full w-5 h-5 flex items-center justify-center border border-white cursor-pointer active:scale-90 transition-transform">
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="white"
-                      >
-                        <path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"></path>
-                      </svg>
-                    </div>
+                      <span className="text-xs font-bold text-slate-600 dark:text-white drop-shadow-md">
+                        {formatNumber(likeCount)}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => handleSave(post.id)}
+                      className="flex flex-col items-center gap-1 group"
+                    >
+                      <Bookmark
+                        className={cn(
+                          "w-9 h-9 group-active:scale-90 transition-all drop-shadow-lg",
+                          isSaved
+                            ? "text-amber-500 dark:text-amber-400 fill-amber-500 dark:fill-amber-400"
+                            : "text-slate-600 dark:text-white fill-slate-200 dark:fill-white/20",
+                        )}
+                      />
+                      <span className="text-xs font-bold text-slate-600 dark:text-white drop-shadow-md">
+                        Save
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => openShareModal(post.id)}
+                      className="flex flex-col items-center gap-1 group"
+                    >
+                      <Share2 className="w-9 h-9 text-slate-600 dark:text-white group-active:scale-90 transition-transform drop-shadow-lg fill-slate-200 dark:fill-white/20" />
+                      <span className="text-xs font-bold text-slate-600 dark:text-white drop-shadow-md">
+                        {formatNumber(shareCount)}
+                      </span>
+                    </button>
                   </div>
-
-                  <button
-                    onClick={() => handleLike(post.id)}
-                    className="flex flex-col items-center gap-1 group"
-                  >
-                    <Heart
-                      className={cn(
-                        "w-9 h-9 group-active:scale-90 transition-all drop-shadow-lg",
-                        isLiked
-                          ? "text-rose-500 fill-rose-500"
-                          : "text-slate-600 dark:text-white",
-                      )}
-                    />
-                    <span className="text-xs font-bold text-slate-600 dark:text-white drop-shadow-md">
-                      {formatNumber(post.likes + (isLiked ? 1 : 0))}
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => handleSave(post.id)}
-                    className="flex flex-col items-center gap-1 group"
-                  >
-                    <Bookmark
-                      className={cn(
-                        "w-9 h-9 group-active:scale-90 transition-all drop-shadow-lg",
-                        isSaved
-                          ? "text-amber-500 dark:text-amber-400 fill-amber-500 dark:fill-amber-400"
-                          : "text-slate-600 dark:text-white fill-slate-200 dark:fill-white/20",
-                      )}
-                    />
-                    <span className="text-xs font-bold text-slate-600 dark:text-white drop-shadow-md">
-                      Save
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => openShareModal(post.id)}
-                    className="flex flex-col items-center gap-1 group"
-                  >
-                    <Share2 className="w-9 h-9 text-slate-600 dark:text-white group-active:scale-90 transition-transform drop-shadow-lg fill-slate-200 dark:fill-white/20" />
-                    <span className="text-xs font-bold text-slate-600 dark:text-white drop-shadow-md">
-                      {formatNumber(post.shares)}
-                    </span>
-                  </button>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
+
+      {/* Create Post Modal */}
+      <CreatePostModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        targetLanguage="Português"
+      />
 
       {/* Share Modal Overlay */}
       <AnimatePresence>

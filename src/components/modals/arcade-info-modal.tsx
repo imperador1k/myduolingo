@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Zap, CopyMinus, Sparkles, X, Gamepad2 } from "lucide-react";
+import { Zap, CopyMinus, Sparkles, X, Gamepad2, Dices } from "lucide-react";
 import Image from "next/image";
 
 interface Props {
@@ -97,6 +97,24 @@ export const ArcadeInfoModal = ({ isOpen, onOpenChange }: Props) => {
                   </span>
                   <span className="text-xs font-bold text-amber-600/70">
                     Destrói as palavras antes que caiam!
+                  </span>
+                </div>
+              </div>
+
+              {/* Casino */}
+              <div className="flex items-center gap-4 bg-slate-800 p-4 rounded-2xl border-2 border-slate-700 mt-2">
+                <div className="h-12 w-12 bg-slate-900 rounded-xl border-2 border-cyan-500 flex items-center justify-center shrink-0">
+                  <Dices className="w-6 h-6 text-cyan-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-black text-white uppercase tracking-wider text-sm flex items-center gap-2">
+                    Casino 8-Bit
+                    <span className="bg-yellow-500 text-black text-[10px] px-2 py-0.5 rounded-full border border-yellow-300 leading-none">
+                      PRO
+                    </span>
+                  </span>
+                  <span className="text-xs font-bold text-slate-400">
+                    Aposta coins em minijogos de risco.
                   </span>
                 </div>
               </div>

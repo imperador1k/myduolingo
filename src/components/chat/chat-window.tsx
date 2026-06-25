@@ -133,7 +133,16 @@ export const ChatWindow = ({
     };
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    // Auto-resize logic
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "40px"; // Reset to base height to calculate scrollHeight
+      const newHeight = Math.min(textareaRef.current.scrollHeight, 120); // Max height 120px
+      textareaRef.current.style.height = `${newHeight}px`;
+    }
+
     if (trackTyping) {
       if (!isTypingRef.current) {
         isTypingRef.current = true;
@@ -675,34 +684,50 @@ export const ChatWindow = ({
         )}
 
         <form
-          action={handleSubmit}
+          action={(formData) => {
+            handleSubmit(formData);
+            if (textareaRef.current) {
+              textareaRef.current.style.height = "40px"; // Reset height after send
+            }
+          }}
           ref={formRef}
-          className="flex gap-4 items-center w-full max-w-5xl mx-auto"
+          className="flex gap-2 md:gap-4 items-end w-full max-w-5xl mx-auto"
         >
-          <div className="flex-1 flex items-center gap-3 bg-stone-100 dark:bg-slate-800 border-2 border-stone-200 dark:border-slate-700 border-b-4 rounded-[2rem] px-4 py-3 focus-within:border-[#1CB0F6] focus-within:bg-blue-50/50 dark:focus-within:bg-slate-800 transition-all group">
+          <div className="relative flex-1 flex items-end gap-1 md:gap-3 bg-[#ff9cfc] border-[4px] border-black rounded-none px-2 md:px-4 py-2 min-h-[56px] shadow-[4px_4px_0_0_#000] md:shadow-[6px_6px_0_0_#000] focus-within:-translate-y-1 focus-within:shadow-[6px_6px_0_0_#000] md:focus-within:shadow-[8px_8px_0_0_#000] transition-all group z-10">
+            {/* 8-bit Tail */}
+            <div className="absolute -bottom-[16px] left-6 w-[20px] h-[20px] bg-[#ff9cfc] border-b-[4px] border-l-[4px] border-black -rotate-12 rounded-bl-sm z-[-1] pointer-events-none shadow-[-2px_2px_0_0_rgba(0,0,0,0.1)]"></div>
+
             <UploadButton onUploadComplete={handleUploadComplete} />
             <button
               type="button"
               onClick={() => setShowGifPicker(!showGifPicker)}
-              className="bg-transparent rounded-full h-10 w-10 flex items-center justify-center transition-all shrink-0 text-stone-400 dark:text-slate-500 dark:text-slate-400 hover:bg-stone-50 dark:bg-slate-950 hover:text-[#1CB0F6]"
+              className="bg-transparent rounded-none h-10 w-10 flex items-center justify-center transition-all shrink-0 text-black hover:bg-black/10"
             >
-              <ImageIcon className="h-6 w-6" />
+              <ImageIcon className="h-6 w-6 stroke-[2.5]" />
             </button>
 
-            <input
+            <textarea
+              ref={textareaRef}
               name="content"
               disabled={isSending}
-              placeholder="Escrever mensagem..."
+              placeholder="escreve a tua mensagem..."
               onChange={handleInputChange}
-              className="flex-1 bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-[15px] font-bold text-stone-700 dark:text-slate-200 placeholder:text-stone-400 dark:text-slate-500 dark:text-slate-400 h-10 w-full disabled:opacity-50"
-              autoComplete="off"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (formRef.current) {
+                    formRef.current.requestSubmit();
+                  }
+                }
+              }}
+              className="flex-1 bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-[16px] font-mono font-black text-black placeholder:text-black/50 placeholder:font-mono h-[40px] max-h-[120px] w-full disabled:opacity-50 tracking-tight resize-none py-[10px] leading-tight"
             />
           </div>
 
           <button
             type="submit"
             disabled={isSending}
-            className="h-14 px-8 rounded-[1.5rem] bg-[#58CC02] hover:bg-[#4eb801] active:translate-y-1 active:border-b-0 text-white font-black text-sm uppercase tracking-widest border-b-4 border-[#46a302] transition-all flex items-center justify-center gap-3 shadow-xl shrink-0 disabled:bg-stone-200 dark:bg-slate-700 disabled:border-stone-300 dark:border-slate-700 disabled:text-stone-400 dark:text-slate-500 dark:text-slate-400"
+            className="h-12 px-4 md:h-14 md:px-8 rounded-none bg-[#58CC02] hover:bg-[#4eb801] active:translate-y-1 active:shadow-none text-black font-black text-sm uppercase tracking-widest border-[4px] border-black transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0_0_#000] md:shadow-[6px_6px_0_0_#000] shrink-0 disabled:bg-stone-400 disabled:border-black disabled:text-stone-700 disabled:shadow-[4px_4px_0_0_#000]"
           >
             {isSending ? (
               <Loader2 className="h-5 w-5 animate-spin" />

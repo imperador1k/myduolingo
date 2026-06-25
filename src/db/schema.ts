@@ -791,6 +791,12 @@ export const survivalSessionsRelations = relations(
 
 // ===== KNOWLEDGE FEED =====
 
+export const postStatusEnum = pgEnum("post_status", [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+]);
+
 export const knowledgePosts = pgTable("knowledge_posts", {
   id: uuid("id").primaryKey().defaultRandom(),
   originalSourceUrl: text("original_source_url"),
@@ -802,6 +808,10 @@ export const knowledgePosts = pgTable("knowledge_posts", {
   author: text("author").notNull().default("System"),
   authorImg: text("author_img").notNull().default("https://i.pravatar.cc/150"),
   bgClass: text("bg_class").notNull().default("from-slate-900 to-black"),
+  status: postStatusEnum("status").default("APPROVED").notNull(),
+  authorId: text("author_id").references(() => userProgress.userId, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -839,10 +849,14 @@ export const knowledgeLikes = pgTable("knowledge_likes", {
 
 export const knowledgePostsRelations = relations(
   knowledgePosts,
-  ({ many }) => ({
+  ({ many, one }) => ({
     saves: many(knowledgeSaves),
     likes: many(knowledgeLikes),
     reads: many(userReadHistory),
+    creator: one(userProgress, {
+      fields: [knowledgePosts.authorId],
+      references: [userProgress.userId],
+    }),
   }),
 );
 

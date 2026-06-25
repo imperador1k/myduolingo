@@ -63,11 +63,11 @@ export const UploadButton = ({ onUploadComplete }: Props) => {
         disabled={uploading}
       />
       <label htmlFor="file-upload">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl transition-all hover:bg-stone-50 dark:bg-slate-950 active:scale-95 shrink-0 cursor-pointer text-stone-400 dark:text-slate-500 dark:text-slate-400 hover:text-[#1CB0F6]">
+        <div className="flex h-10 w-10 items-center justify-center transition-all active:scale-95 shrink-0 cursor-pointer text-black hover:bg-black/10">
           {uploading ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
-            <Paperclip className="h-6 w-6" />
+            <Paperclip className="h-6 w-6 stroke-[2.5]" />
           )}
         </div>
       </label>
