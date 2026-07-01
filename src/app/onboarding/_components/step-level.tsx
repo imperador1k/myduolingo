@@ -90,7 +90,7 @@ export const StepLevel = ({ courseTitle }: StepLevelProps) => {
           <h1 className="text-3xl font-black md:text-4xl tracking-tight text-[#042c60]">
             {t.rich("how_much_do_you_know", {
               course_title: courseTitle,
-              span: (chunks) => (
+              spanTag: (chunks) => (
                 <span className="text-[#58cc02] relative inline-block">
                   {chunks}
                   <motion.span

@@ -6,21 +6,26 @@ import { useState, useEffect } from "react";
 import { HelpCircle, Bot, History } from "lucide-react";
 import Link from "next/link";
 import { PracticeInfoModal } from "@/components/modals/practice-info-modal";
+import { usePreferencesStore } from "@/store/use-preferences-store";
 
 export const PracticeHeader = () => {
   const t = useTranslations("practice");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
+  const hasSeenModal = usePreferencesStore(
+    (state) => state.hasSeenPracticeModal,
+  );
+  const setPreference = usePreferencesStore((state) => state.setPreference);
+
   useEffect(() => {
     setIsMounted(true);
     // Auto-open modal on first visit
-    const hasSeenModal = localStorage.getItem("hasSeenPracticeModal");
     if (!hasSeenModal) {
       setIsModalOpen(true);
-      localStorage.setItem("hasSeenPracticeModal", "true");
+      setPreference("hasSeenPracticeModal", true);
     }
-  }, []);
+  }, [hasSeenModal, setPreference]);
 
   return (
     <div className="relative mb-8">

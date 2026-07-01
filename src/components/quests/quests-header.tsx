@@ -4,21 +4,24 @@ import { useState, useEffect } from "react";
 import { HelpCircle, Crown, Target } from "lucide-react";
 import { QuestsInfoModal } from "@/components/modals/quests-info-modal";
 import { useTranslations } from "next-intl";
+import { usePreferencesStore } from "@/store/use-preferences-store";
 
 export const QuestsHeader = () => {
   const t = useTranslations("quests_components");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
+  const hasSeenModal = usePreferencesStore((state) => state.hasSeenQuestsModal);
+  const setPreference = usePreferencesStore((state) => state.setPreference);
+
   useEffect(() => {
     setIsMounted(true);
     // Auto-open modal on first visit
-    const hasSeenModal = localStorage.getItem("hasSeenQuestsModal");
     if (!hasSeenModal) {
       setIsModalOpen(true);
-      localStorage.setItem("hasSeenQuestsModal", "true");
+      setPreference("hasSeenQuestsModal", true);
     }
-  }, []);
+  }, [hasSeenModal, setPreference]);
 
   return (
     <div className="relative mb-12">

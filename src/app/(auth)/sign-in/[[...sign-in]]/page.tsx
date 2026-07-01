@@ -6,7 +6,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { Eye, EyeOff, Flame, Trophy, TrendingUp, Sparkles } from "lucide-react";
+import { Eye, EyeOff, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 // Animation configuration for staggered children entry
 const containerVariants: Variants = {
@@ -14,15 +15,15 @@ const containerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.15,
+      staggerChildren: 0.1,
+      delayChildren: 0.1,
     },
   },
 };
 
-// Card spring transition variants
+// Card pop transition
 const cardVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.95, y: 15 },
+  hidden: { opacity: 0, scale: 0.8, y: 30 },
   visible: {
     opacity: 1,
     scale: 1,
@@ -33,7 +34,7 @@ const cardVariants: Variants = {
 
 // Individual child items variant within card
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 15 },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
@@ -53,6 +54,7 @@ export default function CustomSignIn() {
   const [isLoading, setIsLoading] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
   const router = useRouter();
+  const t = useTranslations("Auth");
 
   interface ClerkError {
     errors?: Array<{
@@ -62,44 +64,40 @@ export default function CustomSignIn() {
     }>;
   }
 
-  // Translates Clerk internal errors to Portuguese friendly errors
   const translateError = (err: unknown) => {
     const errorObj = err as ClerkError;
     const error = errorObj.errors?.[0];
-    if (!error) return "Ocorreu um erro inesperado.";
+    if (!error) return t("error_unexpected");
 
     switch (error.code) {
       case "form_identifier_not_found":
       case "form_password_incorrect":
-        return "Email ou palavra-passe incorretos.";
+        return t("error_invalid_credentials");
       case "user_already_signed_in":
-        return "Já tens uma sessão ativa. A redirecionar...";
+        return t("error_already_signed_in");
       case "form_param_nil":
-        return "Por favor, preenche todos os campos.";
+        return t("error_fill_all_fields");
       case "form_code_incorrect":
-        return "Código de verificação incorreto.";
+        return t("error_invalid_code");
       default:
-        return error.message || "Email ou palavra-passe inválidos.";
+        return error.message || t("error_invalid_credentials_default");
     }
   };
 
-  // Check if session is already active
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       router.push("/learn");
     }
   }, [isLoaded, isSignedIn, router]);
 
-  // Handle Clerk 2FA triggers (needs second factor)
   useEffect(() => {
     if (isLoaded && signIn?.status === "needs_second_factor") {
       setStep("mfa");
     }
   }, [isLoaded, signIn?.status]);
 
-  // Triggers card shake animation upon visual error notifications
   useEffect(() => {
-    if (error && !error.includes("enviado")) {
+    if (error && !error.includes("enviado") && !error.includes("sent")) {
       setIsShaking(true);
       const timer = setTimeout(() => setIsShaking(false), 500);
       return () => clearTimeout(timer);
@@ -108,7 +106,7 @@ export default function CustomSignIn() {
 
   if (!isLoaded || isSignedIn) {
     return (
-      <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-white dark:bg-slate-900 overflow-hidden">
+      <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-sky-50 dark:bg-slate-900 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -121,7 +119,7 @@ export default function CustomSignIn() {
           >
             <Image
               src="/marco.png"
-              alt="A carregar..."
+              alt={t("loading")}
               fill
               className="object-contain"
             />
@@ -196,7 +194,7 @@ export default function CustomSignIn() {
       } else if (result.status === "needs_second_factor") {
         setStep("mfa");
       } else {
-        setError("O login requer passos adicionais não suportados.");
+        setError(t("error_unsupported_mfa"));
       }
     } catch (err) {
       console.error("Erro no login:", err);
@@ -244,7 +242,7 @@ export default function CustomSignIn() {
     if (!isLoaded || !signIn) return;
     try {
       await signIn.prepareSecondFactor({ strategy: "email_code" });
-      setError("Novo código enviado para o teu email! 📧");
+      setError(t("new_code_sent"));
     } catch (err) {
       setError(translateError(err));
     }
@@ -254,555 +252,301 @@ export default function CustomSignIn() {
   const isEmailMfa = mfaStrategy === "email_code";
 
   return (
-    <div className="min-h-[100dvh] w-full overflow-hidden flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 relative p-4 select-none">
-      {/* Background Dots Overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-40 pointer-events-none z-0"></div>
+    <div className="min-h-[100dvh] w-full overflow-hidden flex flex-col items-center justify-center bg-sky-50 dark:bg-slate-900 relative p-4 sm:p-6 select-none">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(#1cb0f6_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-[0.15] dark:opacity-[0.05] pointer-events-none z-0"></div>
 
-      {/* Volumetric Radial Glow, changing color depending on Step */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] blur-[130px] rounded-full pointer-events-none transition-colors duration-1000 ease-in-out opacity-25 z-0"
-        style={{
-          backgroundColor:
-            step === "mfa" ? (isEmailMfa ? "#ffc800" : "#1cb0f6") : "#58cc02",
-        }}
-      ></div>
-
-      {/* Dynamic Ambient Background Elements (Desktop only) */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 hidden lg:block">
-        {/* Balão de Fala / Speech Bubble */}
+      {/* Main Form Container */}
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate={isShaking ? { x: [-10, 10, -10, 10, -5, 5, 0] } : "visible"}
+        className="w-full max-w-[420px] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 border-b-[8px] rounded-[2.5rem] p-8 sm:p-10 relative z-20 shadow-2xl shadow-sky-900/5"
+      >
+        {/* Playful Mascot Top */}
         <motion.div
-          className="absolute left-[8%] top-[15%]"
-          animate={{
-            y: [0, -12, 0],
-            rotate: [0, 6, -6, 0],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          className="w-32 h-32 absolute -top-[70px] left-1/2 -translate-x-1/2 z-30 drop-shadow-xl pointer-events-none"
+          animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }}
+          transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
         >
-          <svg
-            className="w-16 h-16 text-green-500/10 fill-current"
-            viewBox="0 0 24 24"
-          >
-            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z" />
-          </svg>
+          <Image
+            src="/marco.png"
+            alt="Mascote Marco"
+            fill
+            priority
+            className="object-contain"
+          />
         </motion.div>
 
-        {/* Estrela / Star */}
-        <motion.div
-          className="absolute left-[10%] bottom-[20%]"
-          animate={{
-            y: [0, 12, 0],
-            rotate: [0, 360],
-          }}
-          transition={{
-            y: {
-              duration: 7,
-              repeat: Infinity,
-              ease: "easeInOut",
-            },
-            rotate: {
-              duration: 25,
-              repeat: Infinity,
-              ease: "linear",
-            },
-          }}
-        >
-          <svg
-            className="w-12 h-12 text-yellow-500/10 fill-current"
-            viewBox="0 0 24 24"
-          >
-            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-          </svg>
-        </motion.div>
-
-        {/* Coroa / Crown */}
-        <motion.div
-          className="absolute right-[8%] top-[12%]"
-          animate={{
-            y: [0, -10, 0],
-            rotate: [-5, 5, -5],
-          }}
-          transition={{
-            duration: 5.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 0.5,
-          }}
-        >
-          <svg
-            className="w-14 h-14 text-amber-500/10 fill-current"
-            viewBox="0 0 24 24"
-          >
-            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3H5v-2h14v2z" />
-          </svg>
-        </motion.div>
-
-        {/* Brilhos / Sparkles */}
-        <motion.div
-          className="absolute right-[12%] bottom-[22%]"
-          animate={{
-            scale: [0.9, 1.15, 0.9],
-            opacity: [0.3, 0.7, 0.3],
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-        >
-          <svg
-            className="w-16 h-16 text-sky-500/10 fill-current"
-            viewBox="0 0 24 24"
-          >
-            <path d="M19 11.5L17.5 8.5L14.5 7L17.5 5.5L19 2.5L20.5 5.5L23.5 7L20.5 8.5L19 11.5ZM11.5 19L10 16L7 14.5L10 13L11.5 10L13 13L16 14.5L13 16L11.5 19ZM6.5 7.5L5.5 5.5L3.5 4.5L5.5 3.5L6.5 1.5L7.5 3.5L9.5 4.5L7.5 5.5L6.5 7.5Z" />
-          </svg>
-        </motion.div>
-
-        {/* Livro e Chapéu de Formatura / Graduation */}
-        <motion.div
-          className="absolute left-[38%] top-[10%]"
-          animate={{
-            x: [0, 8, -8, 0],
-            y: [0, -8, 8, 0],
-          }}
-          transition={{
-            duration: 9,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1.5,
-          }}
-        >
-          <svg
-            className="w-14 h-14 text-emerald-500/10 fill-current"
-            viewBox="0 0 24 24"
-          >
-            <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 18.5c-3.73 0-6.75-2.01-6.75-4.5v-2.29l6.75 3.68 6.75-3.68v2.29c0 2.49-3.02 4.5-6.75 4.5z" />
-          </svg>
-        </motion.div>
-      </div>
-
-      {/* Main Console Hub Wrapper */}
-      <div className="relative w-[92%] sm:w-full max-w-[440px] z-10 flex flex-col items-center justify-center">
-        {/* Ambient Game Satellites (Desktop only) */}
-        <div className="hidden lg:block">
-          {/* Satellite 1: Top Left - Flame/Streak Info */}
-          <motion.div
-            className="absolute -left-52 top-[5%] z-10 w-44 bg-white/70 backdrop-blur-md border border-white/80 shadow-lg border-b-4 border-b-slate-200 rounded-2xl p-3 flex items-center gap-3"
-            animate={{ y: [0, -8, 0] }}
-            transition={{ repeat: Infinity, duration: 4.2, ease: "easeInOut" }}
-          >
-            <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center text-orange-500 shrink-0">
-              <Flame size={18} className="fill-orange-500" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-wider leading-none">
-                Ofensiva
-              </p>
-              <p className="text-slate-700 dark:text-slate-200 text-xs font-black truncate mt-1">
-                30 Dias 🔥
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Satellite 2: Top Right - Trophy/League */}
-          <motion.div
-            className="absolute -right-52 top-[10%] z-10 w-44 bg-white/70 backdrop-blur-md border border-white/80 shadow-lg border-b-4 border-b-slate-200 rounded-2xl p-3 flex items-center gap-3"
-            animate={{ y: [0, -7, 0] }}
-            transition={{
-              repeat: Infinity,
-              duration: 4.8,
-              ease: "easeInOut",
-              delay: 0.6,
-            }}
-          >
-            <div className="w-9 h-9 rounded-xl bg-yellow-100 flex items-center justify-center text-yellow-600 shrink-0">
-              <Trophy size={18} className="fill-yellow-500" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-wider leading-none">
-                Liga
-              </p>
-              <p className="text-slate-700 dark:text-slate-200 text-xs font-black truncate mt-1">
-                Diamante 👑
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Satellite 3: Bottom Left - XP multiplier */}
-          <motion.div
-            className="absolute -left-56 bottom-[15%] z-10 w-48 bg-white/70 backdrop-blur-md border border-white/80 shadow-lg border-b-4 border-b-slate-200 rounded-2xl p-3 flex items-center gap-3"
-            animate={{ y: [0, -10, 0] }}
-            transition={{
-              repeat: Infinity,
-              duration: 5.2,
-              ease: "easeInOut",
-              delay: 1.2,
-            }}
-          >
-            <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center text-[#1cb0f6] shrink-0">
-              <TrendingUp size={18} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-wider leading-none">
-                Bónus XP
-              </p>
-              <p className="text-slate-700 dark:text-slate-200 text-xs font-black truncate mt-1">
-                2.0x Ativo ⚡
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Satellite 4: Bottom Right - Course Progress */}
-          <motion.div
-            className="absolute -right-56 bottom-[12%] z-10 w-48 bg-white/70 backdrop-blur-md border border-white/80 shadow-lg border-b-4 border-b-slate-200 rounded-2xl p-3 flex items-center gap-3"
-            animate={{ y: [0, -9, 0] }}
-            transition={{
-              repeat: Infinity,
-              duration: 5.6,
-              ease: "easeInOut",
-              delay: 1.8,
-            }}
-          >
-            <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center text-green-500 shrink-0">
-              <Sparkles size={18} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-wider leading-none">
-                Progresso
-              </p>
-              <p className="text-slate-700 dark:text-slate-200 text-xs font-black truncate mt-1">
-                Inglês: 94% 🚀
-              </p>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Central Tactile Authentication Card */}
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate={isShaking ? { x: [-10, 10, -10, 10, -5, 5, 0] } : "visible"}
-          className="w-full bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-[8px] rounded-[2rem] p-8 lg:p-8 relative z-20 shadow-xl shadow-slate-200/40"
-        >
-          {/* Mascot (Marco) Overlapping Card top */}
-          <motion.div
-            className="w-28 h-28 lg:w-24 lg:h-24 relative -mt-20 lg:-mt-16 mx-auto mb-2 drop-shadow-lg z-30 pointer-events-none"
-            animate={{ y: [-3, 3, -3] }}
-            transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-          >
-            <Image
-              src="/marco.png"
-              alt="Mascote Marco"
-              fill
-              priority
-              className="object-contain"
-            />
-          </motion.div>
-
-          <AnimatePresence mode="wait">
-            {step === "login" ? (
+        <AnimatePresence mode="wait">
+          {step === "login" ? (
+            <motion.div
+              key="login-form-view"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6 pt-8"
+            >
+              {/* Header Title */}
               <motion.div
-                key="login-form-view"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-6"
+                variants={itemVariants}
+                className="text-center space-y-2"
               >
-                {/* Header */}
-                <motion.div
-                  variants={itemVariants}
-                  className="text-center space-y-1"
-                >
-                  <h1 className="text-3xl lg:text-3xl font-black text-[#042c60]">
-                    Entrar
-                  </h1>
-                  <p className="text-slate-400 font-bold text-xs sm:text-sm">
-                    Inicia sessão para salvar o teu progresso
-                  </p>
-                </motion.div>
-
-                {/* Horizontal Gamified Micro-Badges */}
-                <motion.div
-                  variants={itemVariants}
-                  className="flex items-center justify-center gap-2 pt-1 pb-1"
-                >
-                  <div className="flex items-center gap-1 bg-orange-50 border border-orange-100 rounded-full px-2.5 py-1 text-orange-600 font-black text-[11px] sm:text-xs shadow-sm shadow-orange-100/50">
-                    <Flame size={12} className="fill-orange-500 shrink-0" />
-                    <span>30D</span>
-                  </div>
-                  <div className="flex items-center gap-1 bg-yellow-50 border border-yellow-100 rounded-full px-2.5 py-1 text-yellow-600 font-black text-[11px] sm:text-xs shadow-sm shadow-yellow-100/50">
-                    <Trophy size={12} className="fill-yellow-500 shrink-0" />
-                    <span>Diamante</span>
-                  </div>
-                  <div className="flex items-center gap-1 bg-sky-50 border border-sky-100 rounded-full px-2.5 py-1 text-[#1cb0f6] font-black text-[11px] sm:text-xs shadow-sm shadow-sky-100/50">
-                    <TrendingUp size={12} className="shrink-0" />
-                    <span>2.0x</span>
-                  </div>
-                </motion.div>
-
-                {/* Authentication content */}
-                <motion.div variants={itemVariants} className="space-y-4">
-                  {/* Google Authenticator */}
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    onClick={handleGoogleSignIn}
-                    disabled={isLoading}
-                    className="w-full h-14 lg:h-12 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-[6px] active:border-b-2 active:translate-y-[4px] transition-all rounded-2xl flex items-center justify-center gap-3 text-slate-700 dark:text-slate-200 font-black hover:bg-slate-50 dark:bg-slate-950 disabled:opacity-70 text-sm sm:text-base lg:text-sm outline-none cursor-pointer"
-                  >
-                    {isLoading ? (
-                      <div className="w-5 h-5 border-3 border-sky-400/30 border-t-sky-400 rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" viewBox="0 0 24 24">
-                          <path
-                            fill="#4285F4"
-                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                          />
-                          <path
-                            fill="#34A853"
-                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                          />
-                          <path
-                            fill="#FBBC05"
-                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                          />
-                          <path
-                            fill="#EA4335"
-                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                          />
-                        </svg>
-                        <span>Continuar com Google</span>
-                      </>
-                    )}
-                  </motion.button>
-
-                  {/* Separator line */}
-                  <div className="flex items-center gap-3">
-                    <div className="h-[2px] flex-1 bg-slate-100 dark:bg-slate-800" />
-                    <span className="text-slate-300 font-black text-xs sm:text-sm uppercase tracking-widest">
-                      ou
-                    </span>
-                    <div className="h-[2px] flex-1 bg-slate-100 dark:bg-slate-800" />
-                  </div>
-
-                  {/* E-mail / Password Form */}
-                  <form onSubmit={handleEmailSignIn} className="space-y-4">
-                    <motion.div variants={itemVariants} className="space-y-3">
-                      <input
-                        type="email"
-                        placeholder="Email ou utilizador"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="w-full h-14 lg:h-12 px-5 bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 focus:bg-white dark:bg-slate-900 focus:border-[#1cb0f6] rounded-2xl font-black text-slate-700 dark:text-slate-200 text-sm sm:text-base lg:text-sm focus:ring-0 outline-none transition-all"
-                      />
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Palavra-passe"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          required
-                          className="w-full h-14 lg:h-12 px-5 bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 focus:bg-white dark:bg-slate-900 focus:border-[#1cb0f6] rounded-2xl font-black text-slate-700 dark:text-slate-200 text-sm sm:text-base lg:text-sm focus:ring-0 outline-none transition-all pr-12"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                        >
-                          {showPassword ? (
-                            <EyeOff size={20} />
-                          ) : (
-                            <Eye size={20} />
-                          )}
-                        </button>
-                      </div>
-                    </motion.div>
-
-                    {/* Error Handling Area */}
-                    <AnimatePresence>
-                      {error && (
-                        <motion.p
-                          initial={{ opacity: 0, y: -8, height: 0 }}
-                          animate={{ opacity: 1, y: 0, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="text-rose-500 text-xs font-black text-center bg-rose-50 p-2.5 rounded-xl border border-rose-100"
-                        >
-                          {error}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-
-                    {/* Submit Login */}
-                    <motion.button
-                      variants={itemVariants}
-                      whileTap={{ scale: 0.97 }}
-                      type="submit"
-                      disabled={isLoading || !email || !password}
-                      className="w-full h-14 lg:h-12 bg-[#58cc02] text-white border-b-[6px] border-[#46a302] hover:bg-[#4eb302] active:border-b-0 active:translate-y-[6px] transition-all rounded-2xl font-black tracking-widest uppercase flex items-center justify-center text-sm sm:text-base lg:text-sm disabled:opacity-50 outline-none cursor-pointer"
-                    >
-                      {isLoading ? (
-                        <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                      ) : (
-                        "ENTRAR"
-                      )}
-                    </motion.button>
-                  </form>
-
-                  {/* Navigation Links */}
-                  <motion.div
-                    variants={itemVariants}
-                    className="pt-2 text-center space-y-4"
-                  >
-                    <Link
-                      href="/forgot-password"
-                      className="text-[#1cb0f6] font-bold hover:text-sky-400 hover:underline transition-colors text-xs sm:text-sm inline-block"
-                    >
-                      Esqueceste-te da palavra-passe?
-                    </Link>
-                    <div className="h-[2px] w-full bg-slate-100 dark:bg-slate-800" />
-                    <p className="text-slate-400 font-bold text-xs sm:text-sm">
-                      Ainda não tens conta?{" "}
-                      <Link
-                        href="/sign-up"
-                        className="text-[#1cb0f6] font-bold hover:text-sky-400 hover:underline transition-colors ml-1"
-                      >
-                        Cria uma agora
-                      </Link>
-                    </p>
-                  </motion.div>
-                </motion.div>
+                <h1 className="text-3xl font-black text-slate-800 dark:text-white tracking-wide">
+                  {t("sign_in_title")}
+                </h1>
+                <p className="text-slate-400 font-bold text-sm">
+                  {t("sign_in_subtitle")}
+                </p>
               </motion.div>
-            ) : (
-              <motion.div
-                key="mfa-form-view"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="space-y-5"
-              >
-                {/* MFA Header */}
-                <motion.div
-                  variants={itemVariants}
-                  className="text-center space-y-2"
-                >
-                  <div
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-2 ${isEmailMfa ? "bg-amber-100 text-amber-500" : "bg-sky-100 text-[#1cb0f6]"}`}
-                  >
-                    {isEmailMfa ? (
-                      <svg
-                        className="w-7 h-7"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2.5}
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-7 h-7"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2.5}
-                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                        />
-                      </svg>
-                    )}
-                  </div>
-                  <h1 className="text-xl sm:text-2xl font-black text-[#042c60]">
-                    {isEmailMfa ? "Verificar Email" : "Segunda Etapa"}
-                  </h1>
-                  <p className="text-slate-400 font-bold text-xs sm:text-sm">
-                    {isEmailMfa
-                      ? "Introduz o código que enviámos para o teu email"
-                      : "Introduz o código de 6 dígitos do teu autenticador"}
-                  </p>
-                </motion.div>
 
-                {/* MFA Code Verification Form */}
-                <form onSubmit={handleMFASignIn} className="space-y-4">
-                  <motion.div variants={itemVariants}>
+              {/* Form Content */}
+              <motion.div variants={itemVariants} className="space-y-4">
+                {/* Google Button - Gamified 3D */}
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                  className="relative w-full h-14 bg-white dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 border-b-[6px] active:border-b-2 active:translate-y-[4px] rounded-2xl flex items-center justify-center gap-3 font-bold text-slate-700 dark:text-white text-base transition-all hover:bg-slate-50 dark:hover:bg-slate-600 disabled:opacity-60"
+                >
+                  {isLoading ? (
+                    <div className="w-6 h-6 border-4 border-sky-400/30 border-t-sky-400 rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <svg className="w-6 h-6" viewBox="0 0 24 24">
+                        <path
+                          fill="#4285F4"
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        />
+                        <path
+                          fill="#EA4335"
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        />
+                      </svg>
+                      <span className="uppercase tracking-widest">
+                        {t("sign_in_google")}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                <div className="flex items-center gap-4 my-2">
+                  <div className="flex-1 h-[2px] bg-slate-100 dark:bg-slate-700 rounded-full"></div>
+                  <span className="text-xs font-black text-slate-300 dark:text-slate-500 uppercase tracking-widest">
+                    {t("or_separator")}
+                  </span>
+                  <div className="flex-1 h-[2px] bg-slate-100 dark:bg-slate-700 rounded-full"></div>
+                </div>
+
+                <form onSubmit={handleEmailSignIn} className="space-y-4">
+                  {/* Email Input */}
+                  <motion.div variants={itemVariants} className="space-y-2">
                     <input
-                      type="text"
-                      maxLength={6}
-                      placeholder="000000"
-                      value={code}
-                      onChange={(e) =>
-                        setCode(e.target.value.replace(/\D/g, ""))
-                      }
+                      type="email"
+                      placeholder={t("email_placeholder")}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       required
-                      autoFocus
-                      className={`w-full h-20 lg:h-16 text-center text-4xl lg:text-3xl tracking-[0.4em] font-black bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 focus:bg-white dark:bg-slate-900 focus:ring-0 outline-none transition-all text-slate-700 dark:text-slate-200 rounded-2xl ${isEmailMfa ? "focus:border-amber-400" : "focus:border-[#1cb0f6]"}`}
+                      className="w-full h-14 px-5 bg-slate-100 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 focus:border-[#1cb0f6] rounded-2xl font-bold text-slate-700 dark:text-white text-base outline-none transition-all placeholder:text-slate-400 placeholder:font-bold"
                     />
+                  </motion.div>
+
+                  {/* Password Input */}
+                  <motion.div variants={itemVariants} className="space-y-2">
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder={t("password_placeholder")}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="w-full h-14 px-5 bg-slate-100 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 focus:border-[#1cb0f6] rounded-2xl font-bold text-slate-700 dark:text-white text-base outline-none transition-all placeholder:text-slate-400 placeholder:font-bold pr-14"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-1"
+                      >
+                        {showPassword ? (
+                          <EyeOff size={22} />
+                        ) : (
+                          <Eye size={22} />
+                        )}
+                      </button>
+                    </div>
+                    <div className="flex justify-end pt-1">
+                      <Link
+                        href="/forgot-password"
+                        className="text-xs font-black text-[#1cb0f6] hover:text-[#1899d6] transition-colors"
+                      >
+                        {t("forgot_password")}
+                      </Link>
+                    </div>
                   </motion.div>
 
                   <AnimatePresence>
                     {error && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -8, height: 0 }}
-                        animate={{ opacity: 1, y: 0, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className={`text-xs font-black text-center p-3 rounded-xl border ${error.includes("enviado") ? "text-green-600 bg-green-50 border-green-100" : "text-rose-500 bg-rose-50 border-rose-100"}`}
+                      <motion.div
+                        initial={{ opacity: 0, height: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, height: "auto", scale: 1 }}
+                        exit={{ opacity: 0, height: 0, scale: 0.9 }}
+                        className="overflow-hidden"
                       >
-                        {error}
-                      </motion.p>
+                        <div className="bg-rose-100 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/20 rounded-2xl p-4 flex items-center justify-center">
+                          <p className="text-rose-500 dark:text-rose-400 text-sm font-black text-center">
+                            {error}
+                          </p>
+                        </div>
+                      </motion.div>
                     )}
                   </AnimatePresence>
 
-                  <motion.div variants={itemVariants} className="space-y-2">
-                    <motion.button
-                      whileTap={{ scale: 0.97 }}
-                      type="submit"
-                      disabled={isLoading || code.length < 6}
-                      className={`w-full h-14 lg:h-12 border-b-[6px] rounded-2xl flex items-center justify-center font-black text-white uppercase tracking-widest shadow-sm active:border-b-0 active:translate-y-[6px] transition-all disabled:opacity-50 text-sm sm:text-base lg:text-sm outline-none cursor-pointer ${isEmailMfa ? "bg-amber-500 border-amber-600 hover:bg-amber-400" : "bg-[#1cb0f6] border-[#1899d6] hover:bg-[#1899d6]"}`}
+                  {/* Primary Submit Button - Gamified Green */}
+                  <motion.button
+                    variants={itemVariants}
+                    type="submit"
+                    disabled={isLoading || !email || !password}
+                    className="relative w-full h-14 bg-[#58cc02] border-2 border-[#58cc02] border-b-[6px] active:border-b-2 active:translate-y-[4px] rounded-2xl flex items-center justify-center text-white font-black text-base uppercase tracking-widest transition-all hover:bg-[#46a302] hover:border-[#46a302] disabled:opacity-50 mt-4"
+                  >
+                    {isLoading ? t("signing_in_button") : t("sign_in_button")}
+                  </motion.button>
+                </form>
+
+                <motion.div
+                  variants={itemVariants}
+                  className="text-center pt-4"
+                >
+                  <p className="text-slate-400 font-bold text-sm">
+                    {t("no_account_yet")}{" "}
+                    <Link
+                      href="/sign-up"
+                      className="text-[#1cb0f6] hover:text-[#1899d6] font-black uppercase tracking-widest ml-1"
                     >
-                      {isLoading ? (
-                        <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                      ) : (
-                        "VERIFICAR"
-                      )}
-                    </motion.button>
+                      {t("sign_up_now")}
+                    </Link>
+                  </p>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="mfa-form-view"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="space-y-6 pt-8"
+            >
+              <motion.div
+                variants={itemVariants}
+                className="text-center space-y-3"
+              >
+                <div
+                  className={`w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-4 border-b-4 ${isEmailMfa ? "bg-amber-100 text-amber-500 border-amber-200" : "bg-sky-100 text-[#1cb0f6] border-sky-200"}`}
+                >
+                  <svg
+                    className="w-8 h-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d={
+                        isEmailMfa
+                          ? "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                          : "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      }
+                    />
+                  </svg>
+                </div>
+                <h1 className="text-2xl font-black text-slate-800 dark:text-white">
+                  {isEmailMfa ? t("mfa_email_title") : t("mfa_totp_title")}
+                </h1>
+                <p className="text-slate-400 font-bold text-sm">
+                  {isEmailMfa
+                    ? t("mfa_subtitle_email")
+                    : t("mfa_subtitle_totp")}
+                </p>
+              </motion.div>
 
-                    {isEmailMfa && (
-                      <button
-                        type="button"
-                        onClick={handleResendCode}
-                        className="w-full py-2.5 text-[#1cb0f6] font-bold hover:text-sky-400 hover:underline transition-colors text-xs sm:text-sm outline-none"
+              <form onSubmit={handleMFASignIn} className="space-y-5">
+                <motion.div variants={itemVariants}>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="000000"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                    required
+                    autoFocus
+                    className={`w-full h-20 text-center text-4xl tracking-[0.3em] font-black bg-slate-100 dark:bg-slate-900 border-2 rounded-2xl focus:bg-white dark:focus:bg-slate-800 focus:ring-0 outline-none transition-all text-slate-800 dark:text-white ${isEmailMfa ? "border-amber-200 focus:border-amber-400" : "border-slate-200 focus:border-[#1cb0f6]"}`}
+                  />
+                </motion.div>
+
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                    >
+                      <p
+                        className={`text-sm font-black text-center p-4 rounded-2xl border-2 ${error.includes("enviado") || error.includes("sent") ? "text-green-500 bg-green-50 border-green-200" : "text-rose-500 bg-rose-50 border-rose-200"}`}
                       >
-                        Não recebeste o código? Reenviar
-                      </button>
-                    )}
+                        {error}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
+                <motion.div variants={itemVariants} className="space-y-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={isLoading || code.length < 6}
+                    className={`relative w-full h-14 border-2 border-b-[6px] active:border-b-2 active:translate-y-[4px] rounded-2xl flex items-center justify-center font-black text-white uppercase tracking-widest transition-all disabled:opacity-50 ${isEmailMfa ? "bg-amber-500 border-amber-600 hover:bg-amber-400" : "bg-[#1cb0f6] border-[#1899d6] hover:bg-[#4dd0e1]"}`}
+                  >
+                    {isLoading ? (
+                      <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      t("verify_button")
+                    )}
+                  </button>
+
+                  {isEmailMfa && (
                     <button
                       type="button"
-                      onClick={() => setStep("login")}
-                      className="w-full py-2.5 text-slate-400 font-bold hover:text-slate-600 hover:underline transition-colors text-xs sm:text-sm outline-none"
+                      onClick={handleResendCode}
+                      className="w-full py-3 text-[#1cb0f6] font-black uppercase tracking-widest hover:text-sky-400 transition-colors text-sm"
                     >
-                      Voltar ao login
+                      {t("resend_code_prompt")}
                     </button>
-                  </motion.div>
-                </form>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setStep("login")}
+                    className="w-full py-3 text-slate-400 font-black uppercase tracking-widest hover:text-slate-600 transition-colors text-sm"
+                  >
+                    {t("forgot_pwd_back")}
+                  </button>
+                </motion.div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }

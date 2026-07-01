@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,7 @@ type MobileItemProps = {
   isActive?: boolean;
   onClick?: () => void;
   badgeCount?: number;
+  id?: string;
 };
 
 const MobileItem = ({
@@ -46,10 +47,12 @@ const MobileItem = ({
   isActive,
   onClick,
   badgeCount,
+  id,
 }: MobileItemProps) => {
   const { playClick } = useUISounds();
   return (
     <Link
+      id={id}
       href={href}
       onClick={(e) => {
         playClick();
@@ -104,6 +107,7 @@ const ExpandedMobileItem = ({
   onClick,
   badgeCount,
   colorTheme = "stone",
+  id,
 }: ExpandedMobileItemProps) => {
   const { playClick } = useUISounds();
 
@@ -131,6 +135,7 @@ const ExpandedMobileItem = ({
 
   return (
     <Link
+      id={id}
       href={href}
       onClick={(e) => {
         playClick();
@@ -184,6 +189,18 @@ const MobileNavContent = ({
   const { user } = useUser();
   const isAdmin = (user?.publicMetadata as any)?.role === "admin";
 
+  const toggleMenu = () => setIsOpen(!isOpen);
+  const closeMenu = () => setIsOpen(false);
+
+  useEffect(() => {
+    (window as any).openMobileNav = () => setIsOpen(true);
+    (window as any).closeMobileNav = () => setIsOpen(false);
+    return () => {
+      delete (window as any).openMobileNav;
+      delete (window as any).closeMobileNav;
+    };
+  }, []);
+
   if (pathname === "/messages" && (activeUserId || activeConversationId)) {
     return null;
   }
@@ -195,9 +212,6 @@ const MobileNavContent = ({
     return null;
   }
 
-  const toggleMenu = () => setIsOpen(!isOpen);
-  const closeMenu = () => setIsOpen(false);
-
   return (
     <>
       {isOpen && (
@@ -207,7 +221,10 @@ const MobileNavContent = ({
         />
       )}
 
-      <div className="fixed bottom-0 left-0 right-0 z-[70] flex flex-col items-center justify-end lg:hidden pointer-events-none pb-4 px-4 w-full h-full">
+      <div
+        id="tour-mobile-nav-container"
+        className="fixed bottom-0 left-0 right-0 z-[70] flex flex-col items-center justify-end lg:hidden pointer-events-none pb-4 px-4 w-full h-full"
+      >
         <div
           className={cn(
             "w-full max-w-sm flex flex-col gap-2 transition-all duration-300 pointer-events-auto origin-bottom",
@@ -219,6 +236,7 @@ const MobileNavContent = ({
           <div className="bg-white dark:bg-slate-900 border-2 border-stone-200 dark:border-slate-800 border-b-8 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 w-full mb-6 relative z-[75]">
             <div className="grid grid-cols-3 gap-y-6 gap-x-2">
               <ExpandedMobileItem
+                id="tour-shop-mobile"
                 href="/shop"
                 icon={<ShoppingBag strokeWidth={2.5} className="h-7 w-7" />}
                 label={t("shop")}
@@ -261,6 +279,7 @@ const MobileNavContent = ({
                 colorTheme="orange"
               />
               <ExpandedMobileItem
+                id="tour-leaderboard-mobile"
                 href="/leaderboard"
                 icon={<Trophy strokeWidth={2.5} className="h-7 w-7" />}
                 label={t("league")}
@@ -269,6 +288,7 @@ const MobileNavContent = ({
                 colorTheme="yellow"
               />
               <ExpandedMobileItem
+                id="tour-quests-mobile"
                 href="/quests"
                 icon={<Target strokeWidth={2.5} className="h-7 w-7" />}
                 label={t("quests")}
@@ -340,12 +360,14 @@ const MobileNavContent = ({
 
         <nav className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-stone-200 dark:border-slate-800 border-t-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] rounded-3xl md:rounded-full px-6 py-2 flex items-center justify-between pointer-events-auto relative w-full max-w-sm">
           <MobileItem
+            id="tour-learn-mobile"
             href="/learn"
             icon={<Home strokeWidth={2.5} className="h-6 w-6" />}
             label={t("home")}
             isActive={pathname === "/learn" || pathname === "/"}
           />
           <MobileItem
+            id="tour-practice-mobile"
             href="/practice"
             icon={<Dumbbell strokeWidth={2.5} className="h-6 w-6" />}
             label={t("practice")}
@@ -354,6 +376,7 @@ const MobileNavContent = ({
 
           <div className="relative z-[80] flex items-center justify-center -mt-8">
             <button
+              id="tour-more-mobile"
               onClick={toggleMenu}
               className={cn(
                 "w-16 h-16 rounded-full flex items-center justify-center text-white transition-all duration-300 outline-none",

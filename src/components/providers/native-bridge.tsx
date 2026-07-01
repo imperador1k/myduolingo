@@ -7,6 +7,7 @@ import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 import { syncNativeLanguage } from "@/actions/user-progress";
 import { useTranslations } from "next-intl";
+import { usePreferencesStore } from "@/store/use-preferences-store";
 
 /**
  * NativeBridge — Handles Android-specific behaviors:
@@ -21,17 +22,19 @@ export function NativeBridge() {
   const pathname = usePathname();
   const t = useTranslations("providers");
 
+  const nativeLanguage = usePreferencesStore((state) => state.nativeLanguage);
+  const setPreference = usePreferencesStore((state) => state.setPreference);
+
   useEffect(() => {
     // ── Native Language Sync ─────────────────────────────────────────
     const syncLang = async () => {
       const currentLang = navigator.language.split("-")[0];
-      const storedLang = localStorage.getItem("myduolingo_native_lang");
 
-      if (currentLang !== storedLang) {
+      if (currentLang !== nativeLanguage) {
         try {
           const res = await syncNativeLanguage(currentLang);
           if (res?.success) {
-            localStorage.setItem("myduolingo_native_lang", currentLang);
+            setPreference("nativeLanguage", currentLang);
             if (process.env.NODE_ENV !== "production") {
               console.log(t("native_bridge_sync_success"), currentLang);
             }
@@ -42,7 +45,7 @@ export function NativeBridge() {
       }
     };
     syncLang();
-  }, [t]);
+  }, [t, nativeLanguage, setPreference]);
 
   useEffect(() => {
     const isCapacitor = Capacitor.isNativePlatform();

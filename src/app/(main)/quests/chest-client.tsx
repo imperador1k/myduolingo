@@ -7,6 +7,7 @@ import { claimDailyChestReward } from "@/actions/user-progress";
 import { toast } from "sonner";
 import { useUISounds } from "@/hooks/use-ui-sounds";
 import { useTranslations } from "next-intl";
+import { haptics } from "@/lib/haptics";
 
 type Props = {
   completedQuestsCount: number;
@@ -22,16 +23,19 @@ export const ChestClient = ({ completedQuestsCount, chestClaimed }: Props) => {
     if (completedQuestsCount < 3 || chestClaimed || isClaiming) return;
 
     playClick();
+    haptics.light();
     setIsClaiming(true);
 
     const result = await claimDailyChestReward();
     if ("message" in result && !result.success) {
       toast.error(result.message);
+      haptics.error();
       setIsClaiming(false);
       return;
     }
 
     if (result.success) {
+      haptics.success();
       // Confetti Explosion
       const duration = 3000;
       const end = Date.now() + duration;

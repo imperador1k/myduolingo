@@ -209,10 +209,10 @@ export default function ForgotPasswordPage() {
                     <Mail size={32} />
                   </div>
                   <h1 className="text-3xl font-black text-[#042c60]">
-                    {t("recover_access_title")}
+                    {t("forgot_pwd_title")}
                   </h1>
                   <p className="text-slate-400 font-bold text-base">
-                    {t("enter_email_for_code_description")}
+                    {t("forgot_pwd_email_desc")}
                   </p>
                 </motion.div>
 
@@ -220,7 +220,7 @@ export default function ForgotPasswordPage() {
                   <motion.div variants={itemVariants} className="relative">
                     <input
                       type="email"
-                      placeholder={t("your_email_placeholder")}
+                      placeholder={t("email_placeholder")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -274,10 +274,10 @@ export default function ForgotPasswordPage() {
                     <Key size={32} />
                   </div>
                   <h1 className="text-3xl font-black text-[#042c60]">
-                    {t("verify_email_title")}
+                    {t("forgot_pwd_code_title")}
                   </h1>
                   <p className="text-slate-400 font-bold text-base">
-                    {t.rich("code_sent_to_email_description", {
+                    {t.rich("forgot_pwd_code_desc_rich", {
                       email: email,
                       highlight: (chunks) => (
                         <span className="text-[#1cb0f6]">{chunks}</span>
@@ -325,18 +325,20 @@ export default function ForgotPasswordPage() {
                       disabled={isLoading || code.length !== 6}
                       className="w-full h-16 bg-amber-500 border-b-[6px] border-amber-600 rounded-2xl flex items-center justify-center font-extrabold text-white uppercase tracking-widest shadow-sm hover:bg-amber-600 active:border-b-0 active:translate-y-[6px] transition-all disabled:opacity-50 text-lg"
                     >
-                      {t("continue_button")}
+                      {isLoading
+                        ? t("verifying_button")
+                        : t("verify_code_button")}
                     </button>
                   </motion.div>
 
                   <motion.div variants={itemVariants}>
                     <p className="text-center text-sm font-bold text-slate-400 pt-2">
-                      {t("did_not_receive_code")}{" "}
+                      {t("resend_code_prompt")}{" "}
                       <button
                         onClick={handleRequestCode}
                         className="text-[#1cb0f6] hover:underline"
                       >
-                        {t("resend_code_button")}
+                        {t("resend_code")}
                       </button>
                     </p>
                   </motion.div>
@@ -361,10 +363,10 @@ export default function ForgotPasswordPage() {
                     <ShieldCheck size={32} />
                   </div>
                   <h1 className="text-3xl font-black text-[#042c60]">
-                    {t("new_password_title")}
+                    {t("forgot_pwd_new_title")}
                   </h1>
                   <p className="text-slate-400 font-bold text-base">
-                    {t("create_strong_password_description")}
+                    {t("forgot_pwd_new_desc")}
                   </p>
                 </motion.div>
 
@@ -372,7 +374,7 @@ export default function ForgotPasswordPage() {
                   onSubmit={async (e) => {
                     e.preventDefault();
                     if (password !== confirmPassword) {
-                      setError(t("passwords_do_not_match_error"));
+                      setError(t("password_mismatch"));
                       return;
                     }
                     handleResetPassword(e);
@@ -383,7 +385,7 @@ export default function ForgotPasswordPage() {
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
-                        placeholder={t("new_password_placeholder")}
+                        placeholder={t("password_placeholder")}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -405,7 +407,7 @@ export default function ForgotPasswordPage() {
 
                     <input
                       type={showPassword ? "text" : "password"}
-                      placeholder={t("confirm_password_placeholder")}
+                      placeholder={t("confirm_password_label")}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
@@ -436,7 +438,7 @@ export default function ForgotPasswordPage() {
                       {isLoading ? (
                         <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
                       ) : (
-                        t("reset_and_login_button")
+                        t("reset_password_button")
                       )}
                     </button>
                   </motion.div>

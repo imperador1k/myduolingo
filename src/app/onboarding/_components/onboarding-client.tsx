@@ -119,7 +119,7 @@ export const OnboardingClient = ({ courses }: OnboardingClientProps) => {
       document.cookie =
         "onboarding_completed=true; path=/; max-age=3600; SameSite=Lax";
 
-      router.push("/sign-up");
+      window.location.href = "/sign-up";
     }
   };
 

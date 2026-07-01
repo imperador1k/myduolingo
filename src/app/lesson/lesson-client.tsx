@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Ear, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useReviewModal } from "@/store/use-review-modal-store";
+import { haptics } from "@/lib/haptics";
 
 import { LessonHeader } from "./_components/header";
 import { ChallengeOptionCard } from "./_components/challenge-card";
@@ -182,6 +183,10 @@ export const LessonClient = ({
 
   const playSound = (type: "correct" | "wrong" | "completed") => {
     try {
+      if (type === "correct") haptics.light();
+      if (type === "wrong") haptics.error();
+      if (type === "completed") haptics.success();
+
       const audioSrc =
         type === "correct"
           ? "/correct.mp3"

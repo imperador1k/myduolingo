@@ -6,6 +6,7 @@ import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import { LandingCTA } from "@/components/shared/landing-cta";
 import { LottieAnimation } from "@/components/ui/lottie-animation";
+import { ClientIntroOverlay } from "@/components/shared/client-intro-overlay";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,8 @@ export default async function Home() {
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-white dark:bg-slate-900">
+      <ClientIntroOverlay />
+
       {/* Background Pattern */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(#e5e7eb_2px,transparent_2px)] dark:bg-[radial-gradient(#1e293b_2px,transparent_2px)] [background-size:24px_24px] opacity-40"></div>
 

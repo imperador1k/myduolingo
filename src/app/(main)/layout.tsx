@@ -2,6 +2,7 @@ import { Sidebar } from "@/components/shared/sidebar";
 import { MobileHeader } from "@/components/shared/mobile-header";
 import { MobileNav } from "@/components/shared/mobile-nav";
 import { StreakCheck } from "@/components/shared/streak-check";
+import { AppWalkthrough } from "@/components/shared/app-walkthrough";
 import {
   getUnreadMessageCount,
   getUnreadNotificationCount,
@@ -10,6 +11,7 @@ import {
 import { CommandMenu } from "@/components/shared/command-menu";
 import { GlobalModals } from "@/components/modals/global-modals";
 import { LeagueResultModal } from "@/components/modals/league-result-modal";
+import { PreferencesLoader } from "@/components/shared/preferences-loader";
 import type { LeagueResult } from "@/types";
 
 type Props = {
@@ -31,6 +33,12 @@ export default async function MainLayout({ children }: Props) {
       />
 
       <MobileHeader />
+      <PreferencesLoader
+        serverPreferences={
+          userProgress?.clientPreferences as Record<string, any>
+        }
+      />
+      <AppWalkthrough />
 
       <Sidebar
         notificationCount={unreadNotifications}

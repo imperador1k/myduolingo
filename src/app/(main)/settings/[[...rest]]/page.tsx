@@ -23,6 +23,7 @@ import { ActiveSessions } from "@/components/settings/active-sessions";
 import { ConnectedAccounts } from "@/components/settings/connected-accounts";
 import { ThemeToggle } from "@/components/settings/theme-toggle";
 import { LanguageToggle } from "@/components/settings/language-toggle";
+import { SoundToggle } from "@/components/settings/sound-toggle";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
@@ -147,6 +148,8 @@ async function SettingsData() {
           <NotificationToggle
             initialEnabled={userProgress.notificationsEnabled}
           />
+          <hr className="border-2 border-stone-100 dark:border-slate-800 rounded-full" />
+          <SoundToggle />
         </div>
       </div>
 
