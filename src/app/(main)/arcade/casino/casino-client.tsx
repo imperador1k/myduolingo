@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { haptics } from "@/lib/haptics";
 
 type GameState = "LOBBY" | "DOUBLE_OR_NOTHING" | "WORD_SNIPER";
 
@@ -91,19 +92,23 @@ export default function CasinoClient() {
     const correct = activeWords[donWordIndex].pt === answer;
     if (correct) {
       if (donWordIndex === activeWords.length - 1) {
+        haptics.success();
         setArcadeCoins((prev) => prev + donPot * 2);
         setGameState("LOBBY");
       } else {
+        haptics.light();
         setDonPot((prev) => prev * 2);
         setDonWordIndex((prev) => prev + 1);
       }
     } else {
+      haptics.error();
       setDonPot(0);
       setGameState("LOBBY");
     }
   };
 
   const handleCashOut = () => {
+    haptics.success();
     setArcadeCoins((prev) => prev + donPot);
     setGameState("LOBBY");
   };
@@ -140,15 +145,18 @@ export default function CasinoClient() {
     if (wsMatched.includes(card.pairId)) return;
 
     if (wsSelected === index) {
+      haptics.light();
       setWsSelected(null);
       return;
     }
 
     if (wsSelected === null) {
+      haptics.light();
       setWsSelected(index);
     } else {
       const selected = wsCards[wsSelected];
       if (selected.pairId === card.pairId && selected.type !== card.type) {
+        haptics.success();
         const newMatched = [...wsMatched, card.pairId];
         setWsMatched(newMatched);
         setWsSelected(null);
@@ -157,6 +165,7 @@ export default function CasinoClient() {
           setGameState("LOBBY");
         }
       } else {
+        haptics.error();
         setWsSelected(null);
       }
     }

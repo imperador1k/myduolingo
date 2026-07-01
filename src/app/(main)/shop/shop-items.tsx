@@ -26,6 +26,7 @@ import { usePurchaseStore } from "@/store/use-purchase-store";
 import { useProModalStore } from "@/store/use-pro-modal-store";
 import { useTranslations } from "next-intl";
 import useSound from "use-sound";
+import { haptics } from "@/lib/haptics";
 
 type Props = {
   hearts: number;
@@ -74,6 +75,7 @@ export const ShopItems = ({
     itemName: string,
   ) => {
     playWhoosh();
+    haptics.light();
     setConfirmModal({
       show: true,
       action,
@@ -92,8 +94,10 @@ export const ShopItems = ({
       action()
         .then((result: any) => {
           if (result && "message" in result && !result.success) {
+            haptics.error();
             setError(result.message);
           } else {
+            haptics.success();
             playChaching();
             playReward();
             setTimeout(() => openPopup(popupData), 100);

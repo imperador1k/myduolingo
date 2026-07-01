@@ -5,6 +5,9 @@ import { useLessonModalStore } from "@/store/use-lesson-modal-store";
 import { useHeartsModalStore } from "@/store/use-hearts-modal-store";
 import { useTranslations } from "next-intl";
 
+import { ShareAppModal } from "@/components/modals/share-app-modal";
+import { useSharePrompt } from "@/hooks/use-share-prompt";
+
 const LessonStartModal = dynamic(
   () =>
     import("@/components/modals/lesson-start-modal").then(
@@ -23,6 +26,7 @@ const ProModal = dynamic(
 );
 
 export const GlobalModals = () => {
+  useSharePrompt();
   const t = useTranslations("modals");
   const {
     isOpen: isLessonOpen,
@@ -41,6 +45,8 @@ export const GlobalModals = () => {
       />
       <HeartsModal />
       <ProModal />
+
+      <ShareAppModal />
     </>
   );
 };

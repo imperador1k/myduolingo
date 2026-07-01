@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useEffect } from "react";
+import { haptics } from "@/lib/haptics";
 
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -13,6 +15,12 @@ export const HeartsModal = () => {
   const t = useTranslations("modals");
   const router = useRouter();
   const { isOpen, closeModal } = useHeartsModalStore();
+
+  useEffect(() => {
+    if (isOpen) {
+      haptics.error();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

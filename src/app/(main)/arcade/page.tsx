@@ -12,21 +12,24 @@ import {
   Dices,
 } from "lucide-react";
 import { ArcadeInfoModal } from "@/components/modals/arcade-info-modal";
+import { usePreferencesStore } from "@/store/use-preferences-store";
 
 export default function ArcadeHub() {
   const t = useTranslations("arcade");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
+  const hasSeenModal = usePreferencesStore((state) => state.hasSeenArcadeModal);
+  const setPreference = usePreferencesStore((state) => state.setPreference);
+
   useEffect(() => {
     setIsMounted(true);
     // Auto-open modal on first visit
-    const hasSeenModal = localStorage.getItem("hasSeenArcadeModal");
     if (!hasSeenModal) {
       setIsModalOpen(true);
-      localStorage.setItem("hasSeenArcadeModal", "true");
+      setPreference("hasSeenArcadeModal", true);
     }
-  }, []);
+  }, [hasSeenModal, setPreference]);
 
   // Avoid hydration mismatch by not rendering modal until mounted
   return (

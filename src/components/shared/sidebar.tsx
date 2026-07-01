@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, memo } from "react";
+import { useState, memo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import type { ClerkPublicMetadata } from "@/types";
 import {
@@ -41,6 +41,7 @@ type SidebarItemProps = {
   notificationCount?: number;
   isCollapsed?: boolean;
   isActive?: boolean;
+  id?: string;
 };
 
 const SidebarItem = memo(
@@ -51,11 +52,12 @@ const SidebarItem = memo(
     notificationCount,
     isCollapsed,
     isActive,
+    id,
   }: SidebarItemProps) => {
     const { playClick } = useUISounds();
 
     return (
-      <div className="w-full relative group">
+      <div id={id} className="w-full relative group">
         <Link href={href} className="w-full" onClick={() => playClick()}>
           <div
             className={cn(
@@ -133,6 +135,15 @@ export const Sidebar = ({
   const isAdmin =
     (user?.publicMetadata as ClerkPublicMetadata)?.role === "admin";
 
+  useEffect(() => {
+    (window as any).openDesktopNav = () => setIsMoreOpen(true);
+    (window as any).closeDesktopNav = () => setIsMoreOpen(false);
+    return () => {
+      delete (window as any).openDesktopNav;
+      delete (window as any).closeDesktopNav;
+    };
+  }, []);
+
   return (
     <aside
       className={cn(
@@ -182,6 +193,7 @@ export const Sidebar = ({
       <nav className="flex-1 w-full px-4 space-y-2 flex flex-col items-center lg:items-stretch overflow-y-auto overflow-x-hidden custom-scrollbar pb-10">
         {/* Core Routes - Using strictly V2 visual architecture */}
         <SidebarItem
+          id="tour-learn"
           label={t("learn")}
           href="/learn"
           isActive={pathname === "/learn"}
@@ -196,6 +208,7 @@ export const Sidebar = ({
           iconSrc={<Compass className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />}
         />
         <SidebarItem
+          id="tour-practice"
           label={t("practice_ai")}
           href="/practice"
           isActive={pathname === "/practice"}
@@ -203,6 +216,7 @@ export const Sidebar = ({
           iconSrc={<Bot className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />}
         />
         <SidebarItem
+          id="tour-leaderboard"
           label={t("leaderboards")}
           href="/leaderboard"
           isActive={pathname === "/leaderboard"}
@@ -210,6 +224,7 @@ export const Sidebar = ({
           iconSrc={<Trophy className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />}
         />
         <SidebarItem
+          id="tour-quests"
           label={t("quests")}
           href="/quests"
           isActive={pathname === "/quests"}
@@ -224,6 +239,7 @@ export const Sidebar = ({
           iconSrc={<Gamepad2 className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />}
         />
         <SidebarItem
+          id="tour-shop"
           label={t("shop")}
           href="/shop"
           isActive={pathname === "/shop"}
@@ -241,6 +257,7 @@ export const Sidebar = ({
         {/* Secondary Routes Toggle */}
         <div className="w-full relative group mt-2">
           <div
+            id="tour-more-desktop"
             onClick={() => {
               playClick();
               setIsMoreOpen(!isMoreOpen);

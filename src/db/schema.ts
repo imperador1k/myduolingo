@@ -179,6 +179,8 @@ export const userProgress = pgTable(
     // League system — promoted/demoted weekly (BRONZE | SILVER | GOLD | PLATINUM | DIAMOND)
     league: text("league").notNull().default("BRONZE"),
     lastWeekResult: jsonb("last_week_result"),
+    // Client UI Preferences Sync
+    clientPreferences: jsonb("client_preferences").notNull().default({}),
     // Customization
     userBannerSrc: text("user_banner_src"),
     // Signal Protocol E2EE (Deprecated)

@@ -18,8 +18,9 @@ import {
   Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePreferencesStore } from "@/store/use-preferences-store";
 
-const STORAGE_KEY = "hasSeenLeagueTutorial";
+const STORAGE_KEY = "hasSeenLeagueModal";
 
 const LEAGUES_INFO = [
   {
@@ -69,19 +70,21 @@ export function LeagueInfoModal({ trigger }: Props) {
   // Track if we are mounted on the client (required for createPortal)
   const [mounted, setMounted] = useState(false);
 
+  const hasSeenModal = usePreferencesStore((state) => state.hasSeenLeagueModal);
+  const setPreference = usePreferencesStore((state) => state.setPreference);
+
   useEffect(() => {
     setMounted(true);
-    const hasSeen = localStorage.getItem(STORAGE_KEY);
-    if (!hasSeen) {
+    if (!hasSeenModal) {
       const t = setTimeout(() => setIsOpen(true), 800);
       return () => clearTimeout(t);
     }
-  }, []);
+  }, [hasSeenModal]);
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
-    localStorage.setItem(STORAGE_KEY, "true");
-  }, []);
+    setPreference("hasSeenLeagueModal", true);
+  }, [setPreference]);
 
   const handleOpen = useCallback(() => setIsOpen(true), []);
 
