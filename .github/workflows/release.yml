@@ -1,0 +1,37 @@
+name: Release Tauri App
+
+on:
+  push:
+    tags:
+      - 'v*' # This triggers the workflow when you push a tag like v1.0.0
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+          
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Build and Release Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }} 
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+        with:
+          tagName: app-v__VERSION__
+          releaseName: 'Faro v__VERSION__'
+          releaseBody: 'Uma nova versão do Faro está disponível!'
+          releaseDraft: true
+          prerelease: false
+          includeUpdaterJson: true

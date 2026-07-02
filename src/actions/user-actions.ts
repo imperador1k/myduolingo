@@ -114,3 +114,13 @@ export const revokeDeviceSession = async (sessionId: string) => {
     );
   }
 };
+
+export const onGetLatestUnreadNotification = async () => {
+  const { userId } = await auth();
+  if (!userId) return null;
+  const notification = await db.query.notifications.findFirst({
+    where: and(eq(notifications.userId, userId), eq(notifications.read, false)),
+    orderBy: (n, { desc }) => [desc(n.createdAt)],
+  });
+  return notification || null;
+};

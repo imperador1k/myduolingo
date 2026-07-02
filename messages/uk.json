@@ -509,7 +509,29 @@
     "upgrade": "ОНОВЛЕННЯ",
     "light": "звичайно",
     "dark": "Темний",
-    "system": "система"
+    "system": "система",
+    "active_sessions": {
+      "title": "Active Devices",
+      "description": "Review devices currently logged into your account.",
+      "browser_unknown": "Unknown Browser",
+      "os_unknown": "Unknown OS",
+      "ip_unknown": "Unknown IP",
+      "current_device": "Current",
+      "last_activity": "Last activity:",
+      "unknown": "Unknown",
+      "messages": {
+        "success": "Session revoked successfully.",
+        "error": "Failed to revoke session."
+      },
+      "disconnect": "Disconnect"
+    },
+    "sign_out": {
+      "title": "Sign Out",
+      "description": "Are you sure you want to sign out of your account?",
+      "confirm": "Sign Out",
+      "cancel": "Cancel",
+      "trigger_label": "Sign Out"
+    }
   },
   "friends": {
     "title": "друзі",
@@ -1343,7 +1365,10 @@
       "description": "Description",
       "btn_support": "Btn Support",
       "btn_community": "Btn Community"
-    }
+    },
+    "global_error_title": "Несподівана помилка",
+    "global_error_desc": "З нашого боку щось пішло не так. Будь ласка, спробуйте пізніше.",
+    "try_again": "Спробувати ще раз"
   },
   "modals": {
     "results_title": "Підсумки тижня!",
@@ -1571,7 +1596,17 @@
     "give_feedback": "Надішліть відгук",
     "help_us_grow": "Допоможіть нам рости!",
     "language_updated": "Мову оновлено",
-    "language_error": "Помилка мови"
+    "language_error": "Помилка мови",
+    "sound_title": "Sounds & Effects",
+    "sound_description": "Enable or disable app sound effects.",
+    "sound_on": "On",
+    "sound_off": "Off",
+    "confirm_language_change": "Бажаєте змінити мову додатку?",
+    "cancel": "Скасувати",
+    "confirm": "Підтвердити",
+    "theme_title": "Тема",
+    "theme_desc": "Перемикання між світлим та темним режимами.",
+    "changing_language": "Changing language..."
   },
   "feed_components": {
     "create_curiosity": "Створіть цікавість",
@@ -1710,7 +1745,9 @@
     "epic": "Епічно!",
     "completed_course": "Ви закінчили курс",
     "claim_certificate": "Вимагати диплом",
-    "back_to_top": "Повернутися до початку?"
+    "back_to_top": "Повернутися до початку?",
+    "completed_course_desc": "Ви завершили всі уроки в цьому курсі! Отримайте свій сертифікат зараз, щоб довести свою майстерність.",
+    "maybe_later": "Можливо, пізніше"
   },
   "flashcard": {
     "strengths": {
@@ -2242,5 +2279,70 @@
     "current_streak": "Поточна серія",
     "longest_streak": "Найдовша серія",
     "this_month": "Цього місяця"
+  },
+  "intro": {
+    "step1": "Привіт! Ласкаво просимо до вашої нової навчальної пригоди.",
+    "step2": "Ця програма натхненна Duolingo і створена з великою любов'ю, щоб ми могли вчитися всі разом.",
+    "step3": "Ви зможете змагатися в лігах, заробляти XP та грати в міні-ігри!",
+    "step4": "Ви готові? Почнемо!",
+    "skip": "Пропустити",
+    "next": "Продовжити"
+  },
+  "walkthrough": {
+    "welcome_title": "Ласкаво просимо до MyDuolingo!",
+    "welcome_desc": "Захоплюючий ігровий досвід. Дозвольте мені показати вам все!",
+    "learn_title": "Ваша Карта",
+    "learn_desc": "Тут відбувається магія! Проходьте уроки, заробляйте XP і годуйте своє его. Не втрачайте свій стрік!",
+    "practice_title": "Практика з ШІ",
+    "practice_desc": "Тренуйте письмо, мовлення та читання з нативними ботами в реальному часі. Необмежена кількість спроб!",
+    "leaderboard_title": "Змагальні Ліги",
+    "leaderboard_desc": "Чи зможете ви потрапити до Топ-3? Або ви будете плакати, намагаючись?",
+    "quests_title": "Щоденні Квести",
+    "quests_desc": "Нові виклики щодня, щоб наповнити вашу скриню з XP.",
+    "shop_title": "Магазин",
+    "shop_desc": "Використовуйте свої важко зароблені монети, щоб купувати прискорювачі, заморозки та щити.",
+    "ready_title": "Все Готово!",
+    "ready_desc": "Ви повністю екіпіровані. Тепер йдіть і бийте рекорди!",
+    "done": "Let's Go!",
+    "next": "Next",
+    "prev": "Back",
+    "progress": "{{current}} / {{total}}",
+    "step1_title": "Welcome to MyDuolingo!",
+    "step1_desc": "Let's take a quick guided tour to show you how everything works.",
+    "step2_title": "Learn",
+    "step2_desc": "Here is your lesson map. This is where you earn XP and level up!",
+    "step3_title": "The Shop",
+    "step3_desc": "Use the coins you earned in lessons to buy bonuses and lives.",
+    "step4_title": "All Set!",
+    "step4_desc": "Explore the rest of the menu whenever you want. Good luck with your learning!"
+  },
+  "Walkthrough": {
+    "welcome_title": "Welcome to MyDuolingo!",
+    "welcome_desc": "An immersive gamified experience. Let me show you around!",
+    "learn_title": "Your Map",
+    "learn_desc": "Here is where the magic happens! Complete lessons, earn XP, and feed your ego. Don't lose your streak!",
+    "practice_title": "AI Practice",
+    "practice_desc": "Train your writing, speaking, and reading with native bots in real-time. Unlimited tries!",
+    "leaderboard_title": "Competitive Leagues",
+    "leaderboard_desc": "Can you reach the Top 3? Or will you cry trying?",
+    "quests_title": "Daily Quests",
+    "quests_desc": "New challenges every day to fill your XP chest.",
+    "shop_title": "The Shop",
+    "shop_desc": "Use your hard-earned coins to buy boosters, freezes, and shields.",
+    "ready_title": "All Set!",
+    "ready_desc": "You're fully equipped. Now go out there and break records!"
+  },
+  "share": {
+    "modal_title": "Are you enjoying the experience?",
+    "modal_description": "Learning languages is easier with friends. Invite them and show who rules the Leaderboard!",
+    "button_share": "Invite Friends 🚀",
+    "button_later": "Maybe later",
+    "share_title": "Learn with MyDuolingo",
+    "share_text": "I'm having a blast learning on MyDuolingo! Join me and let's see who leads the Leaderboard. 🚀"
+  },
+  "seo": {
+    "title": "Faro — Вивчайте мови, граючи",
+    "description": "Вивчайте нові мови у веселий, інтерактивний та гейміфікований спосіб. Змагайтеся в щотижневих лігах, заробляйте XP та приєднуйтесь до друзів!",
+    "keywords": "вивчення мов, вивчення англійської, гейміфікація, онлайн мови, додаток faro, безкоштовне вивчення мов"
   }
 }

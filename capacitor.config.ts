@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.myduolingo',
-  appName: 'MyDuolingo',
+  appName: 'Faro',
   webDir: 'out',
   server: {
     // Ensures the WebView uses the same origin as the live site

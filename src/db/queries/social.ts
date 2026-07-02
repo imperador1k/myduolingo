@@ -96,6 +96,7 @@ export const followUser = async (targetUserId: string) => {
     "follow",
     `${userName} começou a seguir-te! 👀`,
     `/profile/${currentUserId}`,
+    currentUser?.userImageSrc
   );
 
   revalidatePath(`/profile/${targetUserId}`);
@@ -140,6 +141,16 @@ export const getUnreadNotificationCount = cache(async () => {
       and(eq(notifications.userId, userId), eq(notifications.read, false)),
     );
   return result.count;
+});
+
+export const getLatestUnreadNotification = cache(async () => {
+  const { userId } = await auth();
+  if (!userId) return null;
+  const notification = await db.query.notifications.findFirst({
+    where: and(eq(notifications.userId, userId), eq(notifications.read, false)),
+    orderBy: (n, { desc }) => [desc(n.createdAt)],
+  });
+  return notification || null;
 });
 
 export const getUnreadMessageCount = cache(async () => {

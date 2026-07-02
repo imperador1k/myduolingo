@@ -509,7 +509,29 @@
     "upgrade": "アップグレード",
     "light": "ライト",
     "dark": "ダーク",
-    "system": "システム"
+    "system": "システム",
+    "active_sessions": {
+      "title": "Active Devices",
+      "description": "Review devices currently logged into your account.",
+      "browser_unknown": "Unknown Browser",
+      "os_unknown": "Unknown OS",
+      "ip_unknown": "Unknown IP",
+      "current_device": "Current",
+      "last_activity": "Last activity:",
+      "unknown": "Unknown",
+      "messages": {
+        "success": "Session revoked successfully.",
+        "error": "Failed to revoke session."
+      },
+      "disconnect": "Disconnect"
+    },
+    "sign_out": {
+      "title": "Sign Out",
+      "description": "Are you sure you want to sign out of your account?",
+      "confirm": "Sign Out",
+      "cancel": "Cancel",
+      "trigger_label": "Sign Out"
+    }
   },
   "friends": {
     "title": "友達",
@@ -1294,7 +1316,10 @@
       "description": "Description",
       "btn_support": "Btn Support",
       "btn_community": "Btn Community"
-    }
+    },
+    "global_error_title": "予期せぬエラー",
+    "global_error_desc": "こちら側で問題が発生しました。後でもう一度お試しください。",
+    "try_again": "もう一度試す"
   },
   "modals": {
     "results_title": "今週のランキング結果！",
@@ -1522,7 +1547,17 @@
     "give_feedback": "フィードバックを送る",
     "help_us_grow": "成長にご協力ください！",
     "language_updated": "言語が更新されました",
-    "language_error": "言語エラー"
+    "language_error": "言語エラー",
+    "sound_title": "Sounds & Effects",
+    "sound_description": "Enable or disable app sound effects.",
+    "sound_on": "On",
+    "sound_off": "Off",
+    "confirm_language_change": "アプリの言語を変更しますか？",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "theme_title": "テーマ",
+    "theme_desc": "ライトモードとダークモードを切り替えます。",
+    "changing_language": "Changing language..."
   },
   "feed_components": {
     "create_curiosity": "豆知識を作成",
@@ -1661,7 +1696,9 @@
     "epic": "エピック！",
     "completed_course": "コースを修了しました",
     "claim_certificate": "修了証を受け取る",
-    "back_to_top": "トップに戻りますか？"
+    "back_to_top": "トップに戻りますか？",
+    "completed_course_desc": "このコースのすべてのレッスンを完了しました！今すぐ証明書を請求して、あなたの習熟度を証明してください。",
+    "maybe_later": "後で"
   },
   "terms": {
     "title": "利用規約",
@@ -2242,5 +2279,70 @@
     "current_streak": "現在の連続",
     "longest_streak": "最長連続",
     "this_month": "今月"
+  },
+  "intro": {
+    "step1": "こんにちは！新しい学習の冒険へようこそ。",
+    "step2": "このアプリはDuolingoに触発され、みんなで一緒に学べるようにたくさんの愛を込めて作られました。",
+    "step3": "リーグで競争したり、XPを獲得したり、ミニゲームをプレイしたりできます！",
+    "step4": "準備はいいですか？始めましょう！",
+    "skip": "スキップ",
+    "next": "続行"
+  },
+  "walkthrough": {
+    "welcome_title": "MyDuolingoへようこそ！",
+    "welcome_desc": "没入型のゲーム化された体験。ご案内しましょう！",
+    "learn_title": "あなたのマップ",
+    "learn_desc": "ここで魔法が起こります！レッスンを完了し、XPを獲得してエゴを養いましょう。連続記録を失わないでください！",
+    "practice_title": "AIとの練習",
+    "practice_desc": "リアルタイムでネイティブボットとライティング、スピーキング、リーディングの練習をします。試行回数無制限！",
+    "leaderboard_title": "競争リーグ",
+    "leaderboard_desc": "トップ3に入れますか？それとも挑戦中に泣いてしまいますか？",
+    "quests_title": "デイリークエスト",
+    "quests_desc": "XPチェストを満たすための毎日の新しい課題。",
+    "shop_title": "ショップ",
+    "shop_desc": "苦労して稼いだコインを使って、ブースター、フリーズ、シールドを購入しましょう。",
+    "ready_title": "準備完了！",
+    "ready_desc": "完全な装備が整いました。さあ、外に出て記録を破りましょう！",
+    "done": "Let's Go!",
+    "next": "Next",
+    "prev": "Back",
+    "progress": "{{current}} / {{total}}",
+    "step1_title": "Welcome to MyDuolingo!",
+    "step1_desc": "Let's take a quick guided tour to show you how everything works.",
+    "step2_title": "Learn",
+    "step2_desc": "Here is your lesson map. This is where you earn XP and level up!",
+    "step3_title": "The Shop",
+    "step3_desc": "Use the coins you earned in lessons to buy bonuses and lives.",
+    "step4_title": "All Set!",
+    "step4_desc": "Explore the rest of the menu whenever you want. Good luck with your learning!"
+  },
+  "Walkthrough": {
+    "welcome_title": "Welcome to MyDuolingo!",
+    "welcome_desc": "An immersive gamified experience. Let me show you around!",
+    "learn_title": "Your Map",
+    "learn_desc": "Here is where the magic happens! Complete lessons, earn XP, and feed your ego. Don't lose your streak!",
+    "practice_title": "AI Practice",
+    "practice_desc": "Train your writing, speaking, and reading with native bots in real-time. Unlimited tries!",
+    "leaderboard_title": "Competitive Leagues",
+    "leaderboard_desc": "Can you reach the Top 3? Or will you cry trying?",
+    "quests_title": "Daily Quests",
+    "quests_desc": "New challenges every day to fill your XP chest.",
+    "shop_title": "The Shop",
+    "shop_desc": "Use your hard-earned coins to buy boosters, freezes, and shields.",
+    "ready_title": "All Set!",
+    "ready_desc": "You're fully equipped. Now go out there and break records!"
+  },
+  "share": {
+    "modal_title": "Are you enjoying the experience?",
+    "modal_description": "Learning languages is easier with friends. Invite them and show who rules the Leaderboard!",
+    "button_share": "Invite Friends 🚀",
+    "button_later": "Maybe later",
+    "share_title": "Learn with MyDuolingo",
+    "share_text": "I'm having a blast learning on MyDuolingo! Join me and let's see who leads the Leaderboard. 🚀"
+  },
+  "seo": {
+    "title": "Faro — 遊びながら言語を学ぶ",
+    "description": "楽しく、インタラクティブで、ゲーム化された方法で新しい言語を学びます。毎週のリーグで競い合い、XPを獲得して、友達と合流しましょう！",
+    "keywords": "言語を学ぶ, 英語を学ぶ, ゲーミフィケーション, オンライン言語, Faroアプリ, 無料で言語を学ぶ"
   }
 }

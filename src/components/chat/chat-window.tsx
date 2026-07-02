@@ -267,6 +267,7 @@ export const ChatWindow = ({
               : [partner!.userId, userId];
             const keysPayload = [];
 
+            const missingKeys: string[] = [];
             for (const tId of targetIds) {
               const pubKeyStr = await getE2EPublicKey(tId);
               if (pubKeyStr) {
@@ -279,7 +280,16 @@ export const ChatWindow = ({
                   userId: tId,
                   encryptedRoomKey: encryptedForUser,
                 });
+              } else {
+                missingKeys.push(tId);
               }
+            }
+
+            if (missingKeys.length > 0) {
+              toast.error(
+                "Não é possível enviar mensagem cifrada. O outro utilizador ainda não iniciou sessão desde a atualização de segurança (E2EE)."
+              );
+              throw new Error("Missing public keys for participants");
             }
 
             // Save to server

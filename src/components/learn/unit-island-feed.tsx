@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useState, useTransition, useEffect } from "react";
 import { Trophy, ArrowUpCircle, Award, Loader2 } from "lucide-react";
 import { BearDanceLottie } from "@/components/ui/lottie-animation";
 import { UnitCardIsland } from "@/components/shared/unit-card-island";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useLessonModalStore } from "@/store/use-lesson-modal-store";
 import { useHeartsModalStore } from "@/store/use-hearts-modal-store";
 import { type LessonInfo } from "@/store/use-lesson-modal-store";
+import { CourseCompletedModal } from "@/components/modals/course-completed-modal";
 import { motion } from "framer-motion";
 
 type Challenge = {
@@ -41,16 +42,21 @@ export const UnitIslandFeed = ({
   processedUnits,
   noHearts,
   activeCourseId,
+  hasClaimedCertificate,
 }: {
   processedUnits: Unit[];
   noHearts: boolean;
   activeCourseId: number;
+  hasClaimedCertificate?: boolean;
 }) => {
   const t = useTranslations("learn");
   const { openModal } = useLessonModalStore();
   const { openModal: openHeartsModal } = useHeartsModalStore();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
+  const isCourseCompleted = processedUnits.length > 0 && processedUnits.every((u) => u.isCompleted)
+  const [showCompletionModal, setShowCompletionModal] = useState(isCourseCompleted && !hasClaimedCertificate);
 
   const handleClaimCertificate = () => {
     startTransition(() => {
@@ -65,6 +71,17 @@ export const UnitIslandFeed = ({
     });
   };
 
+  useEffect(() => {
+    // Small timeout ensures the DOM has fully rendered the nodes
+    const timer = setTimeout(() => {
+      const currentLesson = document.getElementById("current-lesson");
+      if (currentLesson) {
+        currentLesson.scrollIntoView({ behavior: "instant", block: "center" });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleLessonClick = useCallback(
     (lesson: LessonInfo) => {
       if (noHearts) {
@@ -77,16 +94,22 @@ export const UnitIslandFeed = ({
   );
 
   return (
-    <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
-      variants={{
-        hidden: {},
-        visible: {
-          transition: {
-            staggerChildren: 0.1, // Faster stagger for better feel
-          },
+    <>
+      <CourseCompletedModal
+        open={showCompletionModal}
+        onOpenChange={setShowCompletionModal}
+        activeCourseId={activeCourseId}
+      />
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-50px" }}
+        variants={{
+          hidden: {},
+          visible: {
+            transition: {
+              staggerChildren: 0.1, // Faster stagger for better feel
+            },
         },
       }}
       className="relative w-full flex flex-col items-center gap-12 sm:gap-16 pb-0"
@@ -183,7 +206,7 @@ export const UnitIslandFeed = ({
               </div>
 
               {/* Claim Certificate Button */}
-              {(unit.isCompleted || process.env.NODE_ENV === "development") && (
+              {(isCourseCompleted || process.env.NODE_ENV === "development") && (
                 <div className="mt-8 z-30">
                   <button
                     onClick={handleClaimCertificate}
@@ -230,5 +253,6 @@ export const UnitIslandFeed = ({
         </motion.div>
       ))}
     </motion.div>
+    </>
   );
 };

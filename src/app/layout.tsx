@@ -21,60 +21,57 @@ const nunito = Nunito({ subsets: ["latin"] });
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://myduolingo.vercel.app";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(APP_URL),
-  applicationName: "MyDuolingo",
-  title: {
-    template: "%s | MyDuolingo",
-    default: "MyDuolingo — Aprende Línguas a Jogar",
-  },
-  description:
-    "Aprende novos idiomas de forma divertida, interativa e gamificada. Compete em ligas semanais, ganha XP e junta-te aos teus amigos!",
-  keywords: [
-    "aprender idiomas",
-    "aprender inglês",
-    "gamificação",
-    "línguas online",
-    "duolingo português",
-    "aprender línguas grátis",
-  ],
-  authors: [{ name: "MyDuolingo" }],
-  openGraph: {
-    type: "website",
-    locale: "pt_PT",
-    url: APP_URL,
-    siteName: "MyDuolingo",
-    title: "MyDuolingo — Aprende Línguas a Jogar",
-    description:
-      "Aprende novos idiomas de forma divertida, interativa e gamificada. Compete em ligas semanais, ganha XP e junta-te aos teus amigos!",
-    images: [
-      {
-        url: "/duolingo-home.png",
-        width: 1200,
-        height: 630,
-        alt: "MyDuolingo — Aprende Línguas a Jogar",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "MyDuolingo — Aprende Línguas a Jogar",
-    description:
-      "Aprende novos idiomas de forma divertida, interativa e gamificada. Compete em ligas semanais, ganha XP e junta-te aos teus amigos!",
-    images: ["/duolingo-home.png"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+import { getTranslations, getLocale, getMessages } from "next-intl/server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("seo");
+  const locale = await getLocale();
+
+  return {
+    metadataBase: new URL(APP_URL),
+    applicationName: "Faro",
+    title: {
+      template: "%s | Faro",
+      default: t("title"),
+    },
+    description: t("description"),
+    keywords: t("keywords").split(",").map((k) => k.trim()),
+    authors: [{ name: "Faro" }],
+    openGraph: {
+      type: "website",
+      locale: locale,
+      url: APP_URL,
+      siteName: "Faro",
+      title: t("title"),
+      description: t("description"),
+      images: [
+        {
+          url: "/duolingo-home.png",
+          width: 1200,
+          height: 630,
+          alt: t("title"),
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+      images: ["/duolingo-home.png"],
+    },
+    robots: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
-  },
-};
+  };
+}
 
 import { UISoundsProvider } from "@/components/providers/ui-sound-provider";
 
@@ -82,7 +79,7 @@ export const dynamic = "force-dynamic";
 
 import { Analytics } from "@vercel/analytics/react";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+
 
 export default async function RootLayout({
   children,

@@ -172,20 +172,17 @@ export const Sidebar = ({
       >
         <Link href="/learn" className="flex items-center gap-3 w-full">
           <img
-            alt="Duolingo Logo"
-            className="h-10 w-auto shrink-0 hidden lg:block"
-            src="/duo_crying.png"
+            alt="Faro Logo"
+            className="h-10 w-10 shrink-0 drop-shadow-md transition-transform hover:scale-105 duration-300"
+            src="/faro_icon.png"
           />
-          <div className="lg:hidden bg-[#58cc02] rounded-2xl p-2 w-12 h-12 flex items-center justify-center border-b-4 border-[#46a302] hover:brightness-110 transition-all shrink-0">
-            <Bird className="text-white w-6 h-6 shrink-0" fill="currentColor" />
-          </div>
           <h1
             className={cn(
-              "text-2xl font-extrabold text-[#58CC02] tracking-wide hidden lg:block transition-all duration-300 overflow-hidden whitespace-nowrap",
+              "text-[26px] font-black tracking-tighter text-[#58CC02] drop-shadow-sm hidden lg:block transition-all duration-300 overflow-hidden whitespace-nowrap",
               isCollapsed ? "opacity-0 w-0" : "opacity-100",
             )}
           >
-            MyDuolingo
+            Faro
           </h1>
         </Link>
       </div>
@@ -231,13 +228,7 @@ export const Sidebar = ({
           isCollapsed={isCollapsed}
           iconSrc={<Target className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />}
         />
-        <SidebarItem
-          label={t("arcade")}
-          href="/arcade"
-          isActive={pathname === "/arcade"}
-          isCollapsed={isCollapsed}
-          iconSrc={<Gamepad2 className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />}
-        />
+
         <SidebarItem
           id="tour-shop"
           label={t("shop")}
@@ -311,6 +302,13 @@ export const Sidebar = ({
         {/* Secondary Routes Dropdown/Accordion */}
         {isMoreOpen && (
           <div className="flex flex-col gap-y-2 mt-2 w-full lg:pl-4 lg:border-l-2 lg:border-slate-200 dark:border-slate-800 animate-in slide-in-from-top-2 duration-200">
+            <SidebarItem
+              label={t("arcade")}
+              href="/arcade"
+              isActive={pathname === "/arcade"}
+              isCollapsed={isCollapsed}
+              iconSrc={<Gamepad2 className="h-5 w-5 lg:w-6 lg:h-6 shrink-0" />}
+            />
             <SidebarItem
               label={t("courses")}
               href="/courses"

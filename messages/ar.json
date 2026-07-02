@@ -509,7 +509,29 @@
     "upgrade": "ترقية",
     "light": "فاتح",
     "dark": "داكن",
-    "system": "النظام"
+    "system": "النظام",
+    "active_sessions": {
+      "title": "Active Devices",
+      "description": "Review devices currently logged into your account.",
+      "browser_unknown": "Unknown Browser",
+      "os_unknown": "Unknown OS",
+      "ip_unknown": "Unknown IP",
+      "current_device": "Current",
+      "last_activity": "Last activity:",
+      "unknown": "Unknown",
+      "messages": {
+        "success": "Session revoked successfully.",
+        "error": "Failed to revoke session."
+      },
+      "disconnect": "Disconnect"
+    },
+    "sign_out": {
+      "title": "Sign Out",
+      "description": "Are you sure you want to sign out of your account?",
+      "confirm": "Sign Out",
+      "cancel": "Cancel",
+      "trigger_label": "Sign Out"
+    }
   },
   "friends": {
     "title": "الأصدقاء",
@@ -1343,7 +1365,10 @@
       "description": "Description",
       "btn_support": "Btn Support",
       "btn_community": "Btn Community"
-    }
+    },
+    "global_error_title": "خطأ غير متوقع",
+    "global_error_desc": "حدث خطأ ما من جانبنا. يرجى المحاولة مرة أخرى لاحقًا.",
+    "try_again": "حاول مرة أخرى"
   },
   "modals": {
     "results_title": "نتائج الأسبوع!",
@@ -1571,7 +1596,17 @@
     "give_feedback": "تقديم ملاحظات",
     "help_us_grow": "ساعدنا على النمو!",
     "language_updated": "تم تحديث اللغة",
-    "language_error": "خطأ في اللغة"
+    "language_error": "خطأ في اللغة",
+    "sound_title": "Sounds & Effects",
+    "sound_description": "Enable or disable app sound effects.",
+    "sound_on": "On",
+    "sound_off": "Off",
+    "confirm_language_change": "هل ترغب في تغيير لغة التطبيق؟",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "theme_title": "السمة",
+    "theme_desc": "التبديل بين الوضع الفاتح والداكن.",
+    "changing_language": "Changing language..."
   },
   "feed_components": {
     "create_curiosity": "إنشاء معلومة طريفة",
@@ -1710,7 +1745,9 @@
     "epic": "ملحمي!",
     "completed_course": "لقد أتممت الدورة التدريبية",
     "claim_certificate": "طلب الشهادة",
-    "back_to_top": "العودة إلى الأعلى؟"
+    "back_to_top": "العودة إلى الأعلى؟",
+    "completed_course_desc": "لقد أكملت جميع الدروس في هذه الدورة! اطلب شهادتك الآن لإثبات إتقانك.",
+    "maybe_later": "ربما لاحقاً"
   },
   "flashcard": {
     "strengths": {
@@ -2242,5 +2279,70 @@
     "current_streak": "السلسلة الحالية",
     "longest_streak": "أطول سلسلة",
     "this_month": "هذا الشهر"
+  },
+  "intro": {
+    "step1": "مرحبًا! مرحبًا بك في مغامرة التعلم الجديدة الخاصة بك.",
+    "step2": "تم استلهام هذا التطبيق من Duolingo وتم تصميمه بحب كبير لنتعلم جميعًا معًا.",
+    "step3": "ستتمكن من التنافس في الدوريات وكسب نقاط الخبرة ولعب الألعاب المصغرة!",
+    "step4": "هل أنت مستعد؟ دعنا نبدأ!",
+    "skip": "تخطي",
+    "next": "متابعة"
+  },
+  "walkthrough": {
+    "welcome_title": "مرحبًا بك في MyDuolingo!",
+    "welcome_desc": "تجربة لعب غامرة. دعني أريك المكان!",
+    "learn_title": "خريطتك",
+    "learn_desc": "هنا يحدث السحر! أكمل الدروس، واكسب نقاط الخبرة وغذي غرورك. لا تفقد حماسك!",
+    "practice_title": "التدريب مع الذكاء الاصطناعي",
+    "practice_desc": "تدرب على الكتابة والتحدث والقراءة مع روبوتات أصلية في الوقت الفعلي. محاولات غير محدودة!",
+    "leaderboard_title": "الدوريات التنافسية",
+    "leaderboard_desc": "هل يمكنك الوصول إلى المراكز الثلاثة الأولى؟ أم ستبكي وأنت تحاول؟",
+    "quests_title": "المهام اليومية",
+    "quests_desc": "تحديات جديدة كل يوم لملء صندوق نقاط الخبرة الخاص بك.",
+    "shop_title": "المتجر",
+    "shop_desc": "استخدم عملاتك التي كسبتها بشق الأنفس لشراء المعززات والمجمدات والدروع.",
+    "ready_title": "كل شيء جاهز!",
+    "ready_desc": "أنت مجهز بالكامل. الآن اخرج وحطم الأرقام القياسية!",
+    "done": "Let's Go!",
+    "next": "Next",
+    "prev": "Back",
+    "progress": "{{current}} / {{total}}",
+    "step1_title": "Welcome to MyDuolingo!",
+    "step1_desc": "Let's take a quick guided tour to show you how everything works.",
+    "step2_title": "Learn",
+    "step2_desc": "Here is your lesson map. This is where you earn XP and level up!",
+    "step3_title": "The Shop",
+    "step3_desc": "Use the coins you earned in lessons to buy bonuses and lives.",
+    "step4_title": "All Set!",
+    "step4_desc": "Explore the rest of the menu whenever you want. Good luck with your learning!"
+  },
+  "Walkthrough": {
+    "welcome_title": "Welcome to MyDuolingo!",
+    "welcome_desc": "An immersive gamified experience. Let me show you around!",
+    "learn_title": "Your Map",
+    "learn_desc": "Here is where the magic happens! Complete lessons, earn XP, and feed your ego. Don't lose your streak!",
+    "practice_title": "AI Practice",
+    "practice_desc": "Train your writing, speaking, and reading with native bots in real-time. Unlimited tries!",
+    "leaderboard_title": "Competitive Leagues",
+    "leaderboard_desc": "Can you reach the Top 3? Or will you cry trying?",
+    "quests_title": "Daily Quests",
+    "quests_desc": "New challenges every day to fill your XP chest.",
+    "shop_title": "The Shop",
+    "shop_desc": "Use your hard-earned coins to buy boosters, freezes, and shields.",
+    "ready_title": "All Set!",
+    "ready_desc": "You're fully equipped. Now go out there and break records!"
+  },
+  "share": {
+    "modal_title": "Are you enjoying the experience?",
+    "modal_description": "Learning languages is easier with friends. Invite them and show who rules the Leaderboard!",
+    "button_share": "Invite Friends 🚀",
+    "button_later": "Maybe later",
+    "share_title": "Learn with MyDuolingo",
+    "share_text": "I'm having a blast learning on MyDuolingo! Join me and let's see who leads the Leaderboard. 🚀"
+  },
+  "seo": {
+    "title": "Faro — تعلم اللغات باللعب",
+    "description": "تعلم لغات جديدة بطريقة ممتعة وتفاعلية ومليئة بالألعاب. تنافس في الدوريات الأسبوعية، واكسب نقاط الخبرة، وانضم إلى أصدقائك!",
+    "keywords": "تعلم اللغات, تعلم الإنجليزية, التلعيب, اللغات عبر الإنترنت, تطبيق faro, تعلم اللغات مجانًا"
   }
 }

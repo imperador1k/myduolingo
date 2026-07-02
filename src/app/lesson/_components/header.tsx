@@ -8,17 +8,29 @@ import {
   Shield,
   Heart,
   Infinity,
+  Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ProgressBar = ({ value }: { value: number }) => {
+const ProgressBar = ({ value, streakCount = 0 }: { value: number; streakCount?: number }) => {
+  const isStreak = streakCount >= 2;
   return (
-    <div className="h-5 w-full rounded-full bg-stone-200 dark:bg-slate-700 relative overflow-hidden">
+    <div className="h-5 w-full rounded-full bg-stone-200 dark:bg-slate-700 relative">
       <div
-        className="absolute top-0 left-0 h-full rounded-full bg-[#58CC02] transition-all duration-300"
+        className={cn(
+          "absolute top-0 left-0 h-full rounded-full transition-all duration-300",
+          isStreak ? "bg-orange-500" : "bg-[#58CC02]"
+        )}
         style={{ width: `${value}%` }}
       >
-        <div className="absolute top-1 left-2 right-2 h-1.5 rounded-full bg-white/25" />
+        <div className="absolute top-1 left-2 right-2 h-1.5 rounded-full bg-white/25 pointer-events-none" />
+        
+        {isStreak && value > 0 && (
+          <div className="absolute -right-3 top-1/2 -translate-y-1/2 flex items-center justify-center gap-0.5 bg-white dark:bg-slate-900 rounded-full px-1.5 py-0.5 border-2 border-orange-200 shadow-sm z-10 animate-bounce">
+            <Flame className="h-4 w-4 text-orange-500 fill-orange-200" />
+            <span className="text-xs font-black text-orange-500">{streakCount}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -55,6 +67,7 @@ type HeaderProps = {
   onToggleMute: () => void;
   onExit: () => void;
   isPro?: boolean;
+  consecutiveCorrectCount?: number;
 };
 
 export const LessonHeader = ({
@@ -66,6 +79,7 @@ export const LessonHeader = ({
   onToggleMute,
   onExit,
   isPro,
+  consecutiveCorrectCount = 0,
 }: HeaderProps) => {
   const t = useTranslations("lesson");
   return (
@@ -76,8 +90,8 @@ export const LessonHeader = ({
       >
         <X className="h-6 w-6" />
       </button>
-      <div className="flex-1">
-        <ProgressBar value={progress} />
+      <div className="flex-1 flex items-center pt-2 pb-2">
+        <ProgressBar value={progress} streakCount={consecutiveCorrectCount} />
       </div>
 
       <div className="flex items-center gap-4">

@@ -56,7 +56,7 @@ export const LessonStartModal = ({ lesson, isOpen, onClose }: Props) => {
 
       {/* Modal */}
       <div className="fixed left-1/2 top-1/2 z-modal w-[92%] max-w-sm -translate-x-1/2 -translate-y-1/2 animate-in zoom-in-95 duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]">
-        <div className="relative bg-white dark:bg-slate-900 border-2 border-[#e5e7eb] border-b-8 rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col">
+        <div className="relative bg-white dark:bg-slate-900 border-2 border-[#e5e7eb] dark:border-slate-800 border-b-8 rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col">
           {/* ── Top decorative bar ── */}
           <div className="h-32 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 relative overflow-hidden shrink-0">
             <div className="absolute inset-0 bg-white/10 opacity-50 bg-[radial-gradient(circle_at_20%_35%,rgba(255,255,255,0.3)_0%,transparent_50%)]" />
@@ -74,8 +74,8 @@ export const LessonStartModal = ({ lesson, isOpen, onClose }: Props) => {
           <div className="relative -mt-16 flex justify-center z-10 shrink-0">
             <div className="relative">
               <div className="absolute inset-x-0 bottom-2 h-8 bg-black/10 blur-md rounded-full scale-x-75" />
-              <div className="relative w-32 h-32 rounded-full bg-white dark:bg-slate-900 border-8 border-white shadow-xl flex items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-violet-50 opacity-50" />
+              <div className="relative w-32 h-32 rounded-full bg-white dark:bg-slate-900 border-8 border-white dark:border-slate-800 shadow-xl flex items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-900/40 dark:to-violet-900/40 opacity-50 dark:opacity-100" />
                 <DrunkenOwlLottie className="w-28 h-28 relative z-10" />
               </div>
               {isResume && (
@@ -89,7 +89,7 @@ export const LessonStartModal = ({ lesson, isOpen, onClose }: Props) => {
           {/* ── Content ── */}
           <div className="px-6 pt-6 pb-6 text-center flex-1 flex flex-col">
             <div className="mb-2">
-              <span className="text-stone-400 dark:text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs">
+              <span className="text-stone-400 dark:text-slate-400 font-bold uppercase tracking-widest text-xs">
                 {lesson.unitTitle}
               </span>
             </div>
@@ -100,45 +100,45 @@ export const LessonStartModal = ({ lesson, isOpen, onClose }: Props) => {
             {/* ── Elite Tactile Bento Stats ── */}
             <div className="mt-8 mb-6 grid grid-cols-3 gap-2">
               {/* Questões - Blue */}
-              <div className="bg-[#e6f4ff] border-2 border-[#b3deff] border-b-4 rounded-xl p-2 flex flex-col items-center justify-center gap-1 text-center min-w-0">
-                <div className="p-1.5 rounded-full bg-blue-100 text-blue-500 shrink-0">
+              <div className="bg-[#e6f4ff] dark:bg-blue-900/30 border-2 border-[#b3deff] dark:border-blue-800/50 border-b-4 rounded-xl p-2 flex flex-col items-center justify-center gap-1 text-center min-w-0">
+                <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-800/50 text-blue-500 dark:text-blue-400 shrink-0">
                   <BookOpen className="h-4 w-4 md:h-5 md:w-5" />
                 </div>
                 <div className="flex flex-col items-center overflow-hidden">
-                  <span className="text-[#3b82f6] font-black text-lg md:text-xl tracking-tight leading-none">
+                  <span className="text-[#3b82f6] dark:text-blue-400 font-black text-lg md:text-xl tracking-tight leading-none">
                     {lesson.challengeCount}
                   </span>
-                  <span className="text-[#3b82f6]/80 font-bold text-[9px] uppercase tracking-tighter truncate w-full">
+                  <span className="text-[#3b82f6]/80 dark:text-blue-400/80 font-bold text-[9px] uppercase tracking-tighter truncate w-full">
                     {t("questions")}
                   </span>
                 </div>
               </div>
 
               {/* XP - Yellow */}
-              <div className="bg-[#fff9e6] border-2 border-[#ffecb3] border-b-4 rounded-xl p-2 flex flex-col items-center justify-center gap-1 text-center min-w-0">
-                <div className="p-1.5 rounded-full bg-amber-100 text-amber-500 shrink-0">
+              <div className="bg-[#fff9e6] dark:bg-amber-900/30 border-2 border-[#ffecb3] dark:border-amber-800/50 border-b-4 rounded-xl p-2 flex flex-col items-center justify-center gap-1 text-center min-w-0">
+                <div className="p-1.5 rounded-full bg-amber-100 dark:bg-amber-800/50 text-amber-500 dark:text-amber-400 shrink-0">
                   <Zap className="h-4 w-4 md:h-5 md:w-5 fill-current" />
                 </div>
                 <div className="flex flex-col items-center overflow-hidden">
-                  <span className="text-[#f59e0b] font-black text-lg md:text-xl tracking-tight leading-none">
+                  <span className="text-[#f59e0b] dark:text-amber-400 font-black text-lg md:text-xl tracking-tight leading-none">
                     +{lesson.xpReward}
                   </span>
-                  <span className="text-[#f59e0b]/80 font-bold text-[9px] uppercase tracking-tighter truncate w-full">
+                  <span className="text-[#f59e0b]/80 dark:text-amber-400/80 font-bold text-[9px] uppercase tracking-tighter truncate w-full">
                     {t("xp")}
                   </span>
                 </div>
               </div>
 
               {/* Tempo - Green */}
-              <div className="bg-[#e6ffed] border-2 border-[#b3ffc7] border-b-4 rounded-xl p-2 flex flex-col items-center justify-center gap-1 text-center min-w-0">
-                <div className="p-1.5 rounded-full bg-emerald-100 text-emerald-500 shrink-0">
+              <div className="bg-[#e6ffed] dark:bg-emerald-900/30 border-2 border-[#b3ffc7] dark:border-emerald-800/50 border-b-4 rounded-xl p-2 flex flex-col items-center justify-center gap-1 text-center min-w-0">
+                <div className="p-1.5 rounded-full bg-emerald-100 dark:bg-emerald-800/50 text-emerald-500 dark:text-emerald-400 shrink-0">
                   <Clock className="h-4 w-4 md:h-5 md:w-5" />
                 </div>
                 <div className="flex flex-col items-center overflow-hidden">
-                  <span className="text-[#10b981] font-black text-lg md:text-xl tracking-tight leading-none">
+                  <span className="text-[#10b981] dark:text-emerald-400 font-black text-lg md:text-xl tracking-tight leading-none">
                     {estimatedMin}m
                   </span>
-                  <span className="text-[#10b981]/80 font-bold text-[9px] uppercase tracking-tighter truncate w-full">
+                  <span className="text-[#10b981]/80 dark:text-emerald-400/80 font-bold text-[9px] uppercase tracking-tighter truncate w-full">
                     {t("time")}
                   </span>
                 </div>
@@ -166,7 +166,7 @@ export const LessonStartModal = ({ lesson, isOpen, onClose }: Props) => {
               <button
                 onClick={onClose}
                 disabled={isLoading}
-                className="text-stone-400 dark:text-slate-500 dark:text-slate-400 font-bold text-center mt-3 hover:text-stone-600 dark:text-slate-300 transition-colors cursor-pointer w-full uppercase py-2 active:scale-95 disabled:opacity-50 tracking-wide text-sm"
+                className="text-stone-400 dark:text-slate-400 font-bold text-center mt-3 hover:text-stone-600 dark:hover:text-slate-300 transition-colors cursor-pointer w-full uppercase py-2 active:scale-95 disabled:opacity-50 tracking-wide text-sm"
               >
                 {t("later")}
               </button>

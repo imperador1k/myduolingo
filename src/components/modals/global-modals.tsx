@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 
 import { ShareAppModal } from "@/components/modals/share-app-modal";
 import { useSharePrompt } from "@/hooks/use-share-prompt";
+import { InAppNotifier } from "@/components/shared/in-app-notifier";
 
 const LessonStartModal = dynamic(
   () =>
@@ -47,6 +48,7 @@ export const GlobalModals = () => {
       <ProModal />
 
       <ShareAppModal />
+      <InAppNotifier />
     </>
   );
 };

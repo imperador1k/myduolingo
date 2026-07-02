@@ -58,7 +58,8 @@ export const toggleHighFive = async (activityId: number) => {
                 activity.userId,
                 "high_five",
                 `${currentUser?.userName || "Alguém"} deu-te um High-Five! ✋`,
-                `/friends` 
+                `/friends`,
+                currentUser?.userImageSrc 
             );
 
             revalidatePath("/friends");

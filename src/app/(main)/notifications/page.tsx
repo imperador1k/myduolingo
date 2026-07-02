@@ -34,43 +34,39 @@ async function NotificationsData() {
 
 // --- SKELETON FALLBACK ---
 const NotificationsSkeleton = () => {
-  const t = useTranslations("notifications");
   return (
-    <div className="flex flex-col gap-8 w-full animate-in fade-in duration-500">
+    <div className="flex flex-col w-full max-w-2xl mx-auto animate-in fade-in duration-500">
       {/* Header Skeleton */}
-      <div className="w-full h-[220px] md:h-[240px] rounded-[2.5rem] border-2 border-stone-200 dark:border-slate-800 border-b-[10px] bg-stone-100 dark:bg-slate-800 animate-pulse" />
-
-      {/* Notification list Skeleton */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border-2 border-stone-200 dark:border-slate-800 border-b-[10px] p-6 md:p-8 shadow-sm">
-        <div className="flex flex-col gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="flex items-center gap-5 p-5 rounded-2xl border-2 border-stone-100 bg-stone-50 dark:bg-slate-950 animate-pulse"
-            >
-              <div className="w-14 h-14 rounded-full bg-stone-200 dark:bg-slate-700 shrink-0" />
-              <div className="flex flex-col gap-2 flex-1">
-                <div className="flex justify-between">
-                  <div className="h-5 w-36 bg-stone-200 dark:bg-slate-700 rounded-lg" />
-                  <div className="h-4 w-20 bg-stone-200 dark:bg-slate-700 rounded-lg" />
-                </div>
-                <div className="h-4 w-3/4 bg-stone-200 dark:bg-slate-700 rounded-lg" />
-                <div className="h-4 w-1/2 bg-stone-200 dark:bg-slate-700 rounded-lg" />
-              </div>
-            </div>
-          ))}
+      <div className="flex items-center justify-between py-4 mb-2">
+        <div className="h-8 w-32 bg-stone-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+        <div className="flex gap-2">
+          <div className="h-8 w-8 rounded-full bg-stone-200 dark:bg-slate-800 animate-pulse" />
+          <div className="h-8 w-8 rounded-full bg-stone-200 dark:bg-slate-800 animate-pulse" />
         </div>
       </div>
 
-      {/* Recommendations Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[1, 2].map((i) => (
+      {/* Tabs Skeleton */}
+      <div className="flex gap-6 border-b border-stone-200 dark:border-slate-800 mb-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-6 w-16 mb-3 bg-stone-200 dark:bg-slate-800 rounded-md animate-pulse" />
+        ))}
+      </div>
+
+      {/* Notification list Skeleton */}
+      <div className="flex flex-col">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
             key={i}
-            className="h-[120px] rounded-[2.5rem] border-2 border-stone-200 dark:border-slate-800 border-b-[10px] bg-stone-50 dark:bg-slate-950 animate-pulse"
-          />
+            className="flex items-center gap-4 py-4 px-2"
+          >
+            <div className="w-12 h-12 rounded-full bg-stone-200 dark:bg-slate-800 shrink-0 animate-pulse" />
+            <div className="flex flex-col gap-2 flex-1">
+              <div className="h-4 w-3/4 bg-stone-200 dark:bg-slate-800 rounded-md animate-pulse" />
+              <div className="h-3 w-1/4 bg-stone-200 dark:bg-slate-800 rounded-md animate-pulse" />
+            </div>
+            <div className="h-8 w-16 bg-stone-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+          </div>
         ))}
-        <div className="md:col-span-2 h-[120px] rounded-[2.5rem] border-2 border-stone-200 dark:border-slate-800 border-b-[10px] bg-stone-50 dark:bg-slate-950 animate-pulse" />
       </div>
     </div>
   );

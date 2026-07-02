@@ -19,7 +19,7 @@ import { SessionWithActivitiesResource } from "@clerk/types";
 import { revokeDeviceSession } from "@/actions/user-actions";
 
 export const ActiveSessions = () => {
-  const t = useTranslations("settings");
+  const t = useTranslations("settings.active_sessions");
   const { user, isLoaded } = useUser();
   const { session: currentSession } = useSession();
   const [sessions, setSessions] = useState<SessionWithActivitiesResource[]>([]);

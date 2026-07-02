@@ -74,6 +74,13 @@ export default clerkMiddleware(async (auth, request) => {
   }
 
   if (!isPublicRoute(request)) {
+    const { userId } = await auth();
+    if (!userId) {
+      const signInUrl = new URL("/sign-in", request.url);
+      signInUrl.searchParams.set("redirect_url", request.url);
+      return NextResponse.redirect(signInUrl);
+    }
+    // Still call protect to ensure all Clerk's internal security checks run
     await auth.protect();
   }
 });

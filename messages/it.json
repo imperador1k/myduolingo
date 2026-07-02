@@ -509,7 +509,29 @@
     "upgrade": "PASSA AL PRO",
     "light": "Chiaro",
     "dark": "Scuro",
-    "system": "Sistema"
+    "system": "Sistema",
+    "active_sessions": {
+      "title": "Active Devices",
+      "description": "Review devices currently logged into your account.",
+      "browser_unknown": "Unknown Browser",
+      "os_unknown": "Unknown OS",
+      "ip_unknown": "Unknown IP",
+      "current_device": "Current",
+      "last_activity": "Last activity:",
+      "unknown": "Unknown",
+      "messages": {
+        "success": "Session revoked successfully.",
+        "error": "Failed to revoke session."
+      },
+      "disconnect": "Disconnect"
+    },
+    "sign_out": {
+      "title": "Sign Out",
+      "description": "Are you sure you want to sign out of your account?",
+      "confirm": "Sign Out",
+      "cancel": "Cancel",
+      "trigger_label": "Sign Out"
+    }
   },
   "friends": {
     "title": "Amici",
@@ -1343,7 +1365,10 @@
       "description": "Description",
       "btn_support": "Btn Support",
       "btn_community": "Btn Community"
-    }
+    },
+    "global_error_title": "Errore Inaspettato",
+    "global_error_desc": "Qualcosa è andato storto dalla nostra parte. Per favore, riprova più tardi.",
+    "try_again": "Riprova"
   },
   "modals": {
     "results_title": "Risultati della Settimana!",
@@ -1571,7 +1596,17 @@
     "give_feedback": "Lascia un Feedback",
     "help_us_grow": "Aiutaci a crescere!",
     "language_updated": "Lingua Aggiornata",
-    "language_error": "Errore Lingua"
+    "language_error": "Errore Lingua",
+    "sound_title": "Sounds & Effects",
+    "sound_description": "Enable or disable app sound effects.",
+    "sound_on": "On",
+    "sound_off": "Off",
+    "confirm_language_change": "Vuoi cambiare la lingua dell'app?",
+    "cancel": "Annulla",
+    "confirm": "Conferma",
+    "theme_title": "Tema",
+    "theme_desc": "Passa dalla modalità chiara a quella scura.",
+    "changing_language": "Changing language..."
   },
   "feed_components": {
     "create_curiosity": "Crea Curiosità",
@@ -1710,7 +1745,9 @@
     "epic": "Epico!",
     "completed_course": "Hai completato il corso",
     "claim_certificate": "Richiedi diploma",
-    "back_to_top": "Torna all'inizio?"
+    "back_to_top": "Torna all'inizio?",
+    "completed_course_desc": "Hai completato tutte le lezioni di questo corso! Richiedi ora il tuo certificato per dimostrare la tua maestria.",
+    "maybe_later": "Forse più tardi"
   },
   "flashcard": {
     "strengths": {
@@ -2242,5 +2279,70 @@
     "current_streak": "Serie Attuale",
     "longest_streak": "Serie Massima",
     "this_month": "Questo Mese"
+  },
+  "intro": {
+    "step1": "Ciao! Benvenuto nella tua nuova avventura di apprendimento.",
+    "step2": "Questa app è ispirata a Duolingo ed è stata creata con molto amore per farci imparare tutti insieme.",
+    "step3": "Potrai competere nelle leghe, guadagnare XP e giocare a minigiochi!",
+    "step4": "Sei pronto? Iniziamo!",
+    "skip": "Salta",
+    "next": "Continua"
+  },
+  "walkthrough": {
+    "welcome_title": "Benvenuto su MyDuolingo!",
+    "welcome_desc": "Un'esperienza ludica immersiva. Lascia che ti mostri in giro!",
+    "learn_title": "La Tua Mappa",
+    "learn_desc": "Qui avviene la magia! Completa le lezioni, guadagna XP e nutri il tuo ego. Non perdere la serie!",
+    "practice_title": "Pratica con IA",
+    "practice_desc": "Allena la scrittura, la pronuncia e la lettura con bot nativi in tempo reale. Tentativi illimitati!",
+    "leaderboard_title": "Leghe Competitive",
+    "leaderboard_desc": "Riuscirai ad arrivare in Top 3? O piangerai provandoci?",
+    "quests_title": "Missioni Giornaliere",
+    "quests_desc": "Nuove sfide ogni giorno per riempire il tuo forziere di XP.",
+    "shop_title": "Il Negozio",
+    "shop_desc": "Usa le tue monete duramente guadagnate per comprare potenziamenti, blocchi e scudi.",
+    "ready_title": "Tutto Pronto!",
+    "ready_desc": "Sei completamente equipaggiato. Ora esci e batti i record!",
+    "done": "Let's Go!",
+    "next": "Next",
+    "prev": "Back",
+    "progress": "{{current}} / {{total}}",
+    "step1_title": "Welcome to MyDuolingo!",
+    "step1_desc": "Let's take a quick guided tour to show you how everything works.",
+    "step2_title": "Learn",
+    "step2_desc": "Here is your lesson map. This is where you earn XP and level up!",
+    "step3_title": "The Shop",
+    "step3_desc": "Use the coins you earned in lessons to buy bonuses and lives.",
+    "step4_title": "All Set!",
+    "step4_desc": "Explore the rest of the menu whenever you want. Good luck with your learning!"
+  },
+  "Walkthrough": {
+    "welcome_title": "Welcome to MyDuolingo!",
+    "welcome_desc": "An immersive gamified experience. Let me show you around!",
+    "learn_title": "Your Map",
+    "learn_desc": "Here is where the magic happens! Complete lessons, earn XP, and feed your ego. Don't lose your streak!",
+    "practice_title": "AI Practice",
+    "practice_desc": "Train your writing, speaking, and reading with native bots in real-time. Unlimited tries!",
+    "leaderboard_title": "Competitive Leagues",
+    "leaderboard_desc": "Can you reach the Top 3? Or will you cry trying?",
+    "quests_title": "Daily Quests",
+    "quests_desc": "New challenges every day to fill your XP chest.",
+    "shop_title": "The Shop",
+    "shop_desc": "Use your hard-earned coins to buy boosters, freezes, and shields.",
+    "ready_title": "All Set!",
+    "ready_desc": "You're fully equipped. Now go out there and break records!"
+  },
+  "share": {
+    "modal_title": "Are you enjoying the experience?",
+    "modal_description": "Learning languages is easier with friends. Invite them and show who rules the Leaderboard!",
+    "button_share": "Invite Friends 🚀",
+    "button_later": "Maybe later",
+    "share_title": "Learn with MyDuolingo",
+    "share_text": "I'm having a blast learning on MyDuolingo! Join me and let's see who leads the Leaderboard. 🚀"
+  },
+  "seo": {
+    "title": "Faro — Impara le Lingue Giocando",
+    "description": "Impara nuove lingue in modo divertente, interattivo e gamificato. Competi nei campionati settimanali, guadagna XP e unisciti ai tuoi amici!",
+    "keywords": "imparare le lingue, imparare l'inglese, gamification, lingue online, app faro, imparare le lingue gratis"
   }
 }

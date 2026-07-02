@@ -529,6 +529,28 @@
     "messages": {
       "success": "Sessão revogada com sucesso!",
       "error": "Erro ao revogar sessão."
+    },
+    "active_sessions": {
+      "title": "Active Devices",
+      "description": "Review devices currently logged into your account.",
+      "browser_unknown": "Unknown Browser",
+      "os_unknown": "Unknown OS",
+      "ip_unknown": "Unknown IP",
+      "current_device": "Current",
+      "last_activity": "Last activity:",
+      "unknown": "Unknown",
+      "messages": {
+        "success": "Session revoked successfully.",
+        "error": "Failed to revoke session."
+      },
+      "disconnect": "Disconnect"
+    },
+    "sign_out": {
+      "title": "Sign Out",
+      "description": "Are you sure you want to sign out of your account?",
+      "confirm": "Sign Out",
+      "cancel": "Cancel",
+      "trigger_label": "Sign Out"
     }
   },
   "friends": {
@@ -571,7 +593,10 @@
     "search_community_desc": "सटीक नाम या चिह्न से खोजें.",
     "search_results": "परिणाम",
     "no_results": "उस नाम का कोई नहीं मिला.",
-    "suggestions_title": "अनुसरण करने योग्य सुझाव"
+    "suggestions_title": "अनुसरण करने योग्य सुझाव",
+    "status_friends": "Friends",
+    "status_follows_you": "Follows You",
+    "status_following": "Following"
   },
   "messages": {
     "bear_animation_label": "नाचते हुए भालू का एनीमेशन",
@@ -1374,7 +1399,10 @@
       "description": "Description",
       "btn_support": "Btn Support",
       "btn_community": "Btn Community"
-    }
+    },
+    "global_error_title": "अप्रत्याशित त्रुटि",
+    "global_error_desc": "हमारी ओर से कुछ गलत हो गया। कृपया बाद में पुनः प्रयास करें।",
+    "try_again": "पुनः प्रयास करें"
   },
   "modals": {
     "results_title": "सप्ताह के परिणाम!",
@@ -1608,7 +1636,17 @@
     "give_feedback": "प्रतिक्रिया दें",
     "help_us_grow": "हमें बढ़ने में मदद करें!",
     "language_updated": "भाषा अपडेट की गई",
-    "language_error": "भाषा त्रुटि"
+    "language_error": "भाषा त्रुटि",
+    "sound_title": "Sounds & Effects",
+    "sound_description": "Enable or disable app sound effects.",
+    "sound_on": "On",
+    "sound_off": "Off",
+    "confirm_language_change": "क्या आप ऐप की भाषा बदलना चाहते हैं?",
+    "cancel": "रद्द करें",
+    "confirm": "पुष्टि करें",
+    "theme_title": "थीम",
+    "theme_desc": "लाइट और डार्क मोड के बीच टॉगल करें।",
+    "changing_language": "Changing language..."
   },
   "feed_components": {
     "create_curiosity": "जिज्ञासा पैदा करें",
@@ -1747,7 +1785,9 @@
     "epic": "महाकाव्य!",
     "completed_course": "आपने कोर्स पूरा कर लिया",
     "claim_certificate": "डिप्लोमा का दावा करें",
-    "back_to_top": "शीर्ष पर वापस जाएं?"
+    "back_to_top": "शीर्ष पर वापस जाएं?",
+    "completed_course_desc": "आपने इस कोर्स के सभी पाठ पूरे कर लिए हैं! अपनी महारत साबित करने के लिए अभी अपना प्रमाणपत्र प्राप्त करें।",
+    "maybe_later": "शायद बाद में"
   },
   "flashcard": {
     "strengths": {
@@ -2279,5 +2319,70 @@
     "current_streak": "वर्तमान लकीर",
     "longest_streak": "सबसे लंबी लकीर",
     "this_month": "इस महीने"
+  },
+  "intro": {
+    "step1": "नमस्ते! आपके नए सीखने के रोमांच में आपका स्वागत है।",
+    "step2": "यह ऐप डुओलिंगो से प्रेरित है और इसे बहुत प्यार से बनाया गया है ताकि हम सब एक साथ सीख सकें।",
+    "step3": "आप लीग में प्रतिस्पर्धा कर सकेंगे, XP कमा सकेंगे और मिनीगेम खेल सकेंगे!",
+    "step4": "क्या आप तैयार हैं? चलिए शुरू करते हैं!",
+    "skip": "छोड़ें",
+    "next": "जारी रखें"
+  },
+  "walkthrough": {
+    "welcome_title": "MyDuolingo में आपका स्वागत है!",
+    "welcome_desc": "एक इमर्सिव गेमिफाइड अनुभव। चलिए मैं आपको यहाँ की सैर कराता हूँ!",
+    "learn_title": "आपका नक्शा",
+    "learn_desc": "यहीं पर जादू होता है! पाठ पूरे करें, XP कमाएँ और अपने अहंकार को पोषित करें। अपनी स्ट्रीक मत खोना!",
+    "practice_title": "AI के साथ अभ्यास",
+    "practice_desc": "वास्तविक समय में देशी बॉट्स के साथ लिखने, बोलने और पढ़ने का अभ्यास करें। असीमित प्रयास!",
+    "leaderboard_title": "प्रतिस्पर्धी लीग",
+    "leaderboard_desc": "क्या आप शीर्ष 3 में पहुँच सकते हैं? या आप कोशिश करते हुए रोएंगे?",
+    "quests_title": "दैनिक खोज",
+    "quests_desc": "आपके XP चेस्ट को भरने के लिए हर दिन नई चुनौतियाँ।",
+    "shop_title": "दुकान",
+    "shop_desc": "बूस्टर, फ्रीज और ढाल खरीदने के लिए अपने मेहनत से कमाए गए सिक्कों का उपयोग करें।",
+    "ready_title": "सब तैयार!",
+    "ready_desc": "आप पूरी तरह से सुसज्जित हैं। अब बाहर जाएँ और रिकॉर्ड तोड़ें!",
+    "done": "Let's Go!",
+    "next": "Next",
+    "prev": "Back",
+    "progress": "{{current}} / {{total}}",
+    "step1_title": "Welcome to MyDuolingo!",
+    "step1_desc": "Let's take a quick guided tour to show you how everything works.",
+    "step2_title": "Learn",
+    "step2_desc": "Here is your lesson map. This is where you earn XP and level up!",
+    "step3_title": "The Shop",
+    "step3_desc": "Use the coins you earned in lessons to buy bonuses and lives.",
+    "step4_title": "All Set!",
+    "step4_desc": "Explore the rest of the menu whenever you want. Good luck with your learning!"
+  },
+  "Walkthrough": {
+    "welcome_title": "Welcome to MyDuolingo!",
+    "welcome_desc": "An immersive gamified experience. Let me show you around!",
+    "learn_title": "Your Map",
+    "learn_desc": "Here is where the magic happens! Complete lessons, earn XP, and feed your ego. Don't lose your streak!",
+    "practice_title": "AI Practice",
+    "practice_desc": "Train your writing, speaking, and reading with native bots in real-time. Unlimited tries!",
+    "leaderboard_title": "Competitive Leagues",
+    "leaderboard_desc": "Can you reach the Top 3? Or will you cry trying?",
+    "quests_title": "Daily Quests",
+    "quests_desc": "New challenges every day to fill your XP chest.",
+    "shop_title": "The Shop",
+    "shop_desc": "Use your hard-earned coins to buy boosters, freezes, and shields.",
+    "ready_title": "All Set!",
+    "ready_desc": "You're fully equipped. Now go out there and break records!"
+  },
+  "share": {
+    "modal_title": "Are you enjoying the experience?",
+    "modal_description": "Learning languages is easier with friends. Invite them and show who rules the Leaderboard!",
+    "button_share": "Invite Friends 🚀",
+    "button_later": "Maybe later",
+    "share_title": "Learn with MyDuolingo",
+    "share_text": "I'm having a blast learning on MyDuolingo! Join me and let's see who leads the Leaderboard. 🚀"
+  },
+  "seo": {
+    "title": "Faro — खेलकर भाषाएँ सीखें",
+    "description": "मजेदार, इंटरैक्टिव और गेमिफाइड तरीके से नई भाषाएँ सीखें। साप्ताहिक लीग में प्रतिस्पर्धा करें, XP कमाएं और अपने दोस्तों से जुड़ें!",
+    "keywords": "भाषाएं सीखें, अंग्रेजी सीखें, गेमिफिकेशन, ऑनलाइन भाषाएं, फारो ऐप, मुफ्त में भाषाएं सीखें"
   }
 }

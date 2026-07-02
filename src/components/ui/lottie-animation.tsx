@@ -11,6 +11,7 @@ import bearDanceAnimationData from "../../../public/bear_dance.json";
 import starAngryAnimationData from "../../../public/star_angry.json";
 import happyStarAnimationData from "../../../public/happy_star.json";
 import laughingCatAnimationData from "../../../public/laughing_cat.json";
+import loopingFlowerAnimationData from "../../../public/Looping_Flower.json";
 
 interface LottieAnimationProps {
   className?: string;
@@ -129,6 +130,18 @@ export const LaughingCatLottie = ({ className }: LottieAnimationProps) => {
   return (
     <Lottie
       animationData={laughingCatAnimationData}
+      loop
+      autoplay
+      className={className}
+    />
+  );
+};
+
+export const LoopingFlowerLottie = ({ className }: LottieAnimationProps) => {
+  const t = useTranslations("ui");
+  return (
+    <Lottie
+      animationData={loopingFlowerAnimationData}
       loop
       autoplay
       className={className}

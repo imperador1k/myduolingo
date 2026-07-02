@@ -466,14 +466,14 @@
     "stat_sleep": "Horas de sono",
     "instinct": "Instinto",
     "title": "Título",
-    "user_placeholder": "Usuário",
+    "user_placeholder": "Utilizador",
     "online_status": "Online",
     "my_account": "Minha conta",
     "email_address": "Endereço de email",
     "member_since": "Membro desde",
     "notifications": "Notificações",
     "support_legal": "Suporte e Legal",
-    "support_manual": "Manual do usuário",
+    "support_manual": "Manual do utilizador",
     "terms_of_use": "Termos de uso",
     "privacy_policy": "Política de privacidade",
     "licenses": "Licenças",
@@ -525,7 +525,29 @@
     "upgrade": "FAZER UPGRADE",
     "light": "Claro",
     "dark": "Escuro",
-    "system": "Sistema"
+    "system": "Sistema",
+    "active_sessions": {
+      "title": "Dispositivos Ativos",
+      "description": "Revê os dispositivos atualmente com sessão iniciada.",
+      "browser_unknown": "Unknown Browser",
+      "os_unknown": "Unknown OS",
+      "ip_unknown": "Unknown IP",
+      "current_device": "Atual",
+      "last_activity": "Última atividade:",
+      "unknown": "Unknown",
+      "messages": {
+        "success": "Sessão terminada com sucesso.",
+        "error": "Erro ao terminar sessão."
+      },
+      "disconnect": "Terminar Sessão"
+    },
+    "sign_out": {
+      "title": "Terminar Sessão",
+      "description": "Tens a certeza que pretendes terminar sessão na tua conta?",
+      "confirm": "Terminar Sessão",
+      "cancel": "Cancelar",
+      "trigger_label": "Terminar Sessão"
+    }
   },
   "friends": {
     "title": "Amigos",
@@ -1298,7 +1320,7 @@
     "remove_listeners_comment": "Remove os event listeners porque só precisamos desbloquear 1 vez",
     "listen_events_comment": "Escuta os primeiros eventos de toque / rato",
     "get_voices_comment": "Também obriga o browser a ir buscar as vozes logo de início",
-    "error_syncing_user": "Erro ao sincronizar informações do usuário",
+    "error_syncing_user": "Erro ao sincronizar informações do utilizador",
     "error_hint": "Erro ao gerar dica.",
     "training_complete": "Treino Completo! 💪",
     "trained_x_words": "Treinaste {count} palavras nesta sessão.",
@@ -1359,7 +1381,10 @@
       "description": "Description",
       "btn_support": "Btn Support",
       "btn_community": "Btn Community"
-    }
+    },
+    "global_error_title": "Erro Inesperado",
+    "global_error_desc": "Algo correu mal do nosso lado. Por favor, tenta novamente mais tarde.",
+    "try_again": "Tentar novamente"
   },
   "modals": {
     "results_title": "Resultados da Semana!",
@@ -1591,7 +1616,13 @@
     "sound_title": "Sons e Efeitos",
     "sound_description": "Ativa ou desativa os efeitos sonoros da app.",
     "sound_on": "Ligado",
-    "sound_off": "Desligado"
+    "sound_off": "Desligado",
+    "confirm_language_change": "Deseja mudar o idioma da App?",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "theme_title": "Tema",
+    "theme_desc": "Alterna entre o modo claro e escuro.",
+    "changing_language": "A mudar de idioma..."
   },
   "feed_components": {
     "create_curiosity": "Criar Curiosidade",
@@ -1730,7 +1761,9 @@
     "epic": "Épico!",
     "completed_course": "Completaste o Curso",
     "claim_certificate": "Reivindicar Diploma",
-    "back_to_top": "Voltar ao início?"
+    "back_to_top": "Voltar ao início?",
+    "completed_course_desc": "Concluíste todas as lições neste curso! Reclama o teu certificado agora para provares a tua mestria.",
+    "maybe_later": "Talvez Mais Tarde"
   },
   "flashcard": {
     "strengths": {
@@ -2306,5 +2339,10 @@
     "shop_desc": "Gasta as moedas que ganhaste a suar. Compras vidas ou fatos giros para mim! 🛍️",
     "ready_title": "Tudo Pronto!",
     "ready_desc": "Sobreviveste ao tutorial! Agora vai lá aprender antes que eu perca a paciência. ✨"
+  },
+  "seo": {
+    "title": "Faro — Aprende Línguas a Jogar",
+    "description": "Aprende novos idiomas de forma divertida, interativa e gamificada. Compete em ligas semanais, ganha XP e junta-te aos teus amigos!",
+    "keywords": "aprender idiomas, aprender inglês, gamificação, línguas online, faro app, aprender línguas grátis"
   }
 }

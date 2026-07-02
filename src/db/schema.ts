@@ -583,6 +583,7 @@ export const notifications = pgTable("notifications", {
   message: text("message").notNull(),
   read: boolean("read").default(false).notNull(),
   link: text("link"), // Link to redirect when clicked
+  senderImage: text("sender_image"), // Avatar of the sender
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -233,21 +233,26 @@ export async function decryptConversationKey(
   }
 
   const promise = (async () => {
-    const encryptedBuffer = base64ToArrayBuffer(encryptedConversationKeyBase64);
+    try {
+      const encryptedBuffer = base64ToArrayBuffer(encryptedConversationKeyBase64);
 
-    const rawKey = await window.crypto.subtle.decrypt(
-      { name: "RSA-OAEP" },
-      myPrivateKey,
-      encryptedBuffer,
-    );
+      const rawKey = await window.crypto.subtle.decrypt(
+        { name: "RSA-OAEP" },
+        myPrivateKey,
+        encryptedBuffer,
+      );
 
-    return window.crypto.subtle.importKey(
-      "raw",
-      rawKey,
-      { name: "AES-GCM" },
-      true,
-      ["encrypt", "decrypt"],
-    );
+      return await window.crypto.subtle.importKey(
+        "raw",
+        rawKey,
+        { name: "AES-GCM" },
+        true,
+        ["encrypt", "decrypt"],
+      );
+    } catch (e) {
+      console.warn("⚠️ Não foi possível desencriptar a chave da conversa (chaves não correspondem).");
+      return null as unknown as CryptoKey; // Return null gracefully
+    }
   })();
 
   conversationKeyCache.set(encryptedConversationKeyBase64, promise);

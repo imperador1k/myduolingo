@@ -86,19 +86,19 @@
   },
   "Walkthrough": {
     "welcome_title": "Welcome to MyDuolingo!",
-    "welcome_desc": "A fully immersive gamified experience. Let me show you around!",
+    "welcome_desc": "An immersive gamified experience. Let me show you around!",
     "learn_title": "Your Map",
-    "learn_desc": "Where the magic happens! Do lessons, earn XP, and feed your ego. Don't lose that streak!",
+    "learn_desc": "Here is where the magic happens! Complete lessons, earn XP, and feed your ego. Don't lose your streak!",
     "practice_title": "AI Practice",
-    "practice_desc": "Train Writing, Speaking, and Reading with native bots in real-time. Unlimited attempts!",
+    "practice_desc": "Train your writing, speaking, and reading with native bots in real-time. Unlimited tries!",
     "leaderboard_title": "Competitive Leagues",
     "leaderboard_desc": "Can you reach the Top 3? Or will you cry trying?",
     "quests_title": "Daily Quests",
-    "quests_desc": "New challenges every day to fill your XP Vault.",
+    "quests_desc": "New challenges every day to fill your XP chest.",
     "shop_title": "The Shop",
-    "shop_desc": "Use your hard-earned coins to buy Boosters, Freezes, and Shields.",
+    "shop_desc": "Use your hard-earned coins to buy boosters, freezes, and shields.",
     "ready_title": "All Set!",
-    "ready_desc": "You are fully equipped. Now go out there and break some records!"
+    "ready_desc": "You're fully equipped. Now go out there and break records!"
   },
   "Feed": {
     "image_size_error": "The image cannot be larger than 5MB.",
@@ -525,7 +525,29 @@
     "upgrade": "UPGRADE",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "active_sessions": {
+      "title": "Active Devices",
+      "description": "Review devices currently logged into your account.",
+      "browser_unknown": "Unknown Browser",
+      "os_unknown": "Unknown OS",
+      "ip_unknown": "Unknown IP",
+      "current_device": "Current",
+      "last_activity": "Last activity:",
+      "unknown": "Unknown",
+      "messages": {
+        "success": "Session revoked successfully.",
+        "error": "Failed to revoke session."
+      },
+      "disconnect": "Disconnect"
+    },
+    "sign_out": {
+      "title": "Sign Out",
+      "description": "Are you sure you want to sign out of your account?",
+      "confirm": "Sign Out",
+      "cancel": "Cancel",
+      "trigger_label": "Sign Out"
+    }
   },
   "friends": {
     "title": "Friends",
@@ -1310,7 +1332,10 @@
       "description": "Description",
       "btn_support": "Btn Support",
       "btn_community": "Btn Community"
-    }
+    },
+    "global_error_title": "Unexpected Error",
+    "global_error_desc": "Something went wrong on our end. Please try again later.",
+    "try_again": "Try Again"
   },
   "modals": {
     "results_title": "Weekly Results!",
@@ -1542,7 +1567,13 @@
     "sound_title": "Sounds & Effects",
     "sound_description": "Enable or disable app sound effects.",
     "sound_on": "On",
-    "sound_off": "Off"
+    "sound_off": "Off",
+    "confirm_language_change": "Do you want to change the App language?",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "theme_title": "Theme",
+    "theme_desc": "Toggle between light and dark modes.",
+    "changing_language": "Changing language..."
   },
   "feed_components": {
     "create_curiosity": "Create Curiosity",
@@ -1681,7 +1712,9 @@
     "epic": "Epic!",
     "completed_course": "You Completed the Course",
     "claim_certificate": "Claim Diploma",
-    "back_to_top": "Back to top?"
+    "back_to_top": "Back to top?",
+    "completed_course_desc": "You have completed all lessons in this course! Claim your certificate now to prove your mastery.",
+    "maybe_later": "Maybe Later"
   },
   "terms": {
     "title": "Terms of Use",
@@ -2287,18 +2320,23 @@
     "step4_title": "All Set!",
     "step4_desc": "Explore the rest of the menu whenever you want. Good luck with your learning!",
     "welcome_title": "Welcome to MyDuolingo!",
-    "welcome_desc": "Get ready for the journey! I promise not to kidnap your family if you miss a lesson... for now. 😈",
+    "welcome_desc": "An immersive gamified experience. Let me show you around!",
     "learn_title": "Your Map",
-    "learn_desc": "Where the magic happens! Do lessons, earn XP, and feed your ego. Don't lose that streak!",
+    "learn_desc": "Here is where the magic happens! Complete lessons, earn XP, and feed your ego. Don't lose your streak!",
     "practice_title": "AI Practice",
-    "practice_desc": "Talk to my robot friends! They won't judge your accent (too much).",
-    "leaderboard_title": "Leagues",
-    "leaderboard_desc": "This is where friendships end. Reach the Top 3 or cry trying! 🏆",
+    "practice_desc": "Train your writing, speaking, and reading with native bots in real-time. Unlimited tries!",
+    "leaderboard_title": "Competitive Leagues",
+    "leaderboard_desc": "Can you reach the Top 3? Or will you cry trying?",
     "quests_title": "Daily Quests",
-    "quests_desc": "Easy tasks for awesome people. Complete them and steal treasure chests! 🎯",
+    "quests_desc": "New challenges every day to fill your XP chest.",
     "shop_title": "The Shop",
-    "shop_desc": "Spend your hard-earned coins. Buy lives or cute outfits for me! 🛍️",
+    "shop_desc": "Use your hard-earned coins to buy boosters, freezes, and shields.",
     "ready_title": "All Set!",
-    "ready_desc": "You survived the tutorial! Now go learn before I lose my patience. ✨"
+    "ready_desc": "You're fully equipped. Now go out there and break records!"
+  },
+  "seo": {
+    "title": "Faro — Learn Languages by Playing",
+    "description": "Learn new languages in a fun, interactive, and gamified way. Compete in weekly leagues, earn XP, and join your friends!",
+    "keywords": "learn languages, learn english, gamification, online languages, faro app, learn languages for free"
   }
 }

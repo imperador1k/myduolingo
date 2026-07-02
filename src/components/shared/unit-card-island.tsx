@@ -210,6 +210,7 @@ export const UnitCardIsland = memo(function UnitCardIsland({
             return (
               <div
                 key={lesson.id}
+                id={lesson.isCurrent ? "current-lesson" : undefined}
                 className="absolute z-20 pointer-events-auto animate-in fade-in zoom-in duration-500 delay-100"
                 style={{
                   left: pos.left,

@@ -248,8 +248,9 @@ export const sendMessage = async (
         await createNotification(
           part.userId,
           "message",
-          `Nova mensagem de ${userName} 💬`,
+          `Nova mensagem de ${userName}`,
           `/messages?conversationId=${conversationId}`,
+          currentUser?.userImageSrc
         );
       }
     }

@@ -156,6 +156,7 @@ export const LessonClient = ({
   const [wrongCount, setWrongCount] = useState(0);
   const [heartsLost, setHeartsLost] = useState(0);
   const [xpGained, setXpGained] = useState(0);
+  const [consecutiveCorrectCount, setConsecutiveCorrectCount] = useState(0);
 
   const currentChallenge = challenges[activeIndex];
   const options = currentChallenge?.challengeOptions || [];
@@ -233,6 +234,7 @@ export const LessonClient = ({
         setStatus("correct");
         playSound("correct");
         setCorrectCount((prev) => prev + 1);
+        setConsecutiveCorrectCount((prev) => prev + 1);
         if (result.isTypo)
           setTypoMessage(
             `Quase perfeito! Atenção à ortografia: ${correctText}`,
@@ -259,6 +261,7 @@ export const LessonClient = ({
         setStatus("wrong");
         playSound("wrong");
         setWrongCount((prev) => prev + 1);
+        setConsecutiveCorrectCount(0);
         setTypoMessage(null);
         setChallenges((prev) => [
           ...prev,
@@ -289,6 +292,7 @@ export const LessonClient = ({
       setStatus("correct");
       playSound("correct");
       setCorrectCount((prev) => prev + 1);
+      setConsecutiveCorrectCount((prev) => prev + 1);
 
       if (isClinic) {
         setPoints((prev) => prev + 10);
@@ -310,6 +314,7 @@ export const LessonClient = ({
       setStatus("wrong");
       playSound("wrong");
       setWrongCount((prev) => prev + 1);
+      setConsecutiveCorrectCount(0);
       setChallenges((prev) => [
         ...prev,
         { ...currentChallenge, id: currentChallenge.id + Math.random() },
@@ -661,7 +666,8 @@ export const LessonClient = ({
           isAudioMuted={isAudioMuted}
           onToggleMute={() => setIsAudioMuted(!isAudioMuted)}
           onExit={handleExit}
-          isPro={isPro}
+          isPro={!!isPro}
+          consecutiveCorrectCount={consecutiveCorrectCount}
         />
 
         {showTransition && (

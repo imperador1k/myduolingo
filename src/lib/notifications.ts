@@ -6,7 +6,8 @@ export const createNotification = async (
     userId: string,
     type: string,
     message: string,
-    link?: string
+    link?: string,
+    senderImage?: string
 ) => {
     // 🛡️ GATEKEEPER: Check if user has opted out
     const recipientProgress = await db.query.userProgress.findFirst({ 
@@ -35,6 +36,7 @@ export const createNotification = async (
                 await db.update(notifications)
                     .set({
                         message, 
+                        senderImage,
                         createdAt: new Date(), // bump to top
                     })
                     .where(eq(notifications.id, existingUnread.id));
@@ -45,6 +47,7 @@ export const createNotification = async (
                     type,
                     message,
                     link,
+                    senderImage,
                     read: false,
                 });
             }
@@ -55,6 +58,7 @@ export const createNotification = async (
                 type,
                 message,
                 link,
+                senderImage,
                 read: false,
             });
         }

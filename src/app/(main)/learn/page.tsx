@@ -4,6 +4,7 @@ import Image from "next/image";
 import { UnitSearchModal } from "@/components/modals/unit-search-modal";
 import Link from "next/link";
 import { getUnits, getUserProgress, getCourses } from "@/db/queries";
+import { getUserCertificates } from "@/actions/certificates";
 import { Button } from "@/components/ui/button";
 import { UnitIslandFeed } from "@/components/learn/unit-island-feed";
 import { DesktopSidebar } from "@/components/learn/desktop-sidebar";
@@ -142,6 +143,9 @@ async function LearnData() {
     order: u.order,
   }));
 
+  const userCertificates = await getUserCertificates(userProgress.userId);
+  const hasClaimedCertificate = userCertificates.some(c => c.courseId === userProgress.activeCourseId);
+
   return (
     <>
       <UnitSearchModal units={searchableUnits} />
@@ -152,6 +156,7 @@ async function LearnData() {
             processedUnits={processedUnits}
             noHearts={userProgress.hearts === 0}
             activeCourseId={userProgress.activeCourseId!}
+            hasClaimedCertificate={hasClaimedCertificate}
           />
 
           {processedUnits.length === 0 && (

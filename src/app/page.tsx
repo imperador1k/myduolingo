@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import { LandingCTA } from "@/components/shared/landing-cta";
-import { LottieAnimation } from "@/components/ui/lottie-animation";
+import { LoopingFlowerLottie } from "@/components/ui/lottie-animation";
 import { ClientIntroOverlay } from "@/components/shared/client-intro-overlay";
 
 export const dynamic = "force-dynamic";
@@ -74,7 +74,7 @@ export default async function Home() {
           {/* Subtle glowing ring behind lottie */}
           <div className="absolute inset-10 rounded-full bg-green-100/60 dark:bg-green-900/10 blur-2xl"></div>
           <div className="relative z-10 w-full h-full animate-in zoom-in duration-700 ease-out fill-mode-both">
-            <LottieAnimation className="h-full w-full drop-shadow-xl" />
+            <LoopingFlowerLottie className="h-full w-full drop-shadow-xl" />
           </div>
         </div>
 

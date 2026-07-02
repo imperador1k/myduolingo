@@ -8,7 +8,7 @@ import { LogOut } from "lucide-react";
 import { SignOutButton, useClerk } from "@clerk/nextjs";
 
 export const SignOutZone = ({ trigger }: { trigger?: React.ReactNode }) => {
-  const t = useTranslations("settings");
+  const t = useTranslations("settings.sign_out");
   const { signOut } = useClerk();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);

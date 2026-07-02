@@ -3,6 +3,7 @@ import Image from "next/image";
 import { currentUser } from "@clerk/nextjs/server";
 import { EditProfileButton } from "@/components/shared/edit-profile-button";
 import { NotificationToggle } from "@/components/shared/notification-toggle";
+import { InAppNotificationToggle } from "@/components/settings/in-app-notification-toggle";
 import { getUserProgress } from "@/db/queries";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -148,6 +149,7 @@ async function SettingsData() {
           <NotificationToggle
             initialEnabled={userProgress.notificationsEnabled}
           />
+          <InAppNotificationToggle />
           <hr className="border-2 border-stone-100 dark:border-slate-800 rounded-full" />
           <SoundToggle />
         </div>

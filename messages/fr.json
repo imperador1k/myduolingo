@@ -509,7 +509,29 @@
     "upgrade": "PASSER À LA VERSION SUPÉRIEURE",
     "light": "Clair",
     "dark": "Sombre",
-    "system": "Système"
+    "system": "Système",
+    "active_sessions": {
+      "title": "Active Devices",
+      "description": "Review devices currently logged into your account.",
+      "browser_unknown": "Unknown Browser",
+      "os_unknown": "Unknown OS",
+      "ip_unknown": "Unknown IP",
+      "current_device": "Current",
+      "last_activity": "Last activity:",
+      "unknown": "Unknown",
+      "messages": {
+        "success": "Session revoked successfully.",
+        "error": "Failed to revoke session."
+      },
+      "disconnect": "Disconnect"
+    },
+    "sign_out": {
+      "title": "Sign Out",
+      "description": "Are you sure you want to sign out of your account?",
+      "confirm": "Sign Out",
+      "cancel": "Cancel",
+      "trigger_label": "Sign Out"
+    }
   },
   "friends": {
     "title": "Amis",
@@ -551,7 +573,10 @@
     "search_community_desc": "Recherche par nom exact ou ign.",
     "search_results": "Résultats",
     "no_results": "Aucun utilisateur trouvé avec ce nom.",
-    "suggestions_title": "Suggestions à suivre"
+    "suggestions_title": "Suggestions à suivre",
+    "status_friends": "Friends",
+    "status_follows_you": "Follows You",
+    "status_following": "Following"
   },
   "messages": {
     "bear_animation_label": "Animation d'un ours qui danse",
@@ -1158,7 +1183,10 @@
       "description": "Description",
       "btn_support": "Btn Support",
       "btn_community": "Btn Community"
-    }
+    },
+    "global_error_title": "Erreur Inattendue",
+    "global_error_desc": "Quelque chose s'est mal passé de notre côté. Veuillez réessayer plus tard.",
+    "try_again": "Réessayer"
   },
   "modals": {
     "results_title": "Résultats de la semaine !",
@@ -1386,7 +1414,17 @@
     "give_feedback": "Donner votre avis",
     "help_us_grow": "Aidez-nous à grandir !",
     "language_updated": "Langue mise à jour",
-    "language_error": "Erreur de langue"
+    "language_error": "Erreur de langue",
+    "sound_title": "Sounds & Effects",
+    "sound_description": "Enable or disable app sound effects.",
+    "sound_on": "On",
+    "sound_off": "Off",
+    "confirm_language_change": "Voulez-vous changer la langue de l'application ?",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "theme_title": "Thème",
+    "theme_desc": "Basculer entre les modes clair et sombre.",
+    "changing_language": "Changing language..."
   },
   "feed_components": {
     "create_curiosity": "Créer une curiosité",
@@ -1525,7 +1563,9 @@
     "epic": "Épique !",
     "completed_course": "Vous avez terminé le cours",
     "claim_certificate": "Réclamer le diplôme",
-    "back_to_top": "Revenir en haut ?"
+    "back_to_top": "Revenir en haut ?",
+    "completed_course_desc": "Vous avez terminé toutes les leçons de ce cours ! Réclamez votre certificat maintenant pour prouver votre maîtrise.",
+    "maybe_later": "Peut-être plus tard"
   },
   "practice": {
     "ready_to_start": "Bonjour ! Prêt(e) à commencer ? Touchez le microphone ci-dessous !",
@@ -2239,5 +2279,70 @@
     "current_streak": "Série Actuelle",
     "longest_streak": "Plus Longue Série",
     "this_month": "Ce Mois-ci"
+  },
+  "intro": {
+    "step1": "Bonjour ! Bienvenue dans ta nouvelle aventure d'apprentissage.",
+    "step2": "Cette application est inspirée de Duolingo et a été créée avec beaucoup d'amour pour que nous puissions tous apprendre ensemble.",
+    "step3": "Tu pourras participer à des ligues, gagner de l'XP et jouer à des mini-jeux !",
+    "step4": "Es-tu prêt ? Commençons !",
+    "skip": "Passer",
+    "next": "Continuer"
+  },
+  "walkthrough": {
+    "welcome_title": "Bienvenue sur MyDuolingo !",
+    "welcome_desc": "Une expérience ludique immersive. Laisse-moi te faire visiter !",
+    "learn_title": "Ta Carte",
+    "learn_desc": "C'est ici que la magie opère ! Termine des leçons, gagne de l'XP et nourris ton ego. Ne perds pas ta série !",
+    "practice_title": "Entraînement avec IA",
+    "practice_desc": "Entraîne ton écriture, ton expression orale et ta lecture avec des bots natifs en temps réel. Essais illimités !",
+    "leaderboard_title": "Ligues Compétitives",
+    "leaderboard_desc": "Peux-tu atteindre le Top 3 ? Ou vas-tu pleurer en essayant ?",
+    "quests_title": "Quêtes Quotidiennes",
+    "quests_desc": "De nouveaux défis chaque jour pour remplir ton coffre d'XP.",
+    "shop_title": "La Boutique",
+    "shop_desc": "Utilise tes pièces durement gagnées pour acheter des boosters, des gels et des boucliers.",
+    "ready_title": "Tout est Prêt !",
+    "ready_desc": "Tu es entièrement équipé. Maintenant, sors et bats des records !",
+    "done": "Let's Go!",
+    "next": "Next",
+    "prev": "Back",
+    "progress": "{{current}} / {{total}}",
+    "step1_title": "Welcome to MyDuolingo!",
+    "step1_desc": "Let's take a quick guided tour to show you how everything works.",
+    "step2_title": "Learn",
+    "step2_desc": "Here is your lesson map. This is where you earn XP and level up!",
+    "step3_title": "The Shop",
+    "step3_desc": "Use the coins you earned in lessons to buy bonuses and lives.",
+    "step4_title": "All Set!",
+    "step4_desc": "Explore the rest of the menu whenever you want. Good luck with your learning!"
+  },
+  "Walkthrough": {
+    "welcome_title": "Welcome to MyDuolingo!",
+    "welcome_desc": "An immersive gamified experience. Let me show you around!",
+    "learn_title": "Your Map",
+    "learn_desc": "Here is where the magic happens! Complete lessons, earn XP, and feed your ego. Don't lose your streak!",
+    "practice_title": "AI Practice",
+    "practice_desc": "Train your writing, speaking, and reading with native bots in real-time. Unlimited tries!",
+    "leaderboard_title": "Competitive Leagues",
+    "leaderboard_desc": "Can you reach the Top 3? Or will you cry trying?",
+    "quests_title": "Daily Quests",
+    "quests_desc": "New challenges every day to fill your XP chest.",
+    "shop_title": "The Shop",
+    "shop_desc": "Use your hard-earned coins to buy boosters, freezes, and shields.",
+    "ready_title": "All Set!",
+    "ready_desc": "You're fully equipped. Now go out there and break records!"
+  },
+  "share": {
+    "modal_title": "Are you enjoying the experience?",
+    "modal_description": "Learning languages is easier with friends. Invite them and show who rules the Leaderboard!",
+    "button_share": "Invite Friends 🚀",
+    "button_later": "Maybe later",
+    "share_title": "Learn with MyDuolingo",
+    "share_text": "I'm having a blast learning on MyDuolingo! Join me and let's see who leads the Leaderboard. 🚀"
+  },
+  "seo": {
+    "title": "Faro — Apprenez des Langues en Jouant",
+    "description": "Apprenez de nouvelles langues de manière ludique, interactive et ludifiée. Affrontez des ligues hebdomadaires, gagnez de l'XP et rejoignez vos amis !",
+    "keywords": "apprendre des langues, apprendre l'anglais, gamification, langues en ligne, application faro, apprendre des langues gratuitement"
   }
 }

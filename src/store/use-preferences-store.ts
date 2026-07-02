@@ -11,6 +11,7 @@ interface PreferencesState {
   hasSeenIntroOverlay: boolean;
   isMuted: boolean;
   nativeLanguage: string | null;
+  inAppNotificationsEnabled: boolean;
   // actions
   setPreference: <
     K extends keyof Omit<
@@ -35,6 +36,7 @@ export const usePreferencesStore = create<PreferencesState>()(
       hasSeenIntroOverlay: false,
       isMuted: false,
       nativeLanguage: null,
+      inAppNotificationsEnabled: true,
 
       setPreference: (key, value) => {
         set({ [key]: value } as any);

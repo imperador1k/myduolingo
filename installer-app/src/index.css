@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222.2 84% 4.9%);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-slate-900);
+    color: white;
+    font-family: sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    user-select: none;
+  }
+}
