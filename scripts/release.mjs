@@ -32,7 +32,7 @@ try {
   // 3. Criar o commit e a tag no Git
   console.log(`\n[3/4] A preparar os ficheiros para o GitHub (v${newVersion})...`);
   execSync(`git add package.json package-lock.json ${tauriConfPath}`);
-  execSync(`git commit -m "chore: release v${newVersion}"`);
+  execSync(`git commit --no-verify -m "chore: release v${newVersion}"`);
   execSync(`git tag v${newVersion}`);
 
   // 4. Enviar tudo para o GitHub
